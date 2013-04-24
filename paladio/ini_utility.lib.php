@@ -7,7 +7,7 @@
 	}
 
 	/**
-	 * FileSystem
+	 * INI_Utility
 	 * @package INI
 	 */
 	final class INI_Utility

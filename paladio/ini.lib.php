@@ -12,7 +12,7 @@
 	}
 
 	/**
-	 * FileSystem
+	 * INI
 	 * @package INI
 	 */
 	final class INI

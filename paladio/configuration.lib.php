@@ -134,7 +134,7 @@
 		 * Loads configuration from the path given in $path. Each file is only loaded once.
 		 *
 		 * If $path is array: Configuration::Load is called recursively on each element of the array.
-		 * If $path is a directory: Loads configuration from each file in the directory with a name in the form "*.cfg.php"
+		 * If $path is a folder: Loads configuration from each file in the folder with a name in the form "*.cfg.php"
 		 * If $path is a file: Loads configuration from the file.
 		 * Otherwise: does nothing.
 		 *

@@ -6,6 +6,10 @@
 		exit();
 	}
 
+	/**
+	 * FileSystem
+	 * @package INI
+	 */
 	final class INI_Utility
 	{
 		//------------------------------------------------------------
@@ -23,15 +27,39 @@
 		// Public (Class)
 		//------------------------------------------------------------
 
-		public static function Escape(/*string*/ $value)
+		/**
+		 * Escapes a string in C style.
+		 *
+		 * Note 1: The escaped characters are: null, tab, carriage return, line feed, backslash, double quotes, single quotes, comman and semicolon.
+		 * Note 2: $string is expected to be string, no check is performed.
+		 *
+		 * Returns the string $string escaped in C style.
+		 *
+		 * @access public
+		 * @return string
+		 */
+		public static function Escape(/*string*/ $string)
 		{
 			$before = array("\\"     , "\0"    , "\t"    , "\r"    , "\n"    , '"'     , "'"     , ','     , ';'     );
 			$after =  array("\\"."\\", "\\".'0', "\\".'t', "\\".'r', "\\".'n', "\\".'"', "\\"."'", "\\".',', "\\".';');
 			//ONLY UTF-8
-			$result = str_replace($before, $after, $result);
+			$result = str_replace($before, $after, $string);
 			return $result;
 		}
 
+		/**
+		 * Processes an INI line.
+		 *
+		 * Sets the $fieldName to the name of the readed field, and $fieldValue to the value of the readed field.
+		 * If the value is in single quotes or double quotes, $extra is set to what is found after the quotes.
+		 *
+		 * Note: $line is expected to be string, no check is performed.
+		 *
+		 * Returns true if readed a value, false otherwise.
+		 *
+		 * @access public
+		 * @return bool
+		 */
 		public static function ProcessLine(/*string*/ $line, /*string*/ &$fieldName, /*string*/ &$fieldValue, /*mixed*/ &$extra)
 		{
 			$fieldName = '';
@@ -69,6 +97,18 @@
 			}
 		}
 
+		/**
+		 * Processes a value.
+		 *
+		 * If $value was in single quotes or double quotes, sets $value to the part in quotes unscaped and $extra to what was after the quotes.
+		 *
+		 * Note: $value is expected to be string, no check is performed.
+		 *
+		 * Returns true if $value was in quotes, false otherwise.
+		 *
+		 * @access public
+		 * @return bool
+		 */
 		public static function ProcessValue(/*string*/ &$value, /*mixed*/ &$extra)
 		{
 			//ONLY UTF-8
@@ -90,19 +130,30 @@
 			}
 		}
 
-		public static function Unescape(/*string*/ $value)
+		/**
+		 * Unscapes a string C Style
+		 *
+		 * Note 1: Suports escape sequences in the form \x## (where ## is an hexa value) and also \\, \0, \t, \r, \n, \", \', \, and \;
+		 * Note 2: $string is expected to be string, no check is performed.
+		 *
+		 * Returns the string $string unescaped in C style.
+		 *
+		 * @access public
+		 * @return string
+		 */
+		public static function Unescape(/*string*/ $string)
 		{
 			//ONLY UTF-8
 			$result = preg_replace_callback
 			(
 					'#(\\\\x[0-9a-fA-F]{2})#u',
 					'INI_Utility::EscapeSequence',
-					$value
+					$string
 			);
 			$before = array("\\"."\\", "\\".'0', "\\".'t', "\\".'r', "\\".'n', "\\".'"', "\\"."'", "\\".',', "\\".';');
 			$after =  array("\\"     , "\0"    , "\t"    , "\r"    , "\n"    , '"'     , "'"     , ','     , ';'     );
 			//ONLY UTF-8
-			$result = str_replace($before, $after, $result);
+			$result = str_replace($before, $after, $string);
 			return $result;
 		}
 

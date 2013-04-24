@@ -12,7 +12,14 @@
 		require_once('configuration.lib.php');
 		FileSystem::RequireAll('*.lib.php', FileSystem::FolderCore());
 	}
-	
+
+	/**
+	 * Un-quotes a quoted string, UTF-8 aware equivalent of stripslashes.
+	 *
+	 * Note: $str is expected to be string, no check is performed.
+	 *
+	 * @return string
+	 */
 	function stripslashes_utf8($str)
 	{
 		//ONLY UTF-8
@@ -42,6 +49,10 @@
 		unset($process);
 	}
 
+	/**
+	 * Paladio
+	 * @package Paladio
+	 */
 	final class Paladio
 	{
 		//------------------------------------------------------------
@@ -52,7 +63,7 @@
 		private static $categoryName;
 		private static $entries;
 		private static $extraPets;
-		
+
 		private static function ClassExists(/*string*/ $className)
 		{
 			if (is_string($className))
@@ -101,7 +112,7 @@
 				}
 			}
 		}
-		
+
 		private static function GetPetFile(/*string*/ $petName, /*bool*/ $multiple)
 		{
 			if ($multiple)
@@ -211,7 +222,52 @@
 			}
 			Paladio::Dispatch();
 		}
-		
+
+		private static function ProcessDocumentFragment($parser, $source)
+		{
+			$contents = '';
+			while($parser->CanConsume())
+			{
+				$new = $parser->ConsumeUntil(array('<@', '</@'));
+				$contents .= $new;
+				$elementResult = Paladio::ReadElement($parser, $source, $element);
+				if ($elementResult['status'] === false)
+				{
+					//OPEN
+					$documentResult = Paladio::ProcessDocumentFragment($parser, $source);
+					$element['contents'] = $documentResult['contents'];
+					$new = Paladio::ProcessElement($element);
+					$contents .= $new;
+					if (!is_null($documentResult['close']))
+					{
+						if ($element['name'] != $documentResult['close'])
+						{
+							return array('close' => $element['name'], 'contents' => $contents);
+						}
+					}
+				}
+				else if ($elementResult['status'] === true)
+				{
+					//CLOSE
+					if ($elementResult['name'] == '')
+					{
+						return array('close' => null, 'contents' => $contents);
+					}
+					else
+					{
+						$name = $elementResult['name'];
+						return array('close' => $name, 'contents' => $contents);
+					}
+				}
+				else if ($elementResult['status'] === null)
+				{
+					$new = $elementResult['contents'];
+					$contents .= $new;
+				}
+			}
+			return array('close' => null, 'contents' => $contents);
+		}
+
 		private static function ProcessElement(/*array*/ $_ELEMENT)
 		{
 			if (array_key_exists('multiple', $_ELEMENT))
@@ -230,7 +286,7 @@
 				return '';
 			}
 		}
-		
+
 		private static function ProcessFile(/*array*/ $_ELEMENT, /*string*/ $file)
 		{
 			ob_start();
@@ -259,7 +315,7 @@
 				return Paladio::ProcessFile($_ELEMENT, $file);
 			}
 		}
-		
+
 		private static function ProcessMultipleElement(/*array*/ $_ELEMENT)
 		{
 			$files = Paladio::GetPetFile($_ELEMENT['name'], true);
@@ -426,6 +482,12 @@
 		// Public (Class)
 		//------------------------------------------------------------
 
+		/**
+		 * Performes static initialization.
+		 *
+		 * @access public
+		 * @return void
+		 */
 		public static function __Init()
 		{
 			Paladio::$mode = null;
@@ -461,6 +523,16 @@
 			Paladio::LoadPlugins();
 		}
 
+		/**
+		 * Creates a notification callback to be executed when the specified class with the name $className becomes available.
+		 *
+		 * If $callback is null: the including file will be included to handle the notification.
+		 * If $callback is callable: it will be called to handle the notification.
+		 * Otherwise: throws an exception with the message "Invalid callback".
+		 *
+		 * @access public
+		 * @return void
+		 */
 		public static function Request($className, $callback = null)
 		{
 			if (Paladio::ClassExists($className))
@@ -489,52 +561,18 @@
 				return true;
 			}
 		}
-		
-		private static function ProcessDocumentFragment($parser, $source)
-		{
-			$contents = '';
-			while($parser->CanConsume())
-			{
-				$new = $parser->ConsumeUntil(array('<@', '</@'));
-				$contents .= $new;
-				$elementResult = Paladio::ReadElement($parser, $source, $element);
-				if ($elementResult['status'] === false)
-				{
-					//OPEN
-					$documentResult = Paladio::ProcessDocumentFragment($parser, $source);
-					$element['contents'] = $documentResult['contents'];
-					$new = Paladio::ProcessElement($element);
-					$contents .= $new;
-					if (!is_null($documentResult['close']))
-					{
-						if ($element['name'] != $documentResult['close'])
-						{
-							return array('close' => $element['name'], 'contents' => $contents);
-						}
-					}
-				}
-				else if ($elementResult['status'] === true)
-				{
-					//CLOSE
-					if ($elementResult['name'] == '')
-					{
-						return array('close' => null, 'contents' => $contents);
-					}
-					else
-					{
-						$name = $elementResult['name'];
-						return array('close' => $name, 'contents' => $contents);
-					}
-				}
-				else if ($elementResult['status'] === null)
-				{
-					$new = $elementResult['contents'];
-					$contents .= $new;
-				}
-			}
-			return array('close' => null, 'contents' => $contents);
-		}
 
+		/**
+		 * Processes the string $document resolving any PETs (Paladio Element Templates).
+		 *
+		 * $document is the string to be procesed. $source is the uri that will be passed to any found PETs.
+		 *
+		 * Note 1: If the class Parses is not available $document is returned as is.
+		 * Note 2: $document is expected to be string, no check is performed.
+		 *
+		 * @access public
+		 * @return string
+		 */
 		public static function ProcessDocument($document, $source)
 		{
 			if (class_exists('Parser'))

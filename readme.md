@@ -36,6 +36,10 @@ License
     You should have received a copy of the GNU Lesser General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+This repository also includes copies of Addendum and PHPMailer. Addendum and PHPMailer are distributed under their own license.
+
+Some files also include an alternative license.
+
 ---
 Waranty
 ---

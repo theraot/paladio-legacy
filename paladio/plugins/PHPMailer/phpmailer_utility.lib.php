@@ -46,7 +46,7 @@
 		// Public (Class)
 		//------------------------------------------------------------
 
-		public static function Configure(/*string*/ $auth, /*string*/ $secure, /*string*/ $sever, /*string*/ $port, /*string*/ $user, /*string*/ $key, /*string*/ $sender, /*string*/ $senderName)
+		public static function Configure(/*string*/ $secure, /*string*/ $sever, /*string*/ $port, /*string*/ $user, /*string*/ $key, /*string*/ $sender, /*string*/ $senderName)
 		{
 			if (is_string($auth))
 			{
@@ -60,7 +60,6 @@
 					$auth = false;
 				}
 			}
-			PHPMailer_Utility::$auth = $auth;
 			PHPMailer_Utility::$secure = $secure;
 			PHPMailer_Utility::$server = $server;
 			PHPMailer_Utility::$port = $port;
@@ -110,7 +109,6 @@
 	{
 		Database::Configure
 		(
-			Configuration::Get('paladio-mail', 'auth', true),
 			Configuration::Get('paladio-mail', 'secure', 'ssl'),
 			Configuration::Get('paladio-mail', 'server'),
 			Configuration::Get('paladio-mail', 'port'),

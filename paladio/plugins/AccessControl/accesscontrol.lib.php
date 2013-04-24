@@ -41,6 +41,38 @@
 		private static $roleField;
 		private static $hashAlgorithm;
 		private static $current;
+		
+		private static function CheckCanAccess(/*mixed*/ $result)
+		{
+			if (is_null($result))
+			{
+				return true;
+			}
+			if (is_array($result))
+			{
+				if (array_key_exists('accesscontrol', $result))
+				{
+					$value = $result['accesscontrol'];
+					if ($value)
+					{
+						return true;
+					}
+					else
+					{
+						return false;
+					}
+				}
+				return true;
+			}
+			else if (is_bool($result))
+			{
+				return $result;
+			}
+			else
+			{
+				return true;
+			}
+		}
 
 		private static function Decode(/*mixed*/ $value)
 		{
@@ -65,8 +97,11 @@
 					$file = FileSystem::ResolveRelativePath($path, $key);
 					if (is_file($file))
 					{
-						$result[$key] = $list[$key];
-						$result[$key]['path'] = $file;
+						if (AccessControl::CheckCanAccess($list[$key]))
+						{
+							$result[$key] = $list[$key];
+							$result[$key]['path'] = $file;
+						}
 					}
 				}
 			}
@@ -131,7 +166,14 @@
 
 		public static function CanAccess(/*string*/ $file)
 		{
-			return AccessControl::TryGetData($file, $result);
+			if (AccessControl::TryGetData($file, $result))
+			{
+				return AccessControl::CheckCanAccess($result);
+			}
+			else
+			{
+				return false;
+			}
 		}
 
 		public static function Close()

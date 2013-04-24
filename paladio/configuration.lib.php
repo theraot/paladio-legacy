@@ -138,7 +138,9 @@
 		 * If $path is a file: Loads configuration from the file.
 		 * Otherwise: does nothing.
 		 *
-		 * Note: if the loaded configuration includes a configuration field "configuration" in the category "paladio-paths" Configuration::Load is called recursively on the value of the configuration field.
+		 * Note 1: if the loaded configuration includes a configuration field "configuration" in the category "paladio-paths" Configuration::Load is called recursively on the value of the configuration field.
+		 * Note 2: if attempts to load a file that was previously loaded the file is skipped.
+		 * Note 3: all the loaded files are readed skipping the first line.
 		 *
 		 * @access public
 		 * @return void

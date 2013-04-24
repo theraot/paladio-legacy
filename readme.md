@@ -4,13 +4,13 @@ Paladio
 Introduction
 ---
 
-Paladio is an lowlevel PHP framework, created to make easy refactoring and reutilization and also to adapt easily to old systems.
+Paladio is an low level PHP framework, created to facilitate refactoring and reutilization and also to adapt easily to old systems.
 
 ---
 Copyright
 ---
 
-Copyright 2010 - 2013 By Alfonso J. Ramos
+Copyright 2010 - 2013 By Alfonso J. Ramos et al
 
 The following persons did contribute to the project at some point of the development:
 

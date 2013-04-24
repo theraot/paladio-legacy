@@ -6,6 +6,10 @@
 		exit();
 	}
 
+	/**
+	 * FileSystem
+	 * @package FileSystem
+	 */
 	final class FileSystem
 	{
 		//------------------------------------------------------------
@@ -30,81 +34,78 @@
 			}
 			return $result;
 		}
-
-		private static function GetFolderItemsRelative(/*mixed*/ $files, /*string*/ $path, /*bool*/ $folders)
+		
+		private static function _RequireOnce(/*string*/ $_REQUIRE)
 		{
-			$result = array();
-			if (is_array($files))
+			require_once($_REQUIRE);
+		}
+
+		private static function GetFolderItemsRelative(/*mixed*/ $pattern, /*string*/ $path, /*bool*/ $folders)
+		{
+			if (is_array($pattern))
 			{
-				foreach($files as $file)
+				$result = array();
+				foreach($pattern as $pattern)
 				{
-					$_file = FileSystem::ResolveRelativePath($path, $file);
-					if (is_file($_file))
-					{
-						$result[] = $_file;
-					}
-					else
-					{
-						$result = array_merge($result, FileSystem::GetFolderItemsRelative($file, $path, $folders));
-					}
+					$result = array_merge($result, FileSystem::GetFolderItemsRelative($pattern, $path, $folders));
 				}
+				return $result;
 			}
-			else if (is_string($files))
+			else if (is_string($pattern))
 			{
-				//ONLY UTF-8
-				$files = str_replace(array('/', '\\'), DIRECTORY_SEPARATOR, $files);
-				$position = mb_strpos($files, DIRECTORY_SEPARATOR);
-				if ($position > 0)
-				{
-					$folder = mb_substr($files, 0, $position + 1);
-					$pattern = mb_substr($files, $position + 1);
-				}
-				else
+				if (is_string($pattern))
 				{
 					//ONLY UTF-8
-					if (preg_match('#^[A-Za-z0-9 ._,]*$#u', $files) == 0)
+					$pattern = str_replace(array('/', '\\'), DIRECTORY_SEPARATOR, $pattern);
+					$_file = FileSystem::ResolveRelativePath($path, $pattern);
+					if (is_file($_file))
 					{
-						$folder = '.'.DIRECTORY_SEPARATOR;
-						$pattern = $files;
+						return array($_file);
 					}
 					else
 					{
-						if (is_dir($files))
+						$position = mb_strpos($pattern, DIRECTORY_SEPARATOR);
+						if ($position > 0)
 						{
-							$folder = $files;
-							$pattern = '*';
+							$folder = mb_substr($pattern, 0, $position + 1);
+							$pattern = mb_substr($pattern, $position + 1);
 						}
 						else
 						{
 							$folder = '.'.DIRECTORY_SEPARATOR;
-							$pattern = $files;
 						}
 					}
 				}
+				else
+				{
+					$pattern = '*';
+				}
+				$result = array();
+				//ONLY UTF-8
 				$folder = FileSystem::ResolveRelativePath($path, $folder);
 				if (is_dir($folder) && ($handle = opendir($folder)) !== false)
 				{
 					$regexPattern = '@^'.str_replace(array('\*', '\?'), array('.*', '.'), preg_quote($pattern)).'$@u';
-					while (($file = readdir($handle)) !== false)
+					while (($item = readdir($handle)) !== false)
 					{
-						if (!FileSystem::StartsWith($file, '.'))
+						if (!FileSystem::StartsWith($item, '.'))
 						{
-							$file = $folder.$file;
-							$isDir = is_dir($file);
+							$item = $folder.$item;
+							$isDir = is_dir($item);
 							if (is_null($folders) || ($folders && $isDir) || (!$folders && !$isDir))
 							{
 								//ONLY UTF-8
-								if (preg_match($regexPattern, $file))
+								if (preg_match($regexPattern, $item))
 								{
-									$result[] = $file;
+									$result[] = $item;
 								}
 							}
 						}
 					}
 					closedir($handle);
 				}
+				return $result;
 			}
-			return $result;
 		}
 
 		private static function EndsWith (/*string*/ $string, /*string*/ $with)
@@ -137,6 +138,8 @@
 			{
 				$tmp = explode('?', $uri);
 				$uri = $tmp[0];
+				$tmp = explode('#', $uri);
+				$uri = $tmp[0];
 				$handle = @fopen($uri, 'r');
 				if($handle !== false)
 				{
@@ -158,6 +161,17 @@
 		// Public (Class)
 		//------------------------------------------------------------
 
+		/**
+		 * Creates the relative path thats needed to go from $referencePath to $absolutePath.
+		 *
+		 * Note 1: both $referencePath and $absolutePath are expected to be string, no check is performed.
+		 * Note 2: On Windows, if $referencePath and $absolutePath are on diferent volumes the resulting path is invalid.
+		 *
+		 * Returns a path that can be used to go from $referencePath to $absolutePath, the path uses DIRECTORY_SEPARATOR as separator and does not include the ending DIRECTORY_SEPARATOR.
+		 *
+		 * @access public
+		 * @return string
+		 */
 		public static function CreateRelativePath(/*string*/ $referencePath, /*string*/ $absolutePath)
 		{
 			$reference = FileSystem::ProcessAbsolutePath($referencePath);
@@ -195,17 +209,41 @@
 			return implode(DIRECTORY_SEPARATOR, $result);
 		}
 
+		/**
+		 * Retrieves the path of the root folder of the web server.
+		 *
+		 * Returns the path of the root folder of the web server, the path uses DIRECTORY_SEPARATOR as separator and does include the ending DIRECTORY_SEPARATOR.
+		 *
+		 * @access public
+		 * @return string
+		 */
 		public static function DocumentRoot()
 		{
 			//ONLY UTF-8
-			return str_replace(array('/', '\\'), DIRECTORY_SEPARATOR, $_SERVER['DOCUMENT_ROOT']);
+			return FileSystem::PreparePath($_SERVER['DOCUMENT_ROOT']);
 		}
 
+		/**
+		 * Retrieves the path of the folder in which this file is stored.
+		 *
+		 * Returns the path of the folder in which this file is stored, the path uses DIRECTORY_SEPARATOR as separator and does include the ending DIRECTORY_SEPARATOR.
+		 *
+		 * @access public
+		 * @return string
+		 */
 		public static function FolderCore()
 		{
 			return FileSystem::PreparePath(dirname(__FILE__));
 		}
 
+		/**
+		 * Retrieves the path of one directory level above the folder in which this file is stored.
+		 *
+		 * Returns the path of one directory level above the folder in which this file is stored, the path uses DIRECTORY_SEPARATOR as separator and does include the ending DIRECTORY_SEPARATOR.
+		 *
+		 * @access public
+		 * @return string
+		 */
 		public static function FolderInstallation()
 		{
 			$folderCore = FileSystem::FolderCore();
@@ -216,36 +254,77 @@
 			return $result;
 		}
 
-		public static function GetFolderFiles(/*mixed*/ $files, /*string*/ $path = null)
+		/**
+		 * Retrieves the files that match the pattern in $pattern and are in the folder $path.
+		 *
+		 * If $pattern is string: it will be interpreted as a relative path followed by a Windows file search pattern.
+		 * The Windows file search pattern uses:
+		 * "?" : any character
+		 * "*" : any character, zero or more times
+		 * Otherwise, it will be interpretated as the Windows file search pattern "*".
+		 *
+		 * Note: files which name starts with "." are ignored.
+		 *
+		 * Returns an array that contains the absolute path of the files.
+		 *
+		 * @access public
+		 * @return array of string
+		 */
+		public static function GetFolderFiles(/*mixed*/ $pattern, /*string*/ $path)
 		{
-			if (func_num_args() == 1)
-			{
-				$path = FileSystem::FolderInstallation();
-			}
-			$result = FileSystem::GetFolderItemsRelative($files, $path, false);
-			return $result;
+			return FileSystem::GetFolderItemsRelative($pattern, $path, false);
 		}
 
-		public static function GetFolderItems(/*mixed*/ $files, /*string*/ $path = null)
+		/**
+		 * Retrieves the files and folders that match the pattern in $pattern and are in the folder $path.
+		 *
+		 * If $pattern is string: it will be interpreted as a relative path followed by a Windows file search pattern.
+		 * The Windows file search pattern uses:
+		 * "?" : any character
+		 * "*" : any character, zero or more times
+		 * Otherwise, it will be interpretated as the Windows file search pattern "*".
+		 *
+		 * Note: files which name starts with "." are ignored.
+		 *
+		 * Returns an array that contains the absolute path of the files and folders.
+		 *
+		 * @access public
+		 * @return array of string
+		 */
+		public static function GetFolderItems(/*mixed*/ $pattern, /*string*/ $path)
 		{
-			if (func_num_args() == 1)
-			{
-				$path = FileSystem::FolderInstallation();
-			}
-			$result = FileSystem::GetFolderItemsRelative($files, $path, null);
-			return $result;
+			return FileSystem::GetFolderItemsRelative($pattern, $path, null);
 		}
 
-		public static function GetFolderFolders(/*mixed*/ $files, /*string*/ $path = null)
+		/**
+		 * Retrieves the folders that match the pattern in $pattern and are in the folder $path.
+		 *
+		 * If $pattern is string: it will be interpreted as a relative path followed by a Windows file search pattern.
+		 * The Windows file search pattern uses:
+		 * "?" : any character
+		 * "*" : any character, zero or more times
+		 * Otherwise, it will be interpretated as the Windows file search pattern "*".
+		 *
+		 * Note: files which name starts with "." are ignored.
+		 *
+		 * Returns an array that contains the absolute path of the folders.
+		 *
+		 * @access public
+		 * @return array of string
+		 */
+		public static function GetFolderFolders(/*mixed*/ $pattern, /*string*/ $path)
 		{
-			if (func_num_args() == 1)
-			{
-				$path = FileSystem::FolderInstallation();
-			}
-			$result = FileSystem::GetFolderItemsRelative($files, $path, true);
-			return $result;
+			return FileSystem::GetFolderItemsRelative($pattern, $path, true);
 		}
 
+		/**
+		 * Retrieves the file where the most recent include happened.
+		 *
+		 * Returns the absolute path of the file where "include", "include_once", "require" or "require_once" was called if any, false otherwise.
+		 *
+		 * @access public
+		 * @return string or false
+		 */
 		public static function GetIncludingFile()
 		{
 			$file = false;
@@ -263,6 +342,14 @@
 			return $file;
 		}
 
+		/**
+		 * Retrieves the file that was included with the most recent include happened.
+		 *
+		 * Returns the absolute path of the file that was included where "include", "include_once", "require" or "require_once" was called if any, false otherwise.
+		 *
+		 * @access public
+		 * @return string or false
+		 */
 		public static function GetIncludedFile()
 		{
 			$file = false;
@@ -280,6 +367,16 @@
 			return $file;
 		}
 
+		/**
+		 * Converts any "/" or "\" to DIRECTORY_SEPARATOR and appends DIRECTORY_SEPARATOR at the end if not present.
+		 *
+		 * Note: $path is expected to be string, no check is performed.
+		 *
+		 * Returns the string $path with both "/" and "\" converted to DIRECTORY_SEPARATOR and DIRECTORY_SEPARATOR and the end.
+		 *
+		 * @access public
+		 * @return string
+		 */
 		public static function PreparePath(/*string*/ $path)
 		{
 			$path = str_replace(array('/', '\\'), DIRECTORY_SEPARATOR, $path);
@@ -290,6 +387,16 @@
 			return $path;
 		}
 
+		/**
+		 * Extracts the components of the absolute path $absolutePath.
+		 *
+		 * Note: $absolutePath is expected to be string, no check is performed.
+		 *
+		 * Returns an array that containts each component of the absolute path $absolutePath.
+		 *
+		 * @access public
+		 * @return array of string
+		 */
 		public static function ProcessAbsolutePath(/*string*/ $absolutePath)
 		{
 			$absolutePath = str_replace(array('/', '\\'), DIRECTORY_SEPARATOR, $absolutePath);
@@ -302,6 +409,16 @@
 			return FileSystem::_ProcessPath($folders);
 		}
 
+		/**
+		 * Extracts the components of the relative path $relativePath.
+		 *
+		 * Note: $relativePath is expected to be string, no check is performed.
+		 *
+		 * Returns an array that containts each component of the relative path $relativePath.
+		 *
+		 * @access public
+		 * @return array of string
+		 */
 		public static function ProcessRelativePath(/*string*/ $relativePath)
 		{
 			$relativePath = str_replace(array('/', '\\'), DIRECTORY_SEPARATOR, $relativePath);
@@ -314,15 +431,27 @@
 			return FileSystem::_ProcessPath($folders);
 		}
 
-		public static function RequireAll(/*mixed*/ $files, /*string*/ $path = null)
+		/**
+		 * Includes using require_once the files as given by the return value of FileSystem::GetFolderFiles($pattern, $path).
+		 *
+		 * Note: the included files will have a variable $_REQUIRE with their absolute path
+		 *
+		 * @access public
+		 * @return void
+		 */
+		public static function RequireAll(/*mixed*/ $pattern, /*string*/ $path)
 		{
-			$__REQUIRES = FileSystem::GetFolderItemsRelative($files, $path, false);
-			foreach($__REQUIRES as $__REQUIRE)
-			{
-				require_once($__REQUIRE);
-			}
+			array_map('FileSystem::_RequireOnce', FileSystem::GetFolderItemsRelative($pattern, $path, false));
 		}
 
+		/**
+		 * Creates the path resulting from following $relativePath starting in $absolutePath.
+		 *
+		 * Note: both $absolutePath and $relativePath are expected to be string, no check is performed.
+		 *
+		 * @access public
+		 * @return string
+		 */
 		public static function ResolveRelativePath(/*string*/ $absolutePath, /*string*/ $relativePath)
 		{
 			$reference = FileSystem::ProcessAbsolutePath($absolutePath);
@@ -331,23 +460,55 @@
 			return $result;
 		}
 
-		public static function ScriptUri(/*string*/ $from = null)
+		/**
+		 * Creates the relative path needed to go from $referencePath to the absolute path of the requested script as given by FileSystem::ScriptPath().
+		 *
+		 * If $referencePath is null: Creates the relative path needed to go from FileSystem::DocumentRoot() to FileSystem::ScriptPath().
+		 * Otehrwise: Assumes $referencePath is string and creates the relative path needed to go from $referencePath to FileSystem::ScriptPath().
+		 *
+		 * Note: $referencePath is expected to be null or string, no check is performed.
+		 *
+		 * @access public
+		 * @return string
+		 */
+		public static function ScriptUri(/*string*/ $referencePath = null)
 		{
-			if (is_null($from))
+			if (is_null($referencePath))
 			{
-				$from = FileSystem::DocumentRoot();
+				$referencePath = FileSystem::DocumentRoot();
 			}
-			return DIRECTORY_SEPARATOR.FileSystem::CreateRelativePath($from, FileSystem::ScriptPath());
+			return DIRECTORY_SEPARATOR.FileSystem::CreateRelativePath($referencePath, FileSystem::ScriptPath());
 		}
 
+		/**
+		 * Retrieves the absolute path of the requested script.
+		 *
+		 * Returns the value of $_SERVER['SCRIPT_FILENAME'] with any "/" or "\" replaced to DIRECTORY_SEPARATOR.
+		 *
+		 * @access public
+		 * @return string
+		 */
 		public static function ScriptPath()
 		{
-			//ONLY UTF-8
+			//ONLY UTF-8 $_SERVER['SCRIPT_FILENAME']
 			return str_replace(array('/', '\\'), DIRECTORY_SEPARATOR, $_SERVER['SCRIPT_FILENAME']);
 		}
 
-
-		public static function UriExists(/*string*/ $uri, $path = null)
+		/**
+		 * Verifies if a given URI $uri can be accesed.
+		 *
+		 * 1: If $path is missing $path is set to FileSystem::FolderInstallation().
+		 * 2: If $path is a folder changes the current directory to $path
+		 * 3: Takes the part of $uri before any "?" or "#" and attempt to read it.
+		 * 4: Set the current directory to what it was before step 2
+		 * 5: Returns whatever or not the step 3 was succeful
+		 *
+		 * Note: $uri is expected to be null or string, no check is performed.
+		 *
+		 * @access public
+		 * @return bool
+		 */
+		public static function UriExists(/*string*/ $uri, /*string*/ $path = null)
 		{
 			if (func_num_args() == 1)
 			{

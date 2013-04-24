@@ -13,17 +13,20 @@
 		FileSystem::RequireAll('*.lib.php', FileSystem::FolderCore());
 	}
 
-	/**
-	 * Un-quotes a quoted string, UTF-8 aware equivalent of stripslashes.
-	 *
-	 * Note: $str is expected to be string, no check is performed.
-	 *
-	 * @return string
-	 */
-	function stripslashes_utf8($str)
+	if (!function_exists('stripslashes_utf8'))
 	{
-		//ONLY UTF-8
-		return preg_replace(array('@\x5C(?!\x5C)@u', '@\x5C\x5C@u'), array('','\\'), $str);
+		/**
+		 * Un-quotes a quoted string, UTF-8 aware equivalent of stripslashes.
+		 *
+		 * Note: $str is expected to be string, no check is performed.
+		 *
+		 * @return string
+		 */
+		function stripslashes_utf8($str)
+		{
+			//ONLY UTF-8
+			return preg_replace(array('@\x5C(?!\x5C)@u', '@\x5C\x5C@u'), array('','\\'), $str);
+		}
 	}
 
 	//Disabling magic quotes at runtime taken from http://php.net/manual/en/security.magicquotes.disabling.php

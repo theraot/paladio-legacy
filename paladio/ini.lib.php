@@ -189,7 +189,7 @@
 
 		public function Load(/*string*/ $file, /*int*/ $startLine, /*array*/ $validCategories = null, /*bool*/ $keepCategories = true)
 		{
-			if (is_null($file) || mb_strlen($file) == 0 || !is_file($file))
+			if (!is_string($file) || mb_strlen($file) == 0 || !is_file($file))
 			{
 				return false;
 			}

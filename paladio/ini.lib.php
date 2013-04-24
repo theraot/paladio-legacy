@@ -11,6 +11,10 @@
 		require_once('ini_utility.lib.php');
 	}
 
+	/**
+	 * FileSystem
+	 * @package INI
+	 */
 	final class INI
 	{
 		//------------------------------------------------------------
@@ -158,6 +162,16 @@
 			return $result;
 		}
 
+		/**
+		 * Creates a string that has the contents of the category with the name $categoryName.
+		 *
+		 * Note: The values of the fields are converted to string.
+		 *
+		 * Returns a string with the contents of the category indentified with the name $category name if the category is available, false otherwise.
+		 *
+		 * @access public
+		 * @return string
+		 */
 		public function CategoryToString(/*string*/ $categoryName)
 		{
 			if (array_key_exists($categoryName, $this->content))
@@ -167,7 +181,7 @@
 				$result = '';
 				foreach ($fieldNames as $fieldName)
 				{
-					$fieldValue = INI_Utility::Escape($category[$fieldName]);
+					$fieldValue = INI_Utility::Escape((string)$category[$fieldName]);
 					if (strrchr($fieldValue, ' ') === false)
 					{
 						$result .= $fieldValue.' = '.fieldValue."\n";
@@ -179,14 +193,38 @@
 				}
 				return $result;
 			}
+			else
+			{
+				return false;
+			}
 		}
 
-		public function Initialize()
+		/**
+		 * Resets the contents of the INI instance leaving it emtpy.
+		 *
+		 * @access public
+		 * @return true
+		 */
+		public function Clear()
 		{
 			$this->content = array(array());
 			return true;
 		}
 
+		/**
+		 * Loads the contents of the file $file from the line $starLine.
+		 *
+		 * Note 1: if $validCategories is an array of string, only the categories with a name that's in $validCategories are loaded.
+		 * Note 2: if $keepCategories is false, all the fields are loaded to the category with name "".
+		 *
+		 * If $file is a file: Loads the contents of the file.
+		 * Otherwise: does nothing.
+		 *
+		 * Returns true if the file $file is loaded, false otherwise.
+		 *
+		 * @access public
+		 * @return true
+		 */
 		public function Load(/*string*/ $file, /*int*/ $startLine, /*array*/ $validCategories = null, /*bool*/ $keepCategories = true)
 		{
 			if (!is_string($file) || mb_strlen($file) == 0 || !is_file($file))
@@ -197,13 +235,24 @@
 			{
 				if (!isset($this->content))
 				{
-					$this->Initialize();
+					$this->Clear();
 				}
 				$this->ProcessLines(file($file), $startLine, $validCategories, $keepCategories);
 				return true;
 			}
 		}
 
+		/**
+		 * Writes the content of the INI instance to the file $file.
+		 *
+		 * Note 1: the value of $header is prepended to the contents of the INI instance.
+		 * Note 2: the values of the fields are converted to string before storing them.
+		 * Note 3: $file is expected to be a valid file, no check is performed.
+		 * Note 4: write permissions are required.
+		 *
+		 * @access public
+		 * @return void
+		 */
 		public function Save(/*string*/ $file, /*string*/ $header = '')
 		{
 			$file = fopen($file, 'wb');
@@ -217,7 +266,7 @@
 		{
 			if (!isset($this->content))
 			{
-				$this->Initialize();
+				$this->Clear();
 			}
 			if (array_key_exists($categoryName, $this->content))
 			{
@@ -233,7 +282,7 @@
 		{
 			if (!isset($this->content))
 			{
-				$this->Initialize();
+				$this->Clear();
 			}
 			if (array_key_exists($categoryName, $this->content))
 			{
@@ -249,7 +298,7 @@
 		{
 			if (!isset($this->content))
 			{
-				$this->Initialize();
+				$this->Clear();
 			}
 			if (is_array($value))
 			{
@@ -272,7 +321,7 @@
 		{
 			if (!isset($this->content))
 			{
-				$this->Initialize();
+				$this->Clear();
 			}
 			unset($this->content[$categoryName]);
 		}
@@ -283,7 +332,7 @@
 		{
 			if (!isset($this->content))
 			{
-				$this->Initialize();
+				$this->Clear();
 			}
 			return $this->contenido;
 		}
@@ -292,7 +341,7 @@
 		{
 			if (!isset($this->content))
 			{
-				$this->Initialize();
+				$this->Clear();
 			}
 			if (is_array($value))
 			{
@@ -324,7 +373,7 @@
 		{
 			if (!isset($this->content))
 			{
-				$this->Initialize();
+				$this->Clear();
 			}
 			if ($this->isset_Field($categoryName, $fieldName))
 			{
@@ -340,7 +389,7 @@
 		{
 			if (!isset($this->content))
 			{
-				$this->Initialize();
+				$this->Clear();
 			}
 			if (array_key_exists($categoryName, $this->content))
 			{
@@ -359,7 +408,7 @@
 		{
 			if (!isset($this->content))
 			{
-				$this->Initialize();
+				$this->Clear();
 			}
 			$this->content[$categoryName][$fieldName] = $value;
 			return true;
@@ -369,7 +418,7 @@
 		{
 			if (!isset($this->content))
 			{
-				$this->Initialize();
+				$this->Clear();
 			}
 			if (array_key_exists($categoryName, $this->content))
 			{

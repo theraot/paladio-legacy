@@ -1,4 +1,5 @@
 <?php
+	/* parser.lib.php by Alfonso J. Ramos is licensed under a Creative Commons Attribution 3.0 Unported License. To view a copy of this license, visit http://creativecommons.org/licenses/by/3.0/ */
 	if (count(get_included_files()) == 1)
 	{
 		header('HTTP/1.0 404 Not Found');

@@ -42,6 +42,18 @@
 		private static $hashAlgorithm;
 		private static $current;
 
+		private static function Decode(/*mixed*/ $value)
+		{
+			if (is_string($value))
+			{
+				return json_decode_array($value);
+			}
+			else
+			{
+				return $value;
+			}
+		}
+
 		private static function GetListedFiles(/*array*/ $list, /*string*/ $path)
 		{
 			$result = array();
@@ -105,7 +117,7 @@
 			$category = AccessControl::$INI->get_Category($categoryName);
 			if (is_array($category))
 			{
-				return array_map('json_decode_array', $category);
+				return array_map('AccessControl::Decode', $category);
 			}
 			else
 			{

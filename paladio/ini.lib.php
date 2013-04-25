@@ -165,7 +165,7 @@
 		/**
 		 * Creates a string that has the contents of the category with the name $categoryName.
 		 *
-		 * Note: The values of the fields are converted to string.
+		 * Note: The values of the fields are encoded as JSON.
 		 *
 		 * Returns a string with the contents of the category indentified with the name $category name if the category is available, false otherwise.
 		 *
@@ -182,16 +182,8 @@
 				$result = '';
 				foreach ($fieldNames as $fieldName)
 				{
-					//TODO write JSON
-					$fieldValue = String_Utility::EscapeString((string)$category[$fieldName], $characters);
-					if (strrchr($fieldValue, ' ') === false)
-					{
-						$result .= $fieldValue.' = '.fieldValue."\n";
-					}
-					else
-					{
-						$result .= $fieldValue.' = "'.fieldValue.'"'."\n";
-					}
+					$fieldValue = json_encode($category[$fieldName]);
+					$result .= $fieldName.' = '.$fieldValue."\n";
 				}
 				return $result;
 			}

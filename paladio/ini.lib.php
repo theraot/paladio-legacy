@@ -13,7 +13,7 @@
 
 	/**
 	 * INI
-	 * @package INI
+	 * @package Paladio
 	 */
 	final class INI
 	{
@@ -176,12 +176,14 @@
 		{
 			if (array_key_exists($categoryName, $this->content))
 			{
+				$characters = array('\0', '\t', '\r', '\n', "\\", '"', "'", ';', '#');
 				$category = $this->content[$categoryName];
 				$fieldNames = array_keys($category);
 				$result = '';
 				foreach ($fieldNames as $fieldName)
 				{
-					$fieldValue = INI_Utility::Escape((string)$category[$fieldName]);
+					//TODO write JSON
+					$fieldValue = String_Utility::EscapeString((string)$category[$fieldName], $characters);
 					if (strrchr($fieldValue, ' ') === false)
 					{
 						$result .= $fieldValue.' = '.fieldValue."\n";

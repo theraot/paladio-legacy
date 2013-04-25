@@ -6,6 +6,7 @@
 	}
 	else
 	{
+		require_once('string_utility.lib.php');
 		if (is_file('addendum_utility.lib.php'))
 		{
 			require_once('addendum_utility.lib.php');
@@ -19,22 +20,6 @@
 	}
 
 	Paladio::Request('Addendum_Utility', 'declare_entity_annotations');
-
-	if (!function_exists('json_decode_array'))
-	{
-		function json_decode_array($string)
-		{
-			$result = json_decode($string, true);
-			if (json_last_error() == JSON_ERROR_NONE)
-			{
-				return $result;
-			}
-			else
-			{
-				return array();
-			}
-		}
-	}
 
 	abstract class EntityBase
 	{

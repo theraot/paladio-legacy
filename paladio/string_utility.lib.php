@@ -26,7 +26,95 @@
 			}
 		}
 	}
+	
+	if (!function_exists('json_decode_array'))
+	{
+		function json_decode_array($string)
+		{
+			$result = json_decode($string, true);
+			if (json_last_error() == JSON_ERROR_NONE)
+			{
+				return $result;
+			}
+			else
+			{
+				return array();
+			}
+		}
+	}
 
+	if (!function_exists('utf8_ord'))
+	{
+		function utf8_ord(/*string*/ $character)
+		{
+			$ord0 = ord($character{0});
+			if ($ord0 >= 0 && $ord0 <= 127)
+			{
+				return $ord0;
+			}
+			else
+			{
+				$ord1 = ord($character{1});
+				if ($ord1 >= 192 && $ord0 <= 223)
+				{
+					return ($ord0 - 192)*64 + ($ord1 - 128);
+				}
+				else
+				{
+					$ord2 = ord($character{2});
+					if ($ord0 >= 224 && $ord0 <= 239)
+					{
+						return ($ord0 - 224) * 4096 + ($ord1 - 128) * 64 + ($ord2 - 128);
+					}
+					else
+					{
+						$ord3 = ord($character{3});
+						if ($ord0 >= 240 && $ord0 <= 247)
+						{
+							return ($ord0 - 240) * 262144 + ($ord1 - 128) * 4096 + ($ord2 - 128) * 64 + ($ord3 - 128);
+						}
+						else
+						{
+							$ord4 = ord($character{4});
+							if ($ord0 >= 248 && $ord0 <= 251)
+							{
+								return ($ord0 - 248) * 16777216 + ($ord1 - 128) * 262144 + ($ord2 - 128) * 4096 + ($ord3 - 128) * 64 + ($ord4 - 128);
+							}
+							else
+							{
+								$ord5 = ord($character{5});
+								if ($ord0 >= 252 && $ord0 <= 253)
+								{
+									return ($ord0 - 252) * 1073741824 + ($ord1 - 128) * 16777216 + ($ord2 - 128) * 262144 + ($ord3 - 128) * 4096 + ($ord4 - 128) * 64 + ($ord5 - 128);
+								}
+								else if ($ord0 >= 254 && $ord0 <= 255)
+								{
+									return FALSE;
+								}
+								else
+								{
+									return 0;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	if (!function_exists('chr_utf8'))
+	{
+		function chr_utf8(/*int*/ $codepoint)
+		{
+			return mb_convert_encoding('&#'.intval($codepoint).';', 'UTF-8', 'HTML-ENTITIES');
+		}
+	}
+
+	/**
+	 * String_Utility
+	 * @package Paladio
+	 */
 	final class String_Utility
 	{
 		//------------------------------------------------------------
@@ -38,6 +126,120 @@
 
 		//------------------------------------------------------------
 		// Public (Class)
+		//------------------------------------------------------------
+		
+		public static function EscapeCharacter(/*array*/ $data)
+		{
+			$character = $data[0];
+			//strict on output
+			$specials = array
+			(
+				//These escape sequences are common to C++, Java, C#, PHP and ECMAScript
+				'\f' => "\\".'f',
+				'\n' => "\\".'n',
+				'\r' => "\\".'r',
+				'\t' => "\\".'t',
+			);
+			if (array_key_exists($character, $specials))
+			{
+				return $specials[$character];
+			}
+			else
+			{
+				$ord = utf8_ord($character);
+				if ($ord !== false)
+				{
+					$hex = dechex($ord);
+					if (mb_strlen($hex) == 0)
+					{
+						echo 'here';
+					}
+					else if (mb_strlen($hex) == 1)
+					{
+						return "\\".'u000'.$hex;
+					}
+					else if (mb_strlen($hex) == 2)
+					{
+						return "\\".'u00'.$hex;
+					}
+					else if (mb_strlen($hex) == 3)
+					{
+						return "\\".'u0'.$hex;
+					}
+					else
+					{
+						return "\\".'u'.$hex;
+					}
+				}
+				else
+				{
+					throw new Exception ('Unsuported character');
+				}
+			}
+		}
+		
+		public static function EscapeString(/*string*/ $string, /*array*/ $characters)
+		{
+			//ONLY UTF-8
+			if (is_array($characters))
+			{
+				return preg_replace_callback('@['.implode('', array_map('preg_quote', $characters)).']@u', 'String_Utility::EscapeCharacter', $string);
+			}
+			else
+			{
+				return $string;
+			}
+		}
+		
+		public static function UnescapeCharacter(/*array*/ $data)
+		{
+			$character = $data[0];
+			$specials = array
+			(
+				//These escape sequences are common to C++, Java, C#, PHP and ECMAScript
+				"\\".'f' => '\f',
+				"\\".'n' => '\n',
+				"\\".'r' => '\r',
+				"\\".'t' => '\t'
+				
+			);
+			if (array_key_exists($character, $specials))
+			{
+				return $specials[$character];
+			}
+			else if
+			(
+				(
+					mb_strlen($character) == 6 &&
+					mb_substr($character, 1, 1) == 'u'
+				)
+			)
+			{
+				$var = mb_substr($character, 2);
+				return chr_utf8(hexdec($var));
+			}
+			else if (mb_strlen($character) == 2)
+			{
+				return mb_substr($character, 1);
+			}
+			else
+			{
+				throw new Exception ('Unsuported character');
+			}
+		}
+		
+		public static function UnescapeString(/*string*/ $string)
+		{
+			//ONLY UTF-8
+			$result = preg_replace_callback
+			(
+				'@\x5Cu[0-9a-fA-F]{4}|\x5Cu[fnrt]@u',
+				'String_Utility::UnescapeCharacter',
+				$string
+			);
+			return $result;
+		}
+		
 		//------------------------------------------------------------
 
 		public static function EndsWith (/*string*/ $string, /*string*/ $with)

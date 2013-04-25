@@ -5,47 +5,20 @@
 		header('HTTP/1.0 404 Not Found');
 		exit();
 	}
+	else
+	{
+		require_once('string_utility.lib.php');
+	}
 
 	/**
 	 * INI_Utility
-	 * @package INI
+	 * @package Paladio
 	 */
 	final class INI_Utility
 	{
 		//------------------------------------------------------------
-		// Private (Class)
-		//------------------------------------------------------------
-
-		private static function EscapeSequence(/*array*/ $data)
-		{
-			$var = mb_substr($data[1], 2);
-			//ONLY UTF-8
-			return rawurldecode('%'.$var);
-		}
-
-		//------------------------------------------------------------
 		// Public (Class)
 		//------------------------------------------------------------
-
-		/**
-		 * Escapes a string in C style.
-		 *
-		 * Note 1: The escaped characters are: null, tab, carriage return, line feed, backslash, double quotes, single quotes, comman and semicolon.
-		 * Note 2: $string is expected to be string, no check is performed.
-		 *
-		 * Returns the string $string escaped in C style.
-		 *
-		 * @access public
-		 * @return string
-		 */
-		public static function Escape(/*string*/ $string)
-		{
-			$before = array("\\"     , "\0"    , "\t"    , "\r"    , "\n"    , '"'     , "'"     , ','     , ';'     );
-			$after =  array("\\"."\\", "\\".'0', "\\".'t', "\\".'r', "\\".'n', "\\".'"', "\\"."'", "\\".',', "\\".';');
-			//ONLY UTF-8
-			$result = str_replace($before, $after, $string);
-			return $result;
-		}
 
 		/**
 		 * Processes an INI line.
@@ -119,7 +92,7 @@
 				(preg_match('#^\'((?:\\\'|[^\'])*)\'(.*)#u', $value, $subConditionals))
 			)
 			{
-				$value = INI_Utility::Unescape($subConditionals[1]);
+				$value = String_Utility::UnescapeString($subConditionals[1]);
 				$extra = $subConditionals[2];
 				return true;
 			}
@@ -128,33 +101,6 @@
 				$extra = false;
 				return false;
 			}
-		}
-
-		/**
-		 * Unscapes a string C Style
-		 *
-		 * Note 1: Suports escape sequences in the form \x## (where ## is an hexa value) and also \\, \0, \t, \r, \n, \", \', \, and \;
-		 * Note 2: $string is expected to be string, no check is performed.
-		 *
-		 * Returns the string $string unescaped in C style.
-		 *
-		 * @access public
-		 * @return string
-		 */
-		public static function Unescape(/*string*/ $string)
-		{
-			//ONLY UTF-8
-			$result = preg_replace_callback
-			(
-					'#(\\\\x[0-9a-fA-F]{2})#u',
-					'INI_Utility::EscapeSequence',
-					$string
-			);
-			$before = array("\\"."\\", "\\".'0', "\\".'t', "\\".'r', "\\".'n', "\\".'"', "\\"."'", "\\".',', "\\".';');
-			$after =  array("\\"     , "\0"    , "\t"    , "\r"    , "\n"    , '"'     , "'"     , ','     , ';'     );
-			//ONLY UTF-8
-			$result = str_replace($before, $after, $string);
-			return $result;
 		}
 
 		//------------------------------------------------------------

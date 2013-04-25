@@ -138,10 +138,10 @@
 			$specials = array
 			(
 				//These escape sequences are common to C++, Java, C#, PHP and ECMAScript
-				'\f' => "\\".'f',
-				'\n' => "\\".'n',
-				'\r' => "\\".'r',
-				'\t' => "\\".'t',
+				"\f" => "\\".'f',
+				"\n" => "\\".'n',
+				"\r" => "\\".'r',
+				"\t" => "\\".'t',
 			);
 			if (array_key_exists($character, $specials))
 			{
@@ -181,12 +181,20 @@
 			}
 		}
 		
-		public static function EscapeString(/*string*/ $string, /*array*/ $characters)
+		public static function EscapeString(/*string*/ $string, /*array*/ $characters, /*bool*/ $escapeControlCharacters = true)
 		{
-			//ONLY UTF-8
+			$class = '';
+			if ($escapeControlCharacters)
+			{
+				$class .= '\x00-\x1F\x7F\x80-\x9F';
+			}
 			if (is_array($characters))
 			{
-				return preg_replace_callback('@['.implode('', array_map('preg_quote', $characters)).']@u', 'String_Utility::EscapeCharacter', $string);
+				$class .= implode('', array_map('preg_quote', $characters));
+			}
+			if ($class != '')
+			{
+				return preg_replace_callback('@['.$class.']@u', 'String_Utility::EscapeCharacter', $string);
 			}
 			else
 			{
@@ -200,10 +208,10 @@
 			$specials = array
 			(
 				//These escape sequences are common to C++, Java, C#, PHP and ECMAScript
-				"\\".'f' => '\f',
-				"\\".'n' => '\n',
-				"\\".'r' => '\r',
-				"\\".'t' => '\t'
+				"\\".'f' => "\f",
+				"\\".'n' => "\n",
+				"\\".'r' => "\r",
+				"\\".'t' => "\t"
 				
 			);
 			if (array_key_exists($character, $specials))

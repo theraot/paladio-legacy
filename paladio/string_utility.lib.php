@@ -6,23 +6,26 @@
 		exit();
 	}
 
-	function utf8_str_split($string, $split_length = 1)
+	if (!function_exists('utf8_str_split'))
 	{
-		if (!is_numeric($split_length) || $split_length < 1)
+		function utf8_str_split($string, $split_length = 1)
 		{
-			return false;
-		}
-		else
-		{
-			$len = mb_strlen($string);
-			if ($len <= $split_length)
+			if (!is_numeric($split_length) || $split_length < 1)
 			{
-				return array($string);
+				return false;
 			}
 			else
 			{
-				preg_match_all('@.{'.$split_length.'}|[^\x00]{1,'.$split_length.'}$@us', $string, $match);
-				return $match[0];
+				$len = mb_strlen($string);
+				if ($len <= $split_length)
+				{
+					return array($string);
+				}
+				else
+				{
+					preg_match_all('@.{'.$split_length.'}|[^\x00]{1,'.$split_length.'}$@us', $string, $match);
+					return $match[0];
+				}
 			}
 		}
 	}

@@ -18,7 +18,15 @@
 	 */
 	function declare_entity_annotations()
 	{
+		/**
+		 * Mapping
+		 * @package Paladio
+		*/
 		class Mapping extends Annotation {public $table, $primaryKey;}
+		/**
+		 * Reference
+		 * @package Paladio
+		*/
 		class Reference extends Annotation {public $alias, $reference, $method;}
 	}
 

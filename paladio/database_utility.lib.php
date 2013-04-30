@@ -9,11 +9,6 @@
 		require_once('utility.lib.php');
 	}
 
-	interface IDatabaseOperator
-	{
-		public function Type();
-	}
-
 	/**
 	 * Database_Field
 	 * @package Paladio

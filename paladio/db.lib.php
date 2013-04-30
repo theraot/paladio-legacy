@@ -4,7 +4,19 @@
 		header('HTTP/1.0 404 Not Found');
 		exit();
 	}
-	
+
+	/**
+	 * IDatabaseOperator
+	 * @package Paladio
+	 */
+	interface IDatabaseOperator
+	{
+		/**
+		 * Returns the type of the operator.
+		 */
+		public function Type();
+	}
+
 	/**
 	 * DatabaseOperator_Equal
 	 * @package Paladio
@@ -154,7 +166,7 @@
 		//------------------------------------------------------------
 		// Public (Class)
 		//------------------------------------------------------------
-		
+
 		/**
 		 * ADD (addition) operator (binary)
 		 */
@@ -274,7 +286,7 @@
 		}
 
 		//------------------------------------------------------------
-		
+
 		/**
 		 * Connects to the database
 		 *
@@ -365,7 +377,7 @@
 		{
 			return mysqli_query($connection, $query);
 		}
-		
+
 		/**
 		 * Releases a query result.
 		 *
@@ -387,7 +399,7 @@
 				return false;
 			}
 		}
-		
+
 		//------------------------------------------------------------
 
 		/**
@@ -462,6 +474,6 @@
 			throw new Exception('Creating instances of '.__CLASS__.' is forbidden');
 		}
 	}
-	
+
 	DB::__init();
 ?>

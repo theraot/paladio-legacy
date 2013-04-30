@@ -8,6 +8,9 @@
 
 	if (!function_exists('utf8_str_split'))
 	{
+		/**
+		 * UTF-8 aware replacement of str_split
+		 */
 		function utf8_str_split($string, $split_length = 1)
 		{
 			if (!is_numeric($split_length) || $split_length < 1)
@@ -29,9 +32,12 @@
 			}
 		}
 	}
-	
+
 	if (!function_exists('json_decode_array'))
 	{
+		/**
+		 * variant of json_decode that always returns associative array
+		 */
 		function json_decode_array($string)
 		{
 			$result = json_decode($string, true);
@@ -48,6 +54,9 @@
 
 	if (!function_exists('utf8_ord'))
 	{
+		/**
+		 * UTF-8 aware replacement of ord
+		 */
 		function utf8_ord(/*string*/ $character)
 		{
 			$ord0 = ord($character{0});
@@ -106,9 +115,12 @@
 		}
 	}
 
-	if (!function_exists('chr_utf8'))
+	if (!function_exists('utf8_chr'))
 	{
-		function chr_utf8(/*int*/ $codepoint)
+		/**
+		 * UTF-8 aware replacement of char
+		 */
+		function utf8_chr(/*int*/ $codepoint)
 		{
 			return mb_convert_encoding('&#'.intval($codepoint).';', 'UTF-8', 'HTML-ENTITIES');
 		}
@@ -130,9 +142,18 @@
 		//------------------------------------------------------------
 		// Public (Class)
 		//------------------------------------------------------------
-		
+
+		/**
+		 * Escapes a character in C style.
+		 *
+		 * @param $data: an array, of which the first item is the character to escape.
+		 *
+		 * @access public
+		 * @return string
+		 */
 		public static function EscapeCharacter(/*array*/ $data)
 		{
+			//TODO improve encapsulation
 			$character = $data[0];
 			//strict on output
 			$specials = array
@@ -180,7 +201,17 @@
 				}
 			}
 		}
-		
+
+		/**
+		 * Escapes a string in C style.
+		 *
+		 * @param $string: the string to escape.
+		 * @param $characters: the charactes to escape.
+		 * @param $escapeControlCharacters: if true all control characters will be escaped.
+		 *
+		 * @access public
+		 * @return string
+		 */
 		public static function EscapeString(/*string*/ $string, /*array*/ $characters, /*bool*/ $escapeControlCharacters = true)
 		{
 			$class = '';
@@ -201,9 +232,18 @@
 				return $string;
 			}
 		}
-		
+
+		/**
+		 * Unescapes a character in C style.
+		 *
+		 * @param $data: an array, of which the first item is the character to escape.
+		 *
+		 * @access public
+		 * @return string
+		 */
 		public static function UnescapeCharacter(/*array*/ $data)
 		{
+			//TODO improve encapsulation
 			$character = $data[0];
 			$specials = array
 			(
@@ -212,7 +252,6 @@
 				"\\".'n' => "\n",
 				"\\".'r' => "\r",
 				"\\".'t' => "\t"
-				
 			);
 			if (array_key_exists($character, $specials))
 			{
@@ -227,7 +266,7 @@
 			)
 			{
 				$var = mb_substr($character, 2);
-				return chr_utf8(hexdec($var));
+				return utf8_chr(hexdec($var));
 			}
 			else if (mb_strlen($character) == 2)
 			{
@@ -238,7 +277,15 @@
 				throw new Exception ('Unsuported character');
 			}
 		}
-		
+
+		/**
+		 * Unescapes a string in C style.
+		 *
+		 * @param $string: the string to unescape.
+		 *
+		 * @access public
+		 * @return string
+		 */
 		public static function UnescapeString(/*string*/ $string)
 		{
 			//ONLY UTF-8
@@ -250,9 +297,20 @@
 			);
 			return $result;
 		}
-		
+
 		//------------------------------------------------------------
 
+		/**
+		 * Verifies if a string ends with another string.
+		 *
+		 * Returns true of the string $string ends with $with.
+		 *
+		 * @param $string: the string to verify.
+		 * @param $with: the ending to verify.
+		 *
+		 * @access public
+		 * @return bool
+		 */
 		public static function EndsWith (/*string*/ $string, /*string*/ $with)
 		{
 			if (mb_substr($string, mb_strlen($string) - mb_strlen($with)) == $with)
@@ -265,11 +323,22 @@
 			}
 		}
 
-		public static function EnsureEnd(/*string*/ $string, /*string*/ $end)
+		/**
+		 * Returns a new string equal to $string that ends with $ending.
+		 *
+		 * If $string ends with $ending, the returned string is $string, otherwise $string.$ending.
+		 *
+		 * @param $string: the string to verify.
+		 * @param $ending: the ending to ensure.
+		 *
+		 * @access public
+		 * @return string
+		 */
+		public static function EnsureEnd(/*string*/ $string, /*string*/ $ending)
 		{
-			if (!String_Utility::EndsWith($string, $end))
+			if (!String_Utility::EndsWith($string, $ending))
 			{
-				return $string.$end;
+				return $string.$ending;
 			}
 			else
 			{
@@ -277,6 +346,17 @@
 			}
 		}
 
+		/**
+		 * Returns a new string equal to $string that starts with $start.
+		 *
+		 * If $string starts with $start, the returned string is $string, otherwise $start.$string.
+		 *
+		 * @param $string: the string to verify.
+		 * @param $start: the start to ensure.
+		 *
+		 * @access public
+		 * @return string
+		 */
 		public static function EnsureStart(/*string*/ $string, /*string*/ $start)
 		{
 			if (!String_Utility::StartsWith($string, $start))
@@ -289,6 +369,17 @@
 			}
 		}
 
+		/**
+		 * Returns a new string equal to $string without the last $characterCount characters.
+		 *
+		 * Note: If the length of $string is less than $characterCount returns empty string.
+		 *
+		 * @param $string: the string to except.
+		 * @param $characterCount: the number of characters to except from the string.
+		 *
+		 * @access public
+		 * @return string
+		 */
 		public static function ExceptEnd(/*string*/ $string, /*int*/ $characterCount)
 		{
 			$length = mb_strlen($string);
@@ -302,6 +393,17 @@
 			}
 		}
 
+		/**
+		 * Returns a new string equal to $string without the first $characterCount characters.
+		 *
+		 * Note: If the length of $string is less than $characterCount returns empty string.
+		 *
+		 * @param $string: the string to except.
+		 * @param $characterCount: the number of characters to except from the string.
+		 *
+		 * @access public
+		 * @return string
+		 */
 		public static function ExceptStart(/*string*/ $string, /*int*/ $characterCount)
 		{
 			$length = mb_strlen($string);
@@ -315,6 +417,17 @@
 			}
 		}
 
+		/**
+		 * Returns the last $characterCount characters of $string.
+		 *
+		 * Note: If the length of $string is less than $characterCount returns $string.
+		 *
+		 * @param $string: the string to process.
+		 * @param $characterCount: the number of characters to get from the string.
+		 *
+		 * @access public
+		 * @return string
+		 */
 		public static function GetEnd(/*string*/ $string, /*int*/ $characterCount)
 		{
 			$length = mb_strlen($string);
@@ -328,6 +441,17 @@
 			}
 		}
 
+		/**
+		 * Returns the first $characterCount characters of $string.
+		 *
+		 * Note: If the length of $string is less than $characterCount returns $string.
+		 *
+		 * @param $string: the string to process.
+		 * @param $characterCount: the number of characters to get from the string.
+		 *
+		 * @access public
+		 * @return string
+		 */
 		public static function GetStart(/*string*/ $string, /*int*/ $characterCount)
 		{
 			$length = mb_strlen($string);
@@ -341,11 +465,22 @@
 			}
 		}
 
-		public static function NeglectEnd(/*string*/ $string, /*string*/ $end)
+		/**
+		 * Returns a new string equal to $string that doesn't end with $ending.
+		 *
+		 * If $string ends with $ending, the returned string is $string without $ending, $string otherwise.
+		 *
+		 * @param $string: the string to verify.
+		 * @param $ending: the ending to neglect.
+		 *
+		 * @access public
+		 * @return string
+		 */
+		public static function NeglectEnd(/*string*/ $string, /*string*/ $ending)
 		{
-			if (String_Utility::EndsWith($string, $end))
+			if (String_Utility::EndsWith($string, $ending))
 			{
-				return StringUtility::ExceptEnd($string, mb_strlen($end));
+				return StringUtility::ExceptEnd($string, mb_strlen($ending));
 			}
 			else
 			{
@@ -353,6 +488,17 @@
 			}
 		}
 
+		/**
+		 * Returns a new string equal to $string that doesn't start with $start.
+		 *
+		 * If $string starts with $start, the returned string is $string without $start, $string otherwise.
+		 *
+		 * @param $string: the string to verify.
+		 * @param $start: the start to neglect.
+		 *
+		 * @access public
+		 * @return string
+		 */
 		public static function NeglectStart(/*string*/ $string, /*string*/ $start)
 		{
 			if (String_Utility::StartsWith($string, $start))
@@ -365,6 +511,17 @@
 			}
 		}
 
+		/**
+		 * Verifies if a string starts with another string.
+		 *
+		 * Returns true of the string $string starts with $with.
+		 *
+		 * @param $string: the string to verify.
+		 * @param $with: the ending to verify.
+		 *
+		 * @access public
+		 * @return bool
+		 */
 		public static function StartsWith (/*string*/ $string, /*string*/ $with)
 		{
 			if (mb_substr($string, 0, mb_strlen($with)) == $with)
@@ -379,6 +536,17 @@
 
 		//------------------------------------------------------------
 
+		/**
+		 * Formats a date value the same way the function date does, with custom weekdays and months names.
+		 *
+		 * @param $date: the date to format.
+		 * @param $format: the format to apply to the string.
+		 * @param $weekdays: an array containing the names of the days of the week, if null the value $weekdays set at String_Utility::Configure is used.
+		 * @param $months: an array containing the names of the months, if null the value $months set at String_Utility::Configure is used.
+		 *
+		 * @access public
+		 * @return string
+		 */
 		public static function FormatDate($date, $format, $weekdays = null, $months = null)
 		{
 			$pattern = array();
@@ -428,6 +596,15 @@
 
 		//------------------------------------------------------------
 
+		/**
+		 * Creates a new random string.
+		 *
+		 * @param $length: the length of the new string.
+		 * @param $characters: an string that contains the possible characters for the new string.
+		 *
+		 * @access public
+		 * @return string
+		 */
 		public static function RandomString($length, $characters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890')
 		{
 			$result = '';
@@ -447,6 +624,15 @@
 
 		//------------------------------------------------------------
 
+		/**
+		 * Sets the configuration of String_Utility.
+		 *
+		 * @param $weekdays: the names of the days of the week to use in String_Utility::FormatDate
+		 * @param $months: the names of the months to use in String_Utility::FormatDate
+		 *
+		 * @access public
+		 * @return void
+		 */
 		public static function Configure(/*string*/ $weekdays, /*string*/ $months)
 		{
 			String_Utility::$weekdays = $weekdays;
@@ -457,6 +643,9 @@
 		// Public (Constructor)
 		//------------------------------------------------------------
 
+		/**
+		 * Creating instances of this class is not allowed.
+		 */
 		public function __construct()
 		{
 			throw new Exception('Creating instances of '.__CLASS__.' is forbidden');
@@ -464,6 +653,9 @@
 	}
 
 	require_once('configuration.lib.php');
+	/**
+	 * Intended for internal use only
+	 */
 	function String_Utility_Configure()
 	{
 		String_Utility::Configure

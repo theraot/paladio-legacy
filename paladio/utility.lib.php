@@ -5,12 +5,24 @@
 		exit();
 	}
 
+	/**
+	 * Utility
+	 * @package Paladio
+	 */
 	final class Utility
 	{
 		//------------------------------------------------------------
 		// Public (Class)
 		//------------------------------------------------------------
 
+		/**
+		 * Creates a new array with the numeric keys arranges.
+		 *
+		 * @param $array: the array to process.
+		 *
+		 * @access public
+		 * @return array
+		 */
 		public static function CompactArray(/*array*/ $array)
 		{
 			$result = array();
@@ -20,20 +32,36 @@
 				$value = $array[$key];
 				if (!is_null($value))
 				{
-					if (is_numeric($key))
+					if (is_string($key))
 					{
-						$result[] = $value;
+						$result[$key] = $value;
 					}
 					else
 					{
-						$result[$key] = $value;
+						$result[] = $value;
 					}
 				}
 			}
 			return $result;
 		}
 
-		public static function Sanitize(/*string*/ $data, /*string*/ $encoding = 'html')
+		/**
+		 * Creates a new string with the dangerous characters escaped.
+		 *
+		 * Note 1: There are two supported escape encodings: html and url.
+		 * Note 2: The following charactes are cosidered dangerous:
+		 *  - Control characters
+		 *  - quotations: " and '
+		 *  - delimiters: <, >, (, ), {, }, [, ]
+		 *  - other symbols: \, %, &, ;, :, @
+		 *
+		 * @param $data: the input to sanitize.
+		 * @param $encoding: the desired escape encoding.
+		 *
+		 * @access public
+		 * @return mixed
+		 */
+		public static function Sanitize(/*mixed*/ $data, /*string*/ $encoding = 'html')
 		{
 			if (!is_string($encoding))
 			{
@@ -113,20 +141,24 @@
 			}
 		}
 
-		public static function ValidateEmail(/*string*/ $emailSinValidar, /*string*/ &$email)
+		/**
+		 * Validates if the given string is a valid email
+		 *
+		 * @param $email: the input to validate.
+		 *
+		 * @access public
+		 * @return bool
+		 */
+		public static function ValidateEmail(/*string*/ $email)
 		{
-			if (!Utileria::Validar($emailSinValidar, $email))
-			{
-				return false;
-			}
 			$email = mb_strtolower($email); //solo minusculas
-			//$caracter = '[a-zA-Z0-9_%+-]'; //caracter ::= {a-z} | {A-Z} | {0-9} | "_" | "%" | "+" | "-"
-			$caracter = '[a-z0-9_%+-]'; //caracter ::= {a-z} | {0-9} | "_" | "%" | "+" | "-"
-			$texto = $caracter.'+'; //texto ::= caracter+ //Uno o más caracter
-			$dominio = $texto.'(\.'.$texto.')*'; //dominio :: = texto ("." + texto)* /*texto seguido de ninguna o más veces ("." seguido de texto).
-			$correo = $dominio.'@'.$dominio; //correo ::= dominio "@" dominio /*dominio seguido de "@" seguido de dominio
+			//$caracter = '[a-zA-Z0-9_%+-]'; //character ::= {a-z} | {A-Z} | {0-9} | "_" | "%" | "+" | "-"
+			$character = '[a-z0-9_%+-]'; //character ::= {a-z} | {0-9} | "_" | "%" | "+" | "-"
+			$text = $character.'+'; //text ::= character+ //One or more
+			$domain = $text.'(\.'.$text.')*'; //domain :: = text ("." + text)* /*text followed by none or many ("." followed by text).
+			$pattern = $domain.'@'.$domain; //pattern ::= domain "@" domain /*domain followed by "@" followed by domain
 			//ONLY UTF-8
-			if(preg_match('#^'.$correo.'$#u', $email))
+			if(preg_match('#^'.$pattern.'$#u', $email))
 			{
 				return true;
 			}
@@ -136,12 +168,22 @@
 			}
 		}
 
-		public static function ValidateNumber(/*float*/ $numeroSinValidar, /*float*/ $min, /*float*/ $max, /*float*/ &$numero)
+		/**
+		 * Validates if the given string is a valid number in the given range.
+		 *
+		 * @param $number: the input to validate.
+		 * @param $min: the minimun valid value.
+		 * @param $max: the maximun valid value.
+		 *
+		 * @access public
+		 * @return bool
+		 */
+		public static function ValidateNumber(/*float*/ $number, /*float*/ $min, /*float*/ $max)
 		{
-			if (is_numeric($numeroSinValidar))
+			if (is_numeric($number))
 			{
-				$numero = floatval($numeroSinValidar);
-				if ($numero >= $min && $numero <= $max)
+				$number = floatval($number);
+				if ($number >= $min && $number <= $max)
 				{
 					return true;
 				}
@@ -153,6 +195,9 @@
 		// Public (Constructor)
 		//------------------------------------------------------------
 
+		/**
+		 * Creating instances of this class is not allowed.
+		 */
 		public function __construct()
 		{
 			throw new Exception('Creating instances of '.__CLASS__.' is forbidden');

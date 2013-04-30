@@ -26,9 +26,9 @@
 		private static $port;
 		private static $database;
 		private static $queryUser;
-		private static $queryKey;
+		private static $queryPassword;
 		private static $executeUser;
-		private static $executeKey;
+		private static $executePassword;
 
 		/**
 		 * Internally used to process list entries.
@@ -108,9 +108,9 @@
 		 * @see Database::ConnectExecute
 		 * @access private
 		 */
-		private static function Connect(/*string*/ $user, /*string*/ $key)
+		private static function Connect(/*string*/ $user, /*string*/ $password)
 		{
-			$connection = DB::Connect(Database::$server, Database::$port, $user, $key, Database::$database);
+			$connection = DB::Connect(Database::$server, Database::$port, $user, $password, Database::$database);
 			if ($connection === false)
 			{
 				return false;
@@ -226,7 +226,11 @@
 		/**
 		 * Verifies if the connection to the database is available.
 		 *
+		 * To connect uses $queryUser and $queryPassword set in Database::Configure.
+		 *
 		 * If the connection is available returns true, false otherwise.
+		 *
+		 * @see Database::Configure
 		 *
 		 * @access public
 		 * @return bool
@@ -252,14 +256,14 @@
 		 * @param $port: the port of the database server.
 		 * @param $database: the name of the database.
 		 * @param $executeUser: the name of the user used to execute statements.
-		 * @param $executeKey: the password of the user used to execute statements.
+		 * @param $executePassword: the password of the user used to execute statements.
 		 * @param $queryUser: the name of the user used to execute queries, if null $executeUser is used.
-		 * @param $queryKey: the password of the user used to execute queries, if null $executeKey is used.
+		 * @param $queryPassword: the password of the user used to execute queries, if null $executePassword is used.
 		 *
 		 * @access public
 		 * @return void
 		 */
-		public static function Configure(/*string*/ $server, /*string*/ $port, /*string*/ $database, /*string*/ $executeUser, /*string*/ $executeKey, /*string*/ $queryUser = null, /*string*/ $queryKey = null)
+		public static function Configure(/*string*/ $server, /*string*/ $port, /*string*/ $database, /*string*/ $executeUser, /*string*/ $executePassword, /*string*/ $queryUser = null, /*string*/ $queryPassword = null)
 		{
 			Database::$server = $server;
 			Database::$port = $port;
@@ -272,22 +276,22 @@
 			{
 				Database::$queryUser = $queryUser;
 			}
-			if (is_null($queryKey))
+			if (is_null($queryPassword))
 			{
-				Database::$queryKey = $executeKey;
+				Database::$queryPassword = $executePassword;
 			}
 			else
 			{
-				Database::$queryKey = $queryKey;
+				Database::$queryPassword = $queryPassword;
 			}
 			Database::$executeUser = $executeUser;
-			Database::$executeKey = $executeKey;
+			Database::$executePassword = $executePassword;
 		}
 
 		/**
 		 * Connects to the dabase to execute queries.
 		 *
-		 * Connects to the database using $queryUser and $queryKey set in Database::Configure.
+		 * Connects to the database using $queryUser and $queryPassword set in Database::Configure.
 		 *
 		 * Returns a database object that can be used to execute queries.
 		 *
@@ -299,13 +303,13 @@
 		 */
 		public static function ConnectQuery()
 		{
-			return new Database(Database::$queryUser, Database::$queryKey);
+			return new Database(Database::$queryUser, Database::$queryPassword);
 		}
 
 		/**
 		 * Connects to the dabase to execute statements.
 		 *
-		 * Connects to the database using $executeUser and $executeKey set in Database::Configure.
+		 * Connects to the database using $executeUser and $executePassword set in Database::Configure.
 		 *
 		 * Returns a database object that can be used to execute queries.
 		 *
@@ -317,7 +321,7 @@
 		 */
 		public static function ConnectExecute()
 		{
-			return new Database(Database::$executeUser, Database::$queryKey);
+			return new Database(Database::$executeUser, Database::$queryPassword);
 		}
 
 		/**
@@ -1008,11 +1012,11 @@
 		/**
 		 * Creates a new instance of Database
 		 * @param $user: the user to connect to the server;
-		 * @param $key: the password to connect to the server;
+		 * @param $password: the password to connect to the server;
 		 */
-		public function __construct(/*string*/ $user, /*string*/ $key)
+		public function __construct(/*string*/ $user, /*string*/ $password)
 		{
-			$this->connection = Database::Connect($user, $key);
+			$this->connection = Database::Connect($user, $password);
 		}
 	}
 
@@ -1051,9 +1055,9 @@
 			Configuration::Get('paladio-database', 'port'),
 			Configuration::Get('paladio-database', 'database'),
 			Configuration::Get('paladio-database', 'user'),
-			Configuration::Get('paladio-database', 'key'),
+			Configuration::Get('paladio-database', 'password'),
 			Configuration::Get('paladio-database', 'query_user'),
-			Configuration::Get('paladio-database', 'query_key')
+			Configuration::Get('paladio-database', 'query_password')
 		);
 	}
 	Configuration::Callback('paladio-database', 'Database_Configure');

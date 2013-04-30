@@ -7,6 +7,6 @@
 # port =
 # database =
 # user =
-# key =
+# password =
 # query_user =
-# query_key =
+# query_password =

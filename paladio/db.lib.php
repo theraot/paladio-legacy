@@ -5,29 +5,124 @@
 		exit();
 	}
 	
+	/**
+	 * DatabaseOperator_Equal
+	 * @package Paladio
+	 */
 	final class DatabaseOperator_Equal implements IDatabaseOperator {function Type(){return 'binary';} public function __toString(){return '=';}}
+	/**
+	 * DatabaseOperator_Different
+	 * @package Paladio
+	 */
 	final class DatabaseOperator_Different implements IDatabaseOperator {function Type(){return 'binary';} public function __toString(){return '<>';}}
+	/**
+	 * DatabaseOperator_GreaterThan
+	 * @package Paladio
+	 */
 	final class DatabaseOperator_GreaterThan implements IDatabaseOperator {function Type(){return 'binary';} public function __toString(){return '>';}}
+	/**
+	 * DatabaseOperator_LessThan
+	 * @package Paladio
+	 */
 	final class DatabaseOperator_LessThan implements IDatabaseOperator {function Type(){return 'binary';} public function __toString(){return '<';}}
+	/**
+	 * DatabaseOperator_GreaterOrEqual
+	 * @package Paladio
+	 */
 	final class DatabaseOperator_GreaterOrEqual implements IDatabaseOperator {function Type(){return 'binary';} public function __toString(){return '>=';}}
+	/**
+	 * DatabaseOperator_LessOrEqual
+	 * @package Paladio
+	 */
 	final class DatabaseOperator_LessOrEqual implements IDatabaseOperator {function Type(){return 'binary';} public function __toString(){return '<=';}}
+	/**
+	 * DatabaseOperator_Addition
+	 * @package Paladio
+	 */
 	final class DatabaseOperator_Addition implements IDatabaseOperator {function Type(){return 'n-ary';} public function __toString(){return '+';}}
+	/**
+	 * DatabaseOperator_Substraction
+	 * @package Paladio
+	 */
 	final class DatabaseOperator_Substraction implements IDatabaseOperator {function Type(){return 'binary';} public function __toString(){return '-';}}
+	/**
+	 * DatabaseOperator_Multiplication
+	 * @package Paladio
+	 */
 	final class DatabaseOperator_Multiplication implements IDatabaseOperator {function Type(){return 'n-ary';} public function __toString(){return '*';}}
+	/**
+	 * DatabaseOperator_Division
+	 * @package Paladio
+	 */
 	final class DatabaseOperator_Division implements IDatabaseOperator {function Type(){return 'binary';} public function __toString(){return '/';}}
+	/**
+	 * DatabaseOperator_Modulus
+	 * @package Paladio
+	 */
 	final class DatabaseOperator_Modulus implements IDatabaseOperator {function Type(){return 'binary';} public function __toString(){return 'MOD';}}
+	/**
+	 * DatabaseOperator_Conjuntion
+	 * @package Paladio
+	 */
 	final class DatabaseOperator_Conjuntion implements IDatabaseOperator {function Type(){return 'n-ary';} public function __toString(){return 'AND';}}
+	/**
+	 * DatabaseOperator_Disjuntion
+	 * @package Paladio
+	 */
 	final class DatabaseOperator_Disjuntion implements IDatabaseOperator {function Type(){return 'n-ary';} public function __toString(){return 'OR';}}
+	/**
+	 * DatabaseOperator_Negation
+	 * @package Paladio
+	 */
 	final class DatabaseOperator_Negation implements IDatabaseOperator {function Type(){return 'unary';} public function __toString(){return 'NOT';}}
+	/**
+	 * DatabaseOperator_Like
+	 * @package Paladio
+	 */
 	final class DatabaseOperator_Like implements IDatabaseOperator {function Type(){return 'binary';} public function __toString(){return 'LIKE';}}
+	/**
+	 * DatabaseOperator_IsNull
+	 * @package Paladio
+	 */
 	final class DatabaseOperator_IsNull implements IDatabaseOperator {function Type(){return 'unary';} public function __toString(){return 'ISNULL';}}
+	/**
+	 * DatabaseOperator_IN
+	 * @package Paladio
+	 */
 	final class DatabaseOperator_IN implements IDatabaseOperator {function Type(){return 'binary';} public function __toString(){return 'IN';}}
+	/**
+	 * DatabaseOperator_Count
+	 * @package Paladio
+	 */
 	final class DatabaseOperator_Count implements IDatabaseOperator {function Type(){return 'aggregation';} public function __toString(){return 'COUNT';}}
+	/**
+	 * DatabaseOperator_Average
+	 * @package Paladio
+	 */
 	final class DatabaseOperator_Average implements IDatabaseOperator {function Type(){return 'aggregation';} public function __toString(){return 'AVG';}}
+	/**
+	 * DatabaseOperator_Sumation
+	 * @package Paladio
+	 */
 	final class DatabaseOperator_Sumation implements IDatabaseOperator {function Type(){return 'aggregation';} public function __toString(){return 'SUM';}}
+	/**
+	 * DatabaseOperator_Minimun
+	 * @package Paladio
+	 */
 	final class DatabaseOperator_Minimun implements IDatabaseOperator {function Type(){return 'aggregation';} public function __toString(){return 'MIN';}}
+	/**
+	 * DatabaseOperator_Minimun
+	 * @package Paladio
+	 */
 	final class DatabaseOperator_Maximun implements IDatabaseOperator {function Type(){return 'aggregation';} public function __toString(){return 'MAX';}}
 
+	/**
+	 * DB
+	 *
+	 * MySQL specific code
+	 *
+	 * @package Paladio
+	 */
 	final class DB
 	{
 		//------------------------------------------------------------
@@ -59,29 +154,100 @@
 		//------------------------------------------------------------
 		// Public (Class)
 		//------------------------------------------------------------
-
+		
+		/**
+		 * ADD (addition) operator (binary)
+		 */
 		public static function _ADD(){return DB::$ADD;}
+		/**
+		 * AND (conjuntion) operator (n-ary)
+		 */
 		public static function _AND(){return DB::$AND;}
+		/**
+		 * AVG (average) aggreation
+		 */
 		public static function _AVG(){return DB::$AVG;}
+		/**
+		 * COUNT (count) aggregation
+		 */
 		public static function _COUNT(){return DB::$COUNT;}
+		/**
+		 * DIV (division) operator (binary)
+		 */
 		public static function _DIV(){return DB::$DIV;}
+		/**
+		 * EQ (equal) operator (binary)
+		 */
 		public static function _EQ(){return DB::$EQ;}
+		/**
+		 * GE (greater or equal) operator (binary)
+		 */
 		public static function _GE(){return DB::$GE;}
+		/**
+		 * GN (greater than) operator (binary)
+		 */
 		public static function _GN(){return DB::$GN;}
+		/**
+		 * ISNULL operator (unary)
+		 */
 		public static function _ISNULL(){return DB::$ISNULL;}
+		/**
+		 * LE (less or equal) operator (binary)
+		 */
 		public static function _LE(){return DB::$LE;}
+		/**
+		 * LIKE (like) operator (binary)
+		 */
 		public static function _LIKE(){return DB::$LIKE;}
+		/**
+		 * LN (less than) operator (binary)
+		 */
 		public static function _LN(){return DB::$LN;}
+		/**
+		 * MAX (maximun) aggregation
+		 */
 		public static function _MAX(){return DB::$MAX;}
+		/**
+		 * MUL (multiplication) operator (binary)
+		 */
 		public static function _MUL(){return DB::$MUL;}
+		/**
+		 * MAX (minimun) aggregation
+		 */
 		public static function _MIN(){return DB::$MIN;}
+		/**
+		 * MOD (modulus) operator (binary)
+		 */
 		public static function _MOD(){return DB::$MOD;}
+		/**
+		 * NE (not equal) operator (binary)
+		 */
 		public static function _NE(){return DB::$NE;}
+		/**
+		 * NOT (negation) operator (unary)
+		 */
 		public static function _NOT(){return DB::$NOT;}
+		/**
+		 * OR (disjuntion) operator (n-ary)
+		 */
 		public static function _OR(){return DB::$OR;}
+		/**
+		 * SUB (substraction) operator (binary)
+		 */
 		public static function _SUB(){return DB::$SUB;}
+		/**
+		 * SUM (summarion) aggregation
+		 */
 		public static function _SUM(){return DB::$SUM;}
 
+		/**
+		 * Alias
+		 */
+		public static function Alias(){return "AS";}
+
+		/**
+		 * Initializes static fields
+		 */
 		public static function __init()
 		{
 			DB::$ADD = new DatabaseOperator_Addition();
@@ -109,7 +275,21 @@
 
 		//------------------------------------------------------------
 		
-		public static function Connect(/*string*/ $server, /*int*/ $port, /*string*/ $user, /*string*/ $key, /*string*/ $database)
+		/**
+		 * Connects to the database
+		 *
+		 * Returns the database connection object on success, false otherwise.
+		 *
+		 * @param $server: the ip or domain of the server
+		 * @param $port: the port of the server
+		 * @param $user: the user of the database
+		 * @param $password: the password of the database
+		 * @param $database: the name of the database
+		 *
+		 * @access public
+		 * @return mixed
+		 */
+		public static function Connect(/*string*/ $server, /*int*/ $port, /*string*/ $user, /*string*/ $password, /*string*/ $database)
 		{
 			if (!is_numeric($port))
 			{
@@ -137,22 +317,65 @@
 				}
 			}
 		}
-		
+
+		/**
+		 * Closes the connection to the database
+		 *
+		 * Returns the true on success, false otherwise.
+		 *
+		 * @param $connection: the database connection object.
+		 *
+		 * @access public
+		 * @return bool
+		 */
 		public static function Disconnect(/*object*/ $connection)
 		{
 			return mysqli_close($connection);
 		}
-		
+
+		/**
+		 * Retrieves an associative array with the next entry of the query result.
+		 *
+		 * Returns an associative array if the operation is successful, false otherwise.
+		 *
+		 * @param $result: the query result.
+		 *
+		 * @access public
+		 * @return mixed
+		 */
 		public static function GetRecord(/*object*/ $result)
 		{
 			return mysqli_fetch_assoc($result);
 		}
-		
+
+		/**
+		 * Executes a query or statement.
+		 *
+		 * If the operation is successful, and $query is a query: returns a query result.
+		 * If the operation is successful, and $query is a statement: returns a true.
+		 * Otherwise: returns false
+		 *
+		 * @param $connection: the database connection object.
+		 * @param $query: the query or statement to execute.
+		 *
+		 * @access public
+		 * @return mixed
+		 */
 		public static function Query(/*object*/ $connection, /*string*/ $query)
 		{
 			return mysqli_query($connection, $query);
 		}
 		
+		/**
+		 * Releases a query result.
+		 *
+		 * Returns an true if the operation is successful, false otherwise.
+		 *
+		 * @param $result: the query result to release.
+		 *
+		 * @access public
+		 * @return bool
+		 */
 		public static function Release(/*object*/ $result)
 		{
 			if (is_resource($result))
@@ -166,7 +389,17 @@
 		}
 		
 		//------------------------------------------------------------
-		
+
+		/**
+		 * Gets the database specific name of a common datatype.
+		 *
+		 * Returns an string with the name of the datatype if the operation is successful, false otherwise.
+		 *
+		 * @param $result: the query result to release.
+		 *
+		 * @access public
+		 * @return bool
+		 */
 		public static function MapType($type)
 		{
 			$types = array
@@ -213,7 +446,7 @@
 			}
 			else
 			{
-				return null;
+				return false;
 			}
 		}
 
@@ -221,6 +454,9 @@
 		// Public (Constructors)
 		//------------------------------------------------------------
 
+		/**
+		 * Creating instances of this class is not allowed.
+		 */
 		public function __construct()
 		{
 			throw new Exception('Creating instances of '.__CLASS__.' is forbidden');

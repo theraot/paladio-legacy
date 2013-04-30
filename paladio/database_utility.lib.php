@@ -14,6 +14,10 @@
 		public function Type();
 	}
 
+	/**
+	 * Database_Field
+	 * @package Paladio
+	 */
 	final class Database_Field
 	{
 		//------------------------------------------------------------
@@ -26,6 +30,9 @@
 		// Public (Instance)
 		//------------------------------------------------------------
 		
+		/**
+		 * Convert this instance to string 
+		 */
 		public function __toString()
 		{
 			return $this->fieldName;
@@ -35,18 +42,30 @@
 		// Public (Constructor)
 		//------------------------------------------------------------
 		
+		/**
+		 * Creates a new instance of Database_Field
+		 * @param $fieldName: the name of the field to refer to.
+		 */
 		public function __construct(/*string*/ $fieldName)
 		{
 			$this->fieldName = (string)$fieldName;
 		}
 	}
 
+	/**
+	 * Database_Utility
+	 * @package Paladio
+	 */
 	final class Database_Utility
 	{
 		//------------------------------------------------------------
 		// Private (Class)
 		//------------------------------------------------------------
 
+		/**
+		 * Internally used to process values.
+		 * @access private
+		 */
 		private static function TryProcessValue(/*mixed*/ $value, /*string*/ &$result)
 		{
 			if (is_string($value))
@@ -75,11 +94,19 @@
 			}
 		}
 
+		/**
+		 * Internally used to process unary expressions.
+		 * @access private
+		 */
 		private static function ProcessExpressionUnary($operator, $parameter)
 		{
 			return $operator.'('.Database_Utility::ProcessValue($parameter).')';
 		}
 
+		/**
+		 * Internally used to process aggregation expressions.
+		 * @access private
+		 */
 		private static function ProcessExpressionAggregation($operator, $parameter)
 		{
 			if (is_null($parameter))
@@ -92,11 +119,19 @@
 			}
 		}
 
+		/**
+		 * Internally used to process binary expressions.
+		 * @access private
+		 */
 		private static function ProcessExpressionBinary($operator, $parameterA, $parameterB)
 		{
 			return '('.Database_Utility::ProcessValue($parameterA).' '.$operator.' '.Database_Utility::ProcessValue($parameterB).')';
 		}
 
+		/**
+		 * Internally used to process n-ary expressions.
+		 * @access private
+		 */
 		private static function ProcessExpressionNAry($operator, $parameters)
 		{
 			$processed = array();
@@ -112,12 +147,21 @@
 		// Public (Class)
 		//------------------------------------------------------------
 
+		/**
+		 * Creates a string that contains an alias of a field or value.
+		 *
+		 * @param $alias: the alias to give to the field or value.
+		 * @param $value: the value to alias, use Database_Field to refer to a field inteads to a string.
+		 *
+		 * @access public
+		 * @return string
+		 */
 		public static function CreateAlias(/*string*/ $alias, /*mixed*/ $value)
 		{
 			$value = Database_Utility::ProcessValue($value);
 			if (is_string($alias))
 			{
-				return $value.' AS "'.Utility::Sanitize($alias, 'html').'"';
+				return $value.' '.DB::Alias().' "'.Utility::Sanitize($alias, 'html').'"';
 			}
 			else
 			{
@@ -125,6 +169,15 @@
 			}
 		}
 
+		/**
+		 * Creates a string that contains an equation of a field and a value or field.
+		 *
+		 * @param $field: the field to equate to.
+		 * @param $value: the value to equate, use Database_Field to refer to a field inteads to a string.
+		 *
+		 * @access public
+		 * @return string
+		 */
 		public static function CreateEquation(/*string*/ $field, /*mixed*/ $value)
 		{
 			$value = Database_Utility::ProcessValue($value);
@@ -138,7 +191,16 @@
 			}
 		}
 		
-		public static function MergeWheres($whereA, $whereB)
+		/**
+		 * Combine two where conditions into one.
+		 *
+		 * @param $whereA: the first where condition.
+		 * @param $whereB: the second where condition.
+		 *
+		 * @access public
+		 * @return mixed
+		 */
+		public static function MergeWheres(/*array*/ $whereA, /*array*/ $whereB)
 		{
 			$result = array();
 			$whereAKeys = array_keys($whereA);
@@ -183,6 +245,14 @@
 			return $result;
 		}
 
+		/**
+		 * Creates a string that contains the string representation of a value.
+		 *
+		 * @param $value: the value to process, use Database_Field to refer to a field inteads to a string.
+		 *
+		 * @access public
+		 * @return string
+		 */
 		public static function ProcessValue(/*mixed*/ $value)
 		{
 			if ($value instanceof IDatabaseOperator)
@@ -203,6 +273,15 @@
 			return $value;
 		}
 
+		/**
+		 * Creates a string that contains the string representation of a expression.
+		 *
+		 * @param $field: the field over which the expression is applied.
+		 * @param $expression: the expression.
+		 *
+		 * @access public
+		 * @return string
+		 */
 		public static function ProcessExpression(/*string*/ $field, /*mixed*/ $expression)
 		{
 			if ($expression instanceof IDatabaseOperator)
@@ -329,7 +408,15 @@
 				}
 			}
 		}
-		
+
+		/**
+		 * Partially process a expression or subexpression.
+		 *
+		 * Intended for internal use only
+		 *
+		 * @access public
+		 * @return string
+		 */
 		public static function ProcessFragment($fragment, $callback)
 		{
 			if (is_callable($callback))
@@ -338,7 +425,12 @@
 				$processed = array();
 				foreach ($keys as $key)
 				{
-					if (is_numeric($key))
+					if (is_string($key))
+					{
+						$value = $fragment[$key];
+						$processed[] = call_user_func($callback, $key, $value);
+					}
+					else
 					{
 						$key = $fragment[$key];
 						if (is_string($key))
@@ -350,11 +442,6 @@
 							$value = $key;
 						}
 						$processed[] = call_user_func($callback, null, $value);
-					}
-					else
-					{
-						$value = $fragment[$key];
-						$processed[] = call_user_func($callback, $key, $value);
 					}
 				}
 				return $processed;
@@ -369,6 +456,9 @@
 		// Public (Constructors)
 		//------------------------------------------------------------
 
+		/**
+		 * Creating instances of this class is not allowed.
+		 */
 		public function __construct()
 		{
 			throw new Exception('Creating instances of '.__CLASS__.' is forbidden');

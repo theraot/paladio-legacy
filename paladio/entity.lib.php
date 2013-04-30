@@ -13,6 +13,9 @@
 		}
 	}
 
+	/**
+	 * Intended for internal use only
+	 */
 	function declare_entity_annotations()
 	{
 		class Mapping extends Annotation {public $table, $primaryKey;}
@@ -21,12 +24,20 @@
 
 	Paladio::Request('Addendum_Utility', 'declare_entity_annotations');
 
+	/**
+	 * EntityBase
+	 * @package Paladio
+	 */
 	abstract class EntityBase
 	{
 		//------------------------------------------------------------
 		// Private (Class)
 		//------------------------------------------------------------
 
+		/**
+		 * Internally used to retrieve the table and primary key of an entity.
+		 * @access private
+		 */
 		private static function GetEntityData(/*string*/ $class)
 		{
 			if (is_callable($class.'::Mapping'))
@@ -38,11 +49,21 @@
 				return Addendum_Utility::ReadAnnotation($class, 'Mapping', array('table', 'primaryKey'));
 			}
 		}
-		
+
 		//------------------------------------------------------------
 		// Public (Class)
 		//------------------------------------------------------------
-		
+
+		/**
+		 * Creates a new entity in the database and return it.
+		 *
+		 * @param $primaryKeyValue: the value of the primary key for the new entity.
+		 * @param $write: indicates whatever or not to write the entity to the database immediately.
+		 * @param $class: before PHP 5.3 $class is needed to tell the entity class to use.
+		 *
+		 * @access public
+		 * @return entity object
+		 */
 		public static function Create(/*mixed*/ $primaryKeyValue, /*bool*/ $write = true, /*string*/ $class = null)
 		{
 			if (!is_string($class))
@@ -70,7 +91,18 @@
 				return $result;
 			}
 		}
-		
+
+		/**
+		 * Verifies if an entity exists in the database.
+		 *
+		 * Returns true if the entity exists, false otherwise.
+		 *
+		 * @param $primaryKeyValue: the value of the primary key for the entity.
+		 * @param $class: before PHP 5.3 $class is needed to tell the entity class to use.
+		 *
+		 * @access public
+		 * @return bool
+		 */
 		public static function Exists(/*mixed*/ $primaryKeyValue, /*string*/ $class = null)
 		{
 			if (!is_string($class))
@@ -88,6 +120,17 @@
 			return Entity::Exists($data['table'], $data['primaryKey'], $primaryKeyValue);
 		}
 
+		/**
+		 * Get a entity that already exists in the dabase.
+		 *
+		 * Returns a entity object if the entity exists, null otherwise.
+		 *
+		 * @param $primaryKeyValue: the value of the primary key for the existing entity.
+		 * @param $class: before PHP 5.3 $class is needed to tell the entity class to use.
+		 *
+		 * @access public
+		 * @return entity object
+		 */
 		public static function Existing(/*/mixed*/ $primaryKeyValue, /*string*/ $class = null)
 		{
 			if (!is_string($class))
@@ -115,7 +158,18 @@
 				return null;
 			}
 		}
-		
+
+		/**
+		 * Loads ent files.
+		 *
+		 * If the ent describes a table that doens't exist, the table is created.
+		 * If a class with name equal to the name of table changed to initial capital letter doens't exist, the class is created as an entity class for the table.
+		 *
+		 * @param $path: the folder from which to load the ent files.
+		 *
+		 * @access public
+		 * @return void
+		 */
 		public static function LoadEnts($path)
 		{
 			$classTemplate =
@@ -134,7 +188,7 @@
 			{
 				$filename = basename($entityFile);
 				$table = mb_substr(basename($entityFile), 0, mb_strlen($filename) - mb_strlen($ending));
-				
+
 				$INI = new INI();
 				$INI->Load($entityFile, 1);
 				$category = $INI->get_Category('fields');
@@ -156,31 +210,32 @@
 						if (preg_match('@([a-z ]+)(.*)@u', trim(mb_strtolower($fields[$key]['type'])), $matches))
 						{
 							$type = DB::MapType($matches[1]);
-							if (!is_null($type))
+							if ($type === false)
 							{
-								$piece = $key.' '.$type;
-								if (preg_match('@\(([0-9, ]*)\)@', $matches[2], $matches))
-								{
-									//ONLY UTF-8
-									$typeModifier = array_map('trim', explode(',', $matches[1]));
-									//ONLY UTF-8
-									$piece .= '('.implode(', ', $typeModifier).')';
-								}
-								if (isset($fields[$key]['constraint']))
-								{
-									//ONLY UTF-8
-									$constraint = trim(mb_strtolower($fields[$key]['constraint']));
-									if (in_array($constraint, $constraints))
-									{
-										$piece .= ' '.$fields[$key]['constraint'];
-									}
-								}
-								if (isset($fields[$key]['default']))
-								{
-									$piece .= ' default '.$fields[$key]['default'];
-								}
-								$pieces[] = $piece;
+								$type = $matches[1];
 							}
+							$piece = $key.' '.$type;
+							if (preg_match('@\(([0-9, ]*)\)@', $matches[2], $matches))
+							{
+								//ONLY UTF-8
+								$typeModifier = array_map('trim', explode(',', $matches[1]));
+								//ONLY UTF-8
+								$piece .= '('.implode(', ', $typeModifier).')';
+							}
+							if (isset($fields[$key]['constraint']))
+							{
+								//ONLY UTF-8
+								$constraint = trim(mb_strtolower($fields[$key]['constraint']));
+								if (in_array($constraint, $constraints))
+								{
+									$piece .= ' '.$fields[$key]['constraint'];
+								}
+							}
+							if (isset($fields[$key]['default']))
+							{
+								$piece .= ' default '.$fields[$key]['default'];
+							}
+							$pieces[] = $piece;
 						}
 					}
 					$statement = 'CREATE TABLE '.$table.' ('.implode(', ', $pieces).')';
@@ -212,6 +267,10 @@
 
 		private $_class;
 
+		/**
+		 * Internally used to retrive the value of a field
+		 * @access private
+		 */
 		private function _get(/*string*/ $fieldName)
 		{
 			$fieldName = (string)$fieldName;
@@ -254,6 +313,10 @@
 			}
 		}
 
+		/**
+		 * Internally used to verify if a field exists
+		 * @access private
+		 */
 		private function _isset(/*string*/ $fieldName)
 		{
 			$fieldName = (string)$fieldName;
@@ -300,6 +363,10 @@
 			}
 		}
 
+		/**
+		 * Internally used to sets the value of a field
+		 * @access private
+		 */
 		private function _set(/*string*/ $fieldName, /*mixed*/ $value)
 		{
 			$fieldName = (string)$fieldName;
@@ -337,6 +404,10 @@
 			}
 		}
 
+		/**
+		 * Internally used to unset the value of a field
+		 * @access private
+		 */
 		private function _unset(/*string*/ $fieldName)
 		{
 			$fieldName = (string)$fieldName;
@@ -370,6 +441,10 @@
 			}
 		}
 
+		/**
+		 * Internally used to create inheritance hierarchy
+		 * @access private
+		 */
 		private function CreateBases()
 		{
 			$current = $this;
@@ -383,6 +458,10 @@
 			}
 		}
 
+		/**
+		 * Internally used to create inheritance hierarchy until find a field
+		 * @access private
+		 */
 		private function CreateBasesUntilField(/*string*/ $fieldName)
 		{
 			$current = $this;
@@ -400,6 +479,9 @@
 			}
 		}
 
+		/**
+		 * Creates one level of inheritance hierarchy
+		 */
 		private function ProcessInheritance(/*bool*/ $create = false)
 		{
 			if (is_null($this->_baseEntityBase))
@@ -468,6 +550,10 @@
 			}
 		}
 
+		/**
+		 * Internally used to process the references defined in the entity class
+		 * @access private
+		 */
 		private function ProcessReferences()
 		{
 			$result = array();
@@ -523,6 +609,14 @@
 			return $this;
 		}
 
+		/**
+		 * Sets AutoSave on or off.
+		 *
+		 * If AutoSave is on, the entity will be saved each time any of its value is modified.
+		 *
+		 * @access public
+		 * @return void
+		 */
 		public function AutoSave(/*bool*/ $value)
 		{
 			if ($value)
@@ -535,28 +629,32 @@
 			}
 		}
 
-		public function Clear()
+		/**
+		 * Clear the values of this instance.
+		 *
+		 * @param $recursive: if true executes this command for all the base entities.
+		 *
+		 * @access public
+		 * @return this
+		 */
+		public function Clear(/*bool*/ $recursive = true)
 		{
 			$this->_entity->Clear();
+			if (!is_null($this->_baseEntityBase) && $recursive)
+			{
+				$this->_baseEntityBase->Clear($recursive);
+			}
 			return $this;
 		}
 
-		public function CreateOrSave(/*bool*/ $recursive = true)
-		{
-			if ($this->_entity->CreateOrSave())
-			{
-				if (!is_null($this->_baseEntityBase) && $recursive)
-				{
-					$this->_baseEntityBase->CreateOrSave($recursive);
-				}
-				return $this;
-			}
-			else
-			{
-				throw new Exception('Error');
-			}
-		}
-
+		/**
+		 * Retrieves the values of all the fields from the database.
+		 *
+		 * @param $recursive: if true executes this command for all the base entities.
+		 *
+		 * @access public
+		 * @return this
+		 */
 		public function Load(/*bool*/ $recursive = true)
 		{
 			if ($this->_entity->Load())
@@ -573,6 +671,14 @@
 			}
 		}
 
+		/**
+		 * Stores the values of all the fields to the database.
+		 *
+		 * @param $recursive: if true executes this command for all the base entities.
+		 *
+		 * @access public
+		 * @return this
+		 */
 		public function Save(/*bool*/ $recursive = true)
 		{
 			if ($this->_entity->Save())
@@ -589,6 +695,14 @@
 			}
 		}
 
+		/**
+		 * Sets the values of the fields to the values of $record.
+		 *
+		 * @param $record: the values to set the fields to.
+		 *
+		 * @access public
+		 * @return this
+		 */
 		public function Write(/*array*/ $record)
 		{
 			if (is_array($record))
@@ -617,6 +731,14 @@
 
 		//------------------------------------------------------------
 
+		/**
+		 * Retrives the value of the field $fieldName.
+		 *
+		 * @param $fieldName: the name of the field to retrieve.
+		 *
+		 * @access public
+		 * @return mixed
+		 */
 		public function get(/*mixed*/ $fieldName)
 		{
 			if (is_string($fieldName))
@@ -634,6 +756,14 @@
 			}
 		}
 
+		/**
+		 * Verifies the value of the field $fieldName has value set.
+		 *
+		 * @param $fieldName: the name of the field to verify.
+		 *
+		 * @access public
+		 * @return mixed
+		 */
 		public function is_set(/*mixed*/ $fieldName)
 		{
 			if (is_string($fieldName))
@@ -651,6 +781,15 @@
 			}
 		}
 
+		/**
+		 * Sets the value of the field $fieldName.
+		 *
+		 * @param $fieldName: the name of the field to set.
+		 * @param $value: the value to set the field to.
+		 *
+		 * @access public
+		 * @return this
+		 */
 		public function set(/*mixed*/ $fieldName, /*mixed*/ $value)
 		{
 			if (is_array($fieldName))
@@ -678,6 +817,14 @@
 			return $this;
 		}
 
+		/**
+		 * Clears the value of the field $fieldName.
+		 *
+		 * @param $fieldName: the name of the field to clear.
+		 *
+		 * @access public
+		 * @return this
+		 */
 		public function un_set(/*mixed*/ $fieldName)
 		{
 			if (is_string($fieldName))
@@ -698,6 +845,11 @@
 		// Protected (Constructor)
 		//------------------------------------------------------------
 
+		/**
+		 * Creates a new instance of EntiryBase
+		 * @param $entity: an Entity object.
+		 * @param $autoSave: determinated if the entity will be saved each time any of its value is modified.
+		 */
 		protected function __construct(/*Entity*/ $entity, /*bool*/ $autoSave = true)
 		{
 			$this->_class = get_class($this);
@@ -713,12 +865,20 @@
 		}
 	}
 
+	/**
+	 * Entity
+	 * @package Paladio
+	 */
 	final class Entity
 	{
 		//------------------------------------------------------------
 		// Private (Class)
 		//------------------------------------------------------------
 
+		/**
+		 * Internally used to create a where condition for the primarykey.
+		 * @access private
+		 */
 		private static function CreateWhere (/*mixed*/ $primaryKey, /*mixed*/ $primaryKeyValue)
 		{
 			$where = array();
@@ -759,15 +919,19 @@
 		// Public (Class)
 		//------------------------------------------------------------
 
+		/**
+		 * Verifies if the entity exists on the database.
+		 *
+		 * @param $table: the name of the table of the entity.
+		 * @param $primaryKey: the primary key.
+		 * @param $primaryKeyValue: the value of the primary key.
+		 *
+		 * @access plubic
+		 * @return bool
+		 */
 		public static function Exists(/*string*/ $table, /*mixed*/ $primaryKey, /*mixed*/ $primaryKeyValue)
 		{
 			return (Database::CountRecords($table, Entity::CreateWhere($primaryKey, $primaryKeyValue)) == 1);
-		}
-
-		public static function ContieneCampo(/*string*/ $table, /*mixed*/ $fieldName)
-		{
-			$fieldName = (string)$fieldName;
-			return Database::HasFields($table, $fieldName);
 		}
 
 		//------------------------------------------------------------
@@ -827,7 +991,7 @@
 			else
 			{
 				$record = array();
-				if (Database::HasFields($this->_table, array($campo)))
+				if (Database::HasFields($this->_table, array($fieldName)))
 				{
 					$this->_record[$fieldName] = $value;
 				}
@@ -843,41 +1007,84 @@
 			unset($this->_registro[$fieldName]);
 		}
 
+		/**
+		 * Clears the values of this instance.
+		 *
+		 * @access plubic
+		 * @return void
+		 */
 		public function Clear()
 		{
 			$this->_registro = array();
 		}
 
+		/**
+		 * Inserts the values of this instance to the database.
+		 *
+		 * Returns true if the operation was successful, false otherwise.
+		 *
+		 * @access plubic
+		 * @return bool
+		 */
 		public function Create()
 		{
 			return Database::Insert($this->_where, $this->_table);
 		}
 
-		public function CreateOrSave()
-		{
-			return Database::Write($this->_record, $this->_table, $this->_where);
-		}
-
+		/**
+		 * Reads the values of this instance from the database.
+		 *
+		 * Returns true if the operation was successful, false otherwise.
+		 *
+		 * @access plubic
+		 * @return bool
+		 */
 		public function Load()
 		{
 			return Database::ReadOneRecord($this->_record, $this->_table, null, $this->_where);
 		}
 
+		/**
+		 * Returns the primary. 
+		 *
+		 * @access plubic
+		 * @return mixed
+		 */
 		public function PrimaryKey()
 		{
 			return $this->_primaryKey;
 		}
 
+		/**
+		 * Returns the values of this instance. 
+		 *
+		 * @access plubic
+		 * @return mixed
+		 */
 		public function Record()
 		{
 			return $this->_record;
 		}
 
+		/**
+		 * Writes the values of this instance to the database. 
+		 *
+		 		 * Returns true if the operation was successful, false otherwise.
+		 *
+		 * @access plubic
+		 * @return bool
+		 */
 		public function Save()
 		{
-			return Database::Update($this->_record, $this->_table, $this->_where);
+			return Database::Write($this->_record, $this->_table, $this->_where);
 		}
 
+		/**
+		 * Returns the table of this instance.
+		 *
+		 * @access plubic
+		 * @return string
+		 */
 		public function Table()
 		{
 			return $this->_table;
@@ -932,6 +1139,13 @@
 		// Public (Constructor)
 		//------------------------------------------------------------
 
+		/**
+		 * Creates a new instance of Entity
+		 * @param $table: the table of the entity.
+		 * @param $primaryKey: the primariKey of the table of this entity.
+		 * @param $primaryKeyValue: the value of the the primariKey of this entity.
+		 * @param $create: determinates whatever or not write this entity to the database immediately.
+		 */
 		public function __construct(/*string*/ $table, /*mixed*/ $primaryKey, /*mixed*/ $primaryKeyValue, /*bool*/ $create = false)
 		{
 			$this->_table = $table;

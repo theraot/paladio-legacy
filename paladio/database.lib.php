@@ -1011,8 +1011,8 @@
 
 		/**
 		 * Creates a new instance of Database
-		 * @param $user: the user to connect to the server;
-		 * @param $password: the password to connect to the server;
+		 * @param $user: the user to connect to the server.
+		 * @param $password: the password to connect to the server.
 		 */
 		public function __construct(/*string*/ $user, /*string*/ $password)
 		{

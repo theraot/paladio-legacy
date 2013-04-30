@@ -795,7 +795,7 @@
 		 * @see Database::CreateQueryRead
 		 *
 		 * @access public
-		 * @return string
+		 * @return mixed
 		 */
 		public static function Read(/*string*/ $table, /*mixed*/ $fields = null, /*mixed*/ $where = null, /*Database*/ $database = null)
 		{

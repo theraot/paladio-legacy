@@ -1047,6 +1047,10 @@
 	}
 
 	require_once('configuration.lib.php');
+	
+	/**
+	 * Intended for internal use only
+	 */
 	function Database_Configure()
 	{
 		Database::Configure

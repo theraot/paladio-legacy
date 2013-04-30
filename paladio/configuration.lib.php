@@ -24,6 +24,11 @@
 		private static $loadedFiles;
 		private static $entries;
 
+		/**
+		 * Internally used to call the callbacks.
+		 * @see Configuration::Callback
+		 * @access private
+		 */
 		private static function Dispatch()
 		{
 			if (is_array(Configuration::$entries))
@@ -60,6 +65,9 @@
 		 * If $callback is callable: it will be called to handle the notification.
 		 * Otherwise: throws an exception with the message "Invalid callback".
 		 *
+		 * @param $categoryName: The name of the requested category.
+		 * @param $callback: The function callback to be executed when the category is available. If null, the requested file will be included.
+		 *
 		 * @access public
 		 * @return void
 		 */
@@ -95,6 +103,8 @@
 		 * Verifies if the category with the name $categoryName is available.
 		 *
 		 * If the category with the name $categoryName exists returns true, false otherwise.
+		 *
+		 * @param $categoryName: The name of the requested category.
 		 *
 		 * @access public
 		 * @return bool
@@ -141,6 +151,8 @@
 		 * Note 1: if the loaded configuration includes a configuration field "configuration" in the category "paladio-paths" Configuration::Load is called recursively on the value of the configuration field.
 		 * Note 2: if attempts to load a file that was previously loaded the file is skipped.
 		 * Note 3: all the loaded files are readed skipping the first line.
+		 *
+		 * @param $path: The path to load configuration from.
 		 *
 		 * @access public
 		 * @return void
@@ -193,6 +205,10 @@
 		 *
 		 * Returns the value of the configuration field if it is available, $default otherwise.
 		 *
+		 * @param $categoryName: The name of the requested category.
+		 * @param $fieldName: The name of the requested field.
+		 * @param $default: The value to fallback when the field is not available.
+		 *
 		 * @access public
 		 * @return mixed
 		 */
@@ -215,6 +231,10 @@
 		 *
 		 * Returns true if the configuration field is available, false otherwise.
 		 *
+		 * @param $categoryName: The name of the requested category.
+		 * @param $fieldName: The name of the requested field.
+		 * @param &$result: Set the readed value, left untouched if the field is not available.
+		 *
 		 * @access public
 		 * @return bool
 		 */
@@ -235,6 +255,9 @@
 		// Public (Constructors)
 		//------------------------------------------------------------
 
+		/**
+		 * Creating instances of this class is not allowed.
+		 */
 		public function __constrct()
 		{
 			throw new Exception('Creating instances of '.__CLASS__.' is forbidden');

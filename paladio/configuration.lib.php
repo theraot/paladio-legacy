@@ -233,7 +233,7 @@
 		 *
 		 * @param $categoryName: The name of the requested category.
 		 * @param $fieldName: The name of the requested field.
-		 * @param &$result: Set the readed value, left untouched if the field is not available.
+		 * @param &$result: Set to the readed value, left untouched if the field is not available.
 		 *
 		 * @access public
 		 * @return bool

@@ -95,7 +95,7 @@
 				foreach($keys as $key)
 				{
 					$file = FileSystem::ResolveRelativePath($path, $key);
-					if (is_file($file))
+					if (FileSystem::UriExists($file))
 					{
 						if (AccessControl::CheckCanAccess($list[$key]))
 						{
@@ -216,7 +216,7 @@
 		
 		public static function TryGetData(/*string*/ $file, /*mixed*/ &$result)
 		{
-			if (is_file($file))
+			if (FileSystem::UriExists($file))
 			{
 				$current = AccessControl::$current;
 				$path = FileSystem::FolderInstallation();

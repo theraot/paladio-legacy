@@ -17,6 +17,11 @@
 	}
 	$selectedClass = isset($_ELEMENT['attributes']['selected-class']) ? $_ELEMENT['attributes']['selected-class'] : false;
 	$itemClass = isset($_ELEMENT['attributes']['item-class']) ? $_ELEMENT['attributes']['item-class'] : false;
+	$source = $_ELEMENT['source'];
+	if ($_ELEMENT['query'] !== '')
+	{
+		$source .= '?'.$_ELEMENT['query'];
+	}
 	foreach ($keys as $key)
 	{
 		$title = isset($validUris[$key]['menu-title']) ? $validUris[$key]['menu-title'] : false;
@@ -34,15 +39,18 @@
 					echo ' class="'.$itemClass.'"';
 				}
 			}
-			else if ($_ELEMENT['source'] == $validUris[$key]['path'])
+			else
 			{
-				if ($itemClass === false)
+				if ($source == $validUris[$key]['path'])
 				{
-					echo ' class="'.$selectedClass.'"';
-				}
-				else
-				{
-					echo ' class="'.$itemClass.' '.$selectedClass.'"';
+					if ($itemClass === false)
+					{
+						echo ' class="'.$selectedClass.'"';
+					}
+					else
+					{
+						echo ' class="'.$itemClass.' '.$selectedClass.'"';
+					}
 				}
 			}
 			if (isset($validUris[$key]['menu-id']))

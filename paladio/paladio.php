@@ -227,18 +227,18 @@
 			Paladio::Dispatch();
 		}
 
-		private static function ProcessDocumentFragment($parser, $source)
+		private static function ProcessDocumentFragment($parser, $source, $query)
 		{
 			$contents = '';
 			while($parser->CanConsume())
 			{
 				$new = $parser->ConsumeUntil(array('<@', '</@'));
 				$contents .= $new;
-				$elementResult = Paladio::ReadElement($parser, $source, $element);
+				$elementResult = Paladio::ReadElement($parser, $source, $query, $element);
 				if ($elementResult['status'] === false)
 				{
 					//OPEN
-					$documentResult = Paladio::ProcessDocumentFragment($parser, $source);
+					$documentResult = Paladio::ProcessDocumentFragment($parser, $source, $query);
 					$element['contents'] = $documentResult['contents'];
 					$new = Paladio::ProcessElement($element);
 					$contents .= $new;
@@ -297,7 +297,7 @@
 			include($file);
 			$result = ob_get_contents();
 			ob_end_clean();
-			return Paladio::ProcessDocument($result, $_ELEMENT['source']);
+			return Paladio::ProcessDocument($result, $_ELEMENT['source'], $_ELEMENT['query']);
 		}
 
 		private static function ProcessSingleElement(/*array*/ $_ELEMENT)
@@ -332,7 +332,7 @@
 			return $result;
 		}
 
-		private static function ReadElement($parser, $source, &$element)
+		private static function ReadElement($parser, $source, $query, &$element)
 		{
 			$whitespace = array("\t", "\n", "\r", "\f", ' ');
 			$whitespaceOrClose = array("\t", "\n", "\r", "\f", ' ', '/', '>');
@@ -371,7 +371,7 @@
 				else
 				{
 					$tmp = $parser->ConsumeUntil($whitespaceOrClose);
-					$element = array('name' => $tmp, 'attributes' => array(), 'contents' => null, 'source' => $source, 'multiple' => $multiple);
+					$element = array('name' => $tmp, 'attributes' => array(), 'contents' => null, 'source' => $source, 'query' => $query, 'multiple' => $multiple);
 					for(;;)
 					{
 						$dump = $parser->ConsumeWhile($whitespace);
@@ -577,12 +577,12 @@
 		 * @access public
 		 * @return string
 		 */
-		public static function ProcessDocument($document, $source)
+		public static function ProcessDocument($document, $source, $query)
 		{
 			if (class_exists('Parser'))
 			{
 				$parser = new Parser($document);
-				$documentResult = Paladio::ProcessDocumentFragment($parser, $source);
+				$documentResult = Paladio::ProcessDocumentFragment($parser, $source, $query);
 				return $documentResult['contents'];
 			}
 			else
@@ -608,7 +608,7 @@
 	$document = ob_get_contents();
 	ob_end_clean();
 
-	$result = Paladio::ProcessDocument($document, FileSystem::ScriptPath());
+	$result = Paladio::ProcessDocument($document, FileSystem::ScriptPath(), $_SERVER['QUERY_STRING']);
 	echo $result;
 
 	exit();

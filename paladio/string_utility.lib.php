@@ -558,7 +558,7 @@
 			if (!is_null($weekdays))
 			{
 				//ONLY UTF-8
-				$_weekdays = array_map('trim', explode(',', $weekdays));
+				$_weekdays = array_map('trim', $weekdays);
 				$weekday = date('w', $date);
 				//ONLY UTF-8
 				$weekday_string = implode('\\',utf8_str_split($_weekdays[$weekday], 1));
@@ -576,7 +576,7 @@
 			if (!is_null($months))
 			{
 				//ONLY UTF-8
-				$_months = array_map('trim', explode(',', $months));
+				$_months = array_map('trim', $months);
 				$month = date('n', $date);
 				//ONLY UTF-8
 				$month_string = implode('\\',utf8_str_split($_months[$month - 1], 1));

@@ -8,22 +8,7 @@
 	{
 		require_once('filesystem.lib.php');
 		require_once('configuration.lib.php');
-	}
-	
-	if (!function_exists('json_decode_array'))
-	{
-		function json_decode_array($string)
-		{
-			$result = json_decode($string, true);
-			if (json_last_error() == JSON_ERROR_NONE)
-			{
-				return $result;
-			}
-			else
-			{
-				return array();
-			}
-		}
+		require_once('pen.lib.php');
 	}
 
 	final class AccessControl
@@ -78,7 +63,7 @@
 		{
 			if (is_string($value))
 			{
-				return json_decode_array($value);
+				return PEN::Decode($value);
 			}
 			else
 			{

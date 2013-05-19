@@ -200,22 +200,14 @@
 				$INI = new INI();
 				$INI->Load($entityFile, 1);
 				$category = $INI->get_Category('fields');
-				if (!is_null($category))
-				{
-					$fields = array_map('json_decode_array', $category);
-				}
-				else
-				{
-					$fields = array();
-				}
 				if (!Database::TableExists($table))
 				{
-					$keys = array_keys($fields);
+					$keys = array_keys($category);
 					$pieces = array();
 					foreach ($keys as $key)
 					{
 						//ONLY UTF-8
-						if (preg_match('@([a-z ]+)(.*)@u', trim(mb_strtolower($fields[$key]['type'])), $matches))
+						if (preg_match('@([a-z ]+)(.*)@u', trim(mb_strtolower($category[$key]['type'])), $matches))
 						{
 							$type = DB::MapType($matches[1]);
 							if ($type === false)
@@ -230,18 +222,18 @@
 								//ONLY UTF-8
 								$piece .= '('.implode(', ', $typeModifier).')';
 							}
-							if (isset($fields[$key]['constraint']))
+							if (isset($category[$key]['constraint']))
 							{
 								//ONLY UTF-8
-								$constraint = trim(mb_strtolower($fields[$key]['constraint']));
+								$constraint = trim(mb_strtolower($category[$key]['constraint']));
 								if (in_array($constraint, $constraints))
 								{
-									$piece .= ' '.$fields[$key]['constraint'];
+									$piece .= ' '.$category[$key]['constraint'];
 								}
 							}
-							if (isset($fields[$key]['default']))
+							if (isset($category[$key]['default']))
 							{
-								$piece .= ' default '.$fields[$key]['default'];
+								$piece .= ' default '.$category[$key]['default'];
 							}
 							$pieces[] = $piece;
 						}
@@ -254,10 +246,10 @@
 				if (!class_exists($className))
 				{
 					$pieces = array();
-					$keys = array_keys($fields);
+					$keys = array_keys($category);
 					foreach ($keys as $key)
 					{
-						if ($fields[$key]['constraint'] == 'primary key')
+						if ($category[$key]['constraint'] == 'primary key')
 						{
 							$pieces[] = '\''.$key.'\'';
 						}

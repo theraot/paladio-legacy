@@ -99,7 +99,8 @@
 				//"&", ";" : html encoding
 				// "<", ">" : dangerous to html
 				//"(", ")" : used in SQL injection
-				//"{", "}", "[", "]", ":" : dangerous to JSON
+				//"[", "]", ":" : dangerous to PEN and JSON
+				//"{", "}" : dangerous to JSON
 				//"@" : dangerous to paladio
 
 				//ONLY UTF-8

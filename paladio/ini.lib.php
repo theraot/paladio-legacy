@@ -9,6 +9,7 @@
 	{
 		require_once('string_utility.lib.php');
 		require_once('ini_utility.lib.php');
+		require_once('pen.lib.php');
 	}
 
 	/**
@@ -87,7 +88,19 @@
 					{
 						if (!$useValidCategories || in_array($currentCategoryName, $validCategories))
 						{
-							if (INI_Utility::ProcessLine($line, $fieldName, $fieldValue, $extra))
+							if (String_Utility::StartsWith($line, '@'))
+							{
+								if (String_Utility::StartsWith($line, '@import '))
+								{
+									$data = mb_substr($line, 0, 8);
+									$this->merge_Content(eval($data));
+								}
+								else
+								{
+									//Ignore
+								}
+							}
+							else if (INI_Utility::ProcessLine($line, $fieldName, $fieldValue, $extra))
 							{
 								if (is_string($extra))
 								{
@@ -98,10 +111,6 @@
 									else
 									{
 										$continue = false;
-										if (String_Utility::StartsWith($extra, "@"))
-										{
-											$fieldValue = eval($fieldValue);
-										}
 									}
 								}
 								else if ($extra === false)
@@ -115,11 +124,11 @@
 								}
 								if ($keepCategories)
 								{
-									$this->content[$currentCategoryName][$fieldName] = $fieldValue;
+									$this->content[$currentCategoryName][$fieldName] = PEN::Decode($fieldValue);
 								}
 								else
 								{
-									$this->content[''][$fieldName] = $fieldValue;
+									$this->content[''][$fieldName] = PEN::Decode($fieldValue);
 								}
 							}
 							else
@@ -165,7 +174,7 @@
 		/**
 		 * Creates a string that has the contents of the category with the name $categoryName.
 		 *
-		 * Note: The values of the fields are encoded as JSON.
+		 * Note: The values of the fields are encoded as PEN.
 		 *
 		 * Returns a string with the contents of the category indentified with the name $category name if the category is available, false otherwise.
 		 *
@@ -182,7 +191,7 @@
 				$result = '';
 				foreach ($fieldNames as $fieldName)
 				{
-					$fieldValue = json_encode($category[$fieldName]);
+					$fieldValue = PEN::Encode($category[$fieldName]);
 					$result .= $fieldName.' = '.$fieldValue."\n";
 				}
 				return $result;
@@ -333,13 +342,18 @@
 
 		public function set_Content(/*array*/ $value)
 		{
+			$this->Clear();
+			$this->merge_Content($value);
+		}
+
+		public function merge_Content(/*array*/ $value)
+		{
 			if (!isset($this->content))
 			{
 				$this->Clear();
 			}
 			if (is_array($value))
 			{
-				$this->unset_Contenido();
 				$keys = array_keys($value);
 				foreach ($keys as $key)
 				{

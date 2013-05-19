@@ -67,7 +67,20 @@
 		{
 			if (isset($this->document))
 			{
-				if (func_num_args() >= 1)
+				if (func_num_args() == 0)
+				{
+					if ($this->documentPosition + 1 <= $this->documentSize)
+					{
+						$result = mb_substr($this->document, $this->documentPosition, 1);
+						$this->documentPosition += 1;
+						return $result;
+					}
+					else
+					{
+						return null;
+					}
+				}
+				else
 				{
 					if (is_string($what))
 					{
@@ -118,16 +131,6 @@
 						}
 						return null;
 					}
-
-				}
-				else
-				{
-					if ($this->documentPosition + 1 <= $this->documentSize)
-					{
-						$result = mb_substr($this->document, $this->documentPosition, 1);
-						$this->documentPosition += 1;
-						return $result;
-					}
 					else
 					{
 						return null;
@@ -147,6 +150,41 @@
 				$position = $this->documentPosition;
 				$this->documentPosition = $this->documentSize;
 				return mb_substr($this->document, $position);
+			}
+			else
+			{
+				throw new Exception('parser have been closed');
+			}
+		}
+
+		public function ConsumeCallback(/*function*/ $callback = null)
+		{
+			if (isset($this->document))
+			{
+				if (is_callable($callback))
+				{
+					if ($this->documentPosition + 1 <= $this->documentSize)
+					{
+						$result = mb_substr($this->document, $this->documentPosition, 1);
+						if (call_user_func($callback, $result))
+						{
+							$this->documentPosition += 1;
+							return $result;
+						}
+						else
+						{
+							return null;
+						}
+					}
+					else
+					{
+						return null;
+					}
+				}
+				else
+				{
+					return null;
+				}
 			}
 			else
 			{
@@ -231,6 +269,59 @@
 							return $this->ConsumeToPosition($bestPosition);
 						}
 					}
+					else
+					{
+						return '';
+					}
+				}
+				else
+				{
+					return '';
+				}
+			}
+			else
+			{
+				throw new Exception('parser have been closed');
+			}
+		}
+
+		public function ConsumeUntilCallback(/*function*/ $callback)
+		{
+			if (isset($this->document))
+			{
+				if ($this->CanConsume())
+				{
+					if (is_callable($callback))
+					{
+						$result = '';
+						while (true)
+						{
+							$input = $this->Consume();
+							if (input === null)
+							{
+								return $result;
+							}
+							else
+							{
+								if (!call_user_func($callback, $input))
+								{
+									$result += $input;
+								}
+								else
+								{
+									break;
+								}
+							}
+						}
+						if ($input !== null)
+						{
+							$this->Unconsume();
+						}
+					}
+					else
+					{
+						return '';
+					}
 				}
 				else
 				{
@@ -294,21 +385,89 @@
 			}
 		}
 
-		public function Unconsume(/*int*/ $amount = null)
+		public function ConsumeWhileCallback(/*function*/ $callback)
 		{
-			if (func_num_args() == 1 && is_numeric($amount))
+			if (isset($this->document))
 			{
-				if ($this->documentPosition >= $amount)
+				if ($this->CanConsume())
 				{
-					$this->documentPosition -= $amount;
+					if (is_callable($callback))
+					{
+						$result = '';
+						while (true)
+						{
+							$input = $this->Consume();
+							if (input === null)
+							{
+								return $result;
+							}
+							else
+							{
+								if (call_user_func($callback, $input))
+								{
+									$result += $input;
+								}
+								else
+								{
+									break;
+								}
+							}
+						}
+						if ($input !== null)
+						{
+							$this->Unconsume();
+						}
+					}
+					else
+					{
+						return '';
+					}
+				}
+				else
+				{
+					return '';
 				}
 			}
 			else
 			{
-				if ($this->documentPosition >= 1)
+				throw new Exception('parser have been closed');
+			}
+		}
+
+		public function Unconsume(/*int*/ $amount = null)
+		{
+			if (isset($this->document))
+			{
+				if (func_num_args() == 1 && is_numeric($amount))
 				{
-					$this->documentPosition--;
+					if ($this->documentPosition >= $amount)
+					{
+						$this->documentPosition -= $amount;
+					}
 				}
+				else
+				{
+					if ($this->documentPosition >= 1)
+					{
+						$this->documentPosition--;
+					}
+				}
+			}
+			else
+			{
+				throw new Exception('parser have been closed');
+			}
+		}
+
+		public function UnconsumeAll()
+		{
+			if (isset($this->document))
+			{
+				$this->documentPosition = 0;
+			}
+			else
+			{
+				throw new Exception('parser have been closed');
 			}
 		}
 

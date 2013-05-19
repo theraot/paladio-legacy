@@ -305,7 +305,7 @@
 							{
 								if (!call_user_func($callback, $input))
 								{
-									$result += $input;
+									$result .= $input;
 								}
 								else
 								{
@@ -405,7 +405,7 @@
 							{
 								if (call_user_func($callback, $input))
 								{
-									$result += $input;
+									$result .= $input;
 								}
 								else
 								{

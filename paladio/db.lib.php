@@ -311,7 +311,7 @@
 			{
 				$severstring = $server.':'.$port;
 			}
-			$connection = mysqli_connect($severstring, $user, $key);
+			$connection = mysqli_connect($severstring, $user, $password);
 			if ($connection === false)
 			{
 				return false;

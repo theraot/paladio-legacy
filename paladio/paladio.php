@@ -541,7 +541,16 @@
 		{
 			if (Paladio::ClassExists($className))
 			{
-				return false;
+				if (is_null($callback))
+				{
+					return false;
+				}
+				else if (!is_callable($callback))
+				{
+					throw new Exception('invalid callback');
+				}
+				call_user_func($callback);
+				return true;
 			}
 			else
 			{

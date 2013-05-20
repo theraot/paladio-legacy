@@ -149,9 +149,9 @@
 		// Public (Class)
 		//------------------------------------------------------------
 
-		public static function CanAccess(/*string*/ $file)
+		public static function CanAccess(/*string*/ $file, /*string*/ $query)
 		{
-			if (AccessControl::TryGetData($file, $result))
+			if (AccessControl::TryGetData($file, $query, $result))
 			{
 				return AccessControl::CheckCanAccess($result);
 			}
@@ -199,21 +199,26 @@
 			return false;
 		}
 		
-		public static function TryGetData(/*string*/ $file, /*mixed*/ &$result)
+		public static function TryGetData(/*string*/ $file, /*string*/ $query, /*mixed*/ &$result)
 		{
+			$full = $file;
+			if ($query !== '')
+			{
+				$full .= '?'.$query;
+			}
 			if (FileSystem::UriExists($file))
 			{
 				$current = AccessControl::$current;
 				$path = FileSystem::FolderInstallation();
 				$test = AccessControl::ReadCategory('__all');
-				if (AccessControl::TryGetListedData($file, $test, $path, $result))
+				if (AccessControl::TryGetListedData($full, $test, $path, $result))
 				{
 					return true;
 				}
 				if (is_null(AccessControl::$table) || is_null(AccessControl::$keyField) || is_null(AccessControl::$idField))
 				{
 					$test = AccessControl::ReadCategory('__unconfigured');
-					if (AccessControl::TryGetListedData($file, $test, $path, $result))
+					if (AccessControl::TryGetListedData($full, $test, $path, $result))
 					{
 						return true;
 					}
@@ -221,14 +226,14 @@
 				else
 				{
 					$test = AccessControl::ReadCategory('__configured');
-					if (AccessControl::TryGetListedData($file, $test, $path, $result))
+					if (AccessControl::TryGetListedData($full, $test, $path, $result))
 					{
 						return true;
 					}
 					if (is_null($current))
 					{
 						$test = AccessControl::ReadCategory('__unauthenticated');
-						if (AccessControl::TryGetListedData($file, $test, $path, $result))
+						if (AccessControl::TryGetListedData($full, $test, $path, $result))
 						{
 							return true;
 						}
@@ -236,14 +241,14 @@
 					else
 					{
 						$test = AccessControl::ReadCategory('__authenticated');
-						if (AccessControl::TryGetListedData($file, $test, $path, $result))
+						if (AccessControl::TryGetListedData($full, $test, $path, $result))
 						{
 							return true;
 						}
 						if (!is_null($current['role']))
 						{
 							$test = AccessControl::ReadCategory('rol:'.$current['role']);
-							if (AccessControl::TryGetListedData($file, $test, $path, $result))
+							if (AccessControl::TryGetListedData($full, $test, $path, $result))
 							{
 								return true;
 							}
@@ -425,7 +430,7 @@
 		$id = Session::get_Status('user_id');
 		$key = Session::get_Status('user_key');
 		AccessControl::Open($id, $key);
-		if (!AccessControl::CanAccess(FileSystem::ScriptPath()))
+		if (!AccessControl::CanAccess(FileSystem::ScriptPath(), $_SERVER['QUERY_STRING']))
 		{
 			$fallback = AccessControl::Fallback();
 			if ($fallback === false)

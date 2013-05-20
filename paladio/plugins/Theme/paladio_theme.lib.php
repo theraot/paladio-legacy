@@ -163,7 +163,9 @@
 			}
 			else
 			{
-				return DIRECTORY_SEPARATOR.FileSystem::CreateRelativePath(FileSystem::DocumentRoot(), $result);
+				$result = DIRECTORY_SEPARATOR.FileSystem::CreateRelativePath(FileSystem::DocumentRoot(), $result);
+				$result = str_replace(array('/', "\\"), '/', $result);
+				return $result;
 			}
 		}
 

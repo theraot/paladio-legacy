@@ -13,7 +13,6 @@
 
 	final class PHPMailer_Utility
 	{
-		private static $auth;
 		private static $secure;
 		private static $server;
 		private static $port;
@@ -46,20 +45,8 @@
 		// Public (Class)
 		//------------------------------------------------------------
 
-		public static function Configure(/*string*/ $secure, /*string*/ $sever, /*string*/ $port, /*string*/ $user, /*string*/ $key, /*string*/ $sender, /*string*/ $senderName)
+		public static function Configure(/*string*/ $secure, /*string*/ $server, /*string*/ $port, /*string*/ $user, /*string*/ $key, /*string*/ $sender, /*string*/ $senderName)
 		{
-			if (is_string($auth))
-			{
-				$auth = mb_strtolower($auth);
-				if ($auth = 'true')
-				{
-					$auth = true;
-				}
-				else
-				{
-					$auth = false;
-				}
-			}
 			PHPMailer_Utility::$secure = $secure;
 			PHPMailer_Utility::$server = $server;
 			PHPMailer_Utility::$port = $port;
@@ -107,8 +94,9 @@
 	require_once('configuration.lib.php');
 	function PHPMailer_Utility_Configure()
 	{
-		Database::Configure
+		PHPMailer_Utility::Configure
 		(
+			Configuration::Get('paladio-mail', 'secure', 'ssl'),
 			Configuration::Get('paladio-mail', 'secure', 'ssl'),
 			Configuration::Get('paladio-mail', 'server'),
 			Configuration::Get('paladio-mail', 'port'),

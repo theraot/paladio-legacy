@@ -48,7 +48,12 @@
 			{
 				/*field=value*/
 				//ONLY UTF-8
-				if(preg_match('#(.+?)=(.*)#u', $line, $match))
+				if
+				(
+					preg_match('#"([^"]*?)"[ \t]*=(.*)#u', $line, $match)
+					||
+					preg_match('#([^=]*?)=(.*)#u', $line, $match)
+				)
 				{
 					$fieldName = trim($match[1]);
 					if ($match[2] == '')

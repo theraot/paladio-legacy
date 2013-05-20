@@ -69,13 +69,22 @@
 		 * @param $callback: The function callback to be executed when the category is available. If null, the requested file will be included.
 		 *
 		 * @access public
-		 * @return void
+		 * @return bool
 		 */
 		public static function Callback(/*string*/ $categoryName, /*function*/ $callback = null)
 		{
 			if (Configuration::CategoryExists($categoryName))
 			{
+				if (is_null($callback))
+				{
+					return false;
+				}
+				else if (!is_callable($callback))
+				{
+					throw new Exception ('Invalid callback');
+				}
 				call_user_func($callback);
+				return true;
 			}
 			else
 			{
@@ -96,6 +105,7 @@
 				{
 					Configuration::$entries = array($entry);
 				}
+				return true;
 			}
 		}
 

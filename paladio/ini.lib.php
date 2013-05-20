@@ -84,7 +84,17 @@
 				}
 				else
 				{
-					if (!INI::ProcessCategory($line, $currentCategoryName))
+					if (INI::ProcessCategory($line, $currentCategoryName))
+					{
+						if (!$useValidCategories || in_array($currentCategoryName, $validCategories))
+						{
+							if (!isset($this->content[$currentCategoryName]))
+							{
+								$this->content[$currentCategoryName] = array();
+							}
+						}
+					}
+					else
 					{
 						if (!$useValidCategories || in_array($currentCategoryName, $validCategories))
 						{

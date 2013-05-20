@@ -9,7 +9,7 @@
 		require_once('filesystem.lib.php');
 	}
 
-	final class Theme
+	final class PaladioTheme
 	{
 		//------------------------------------------------------------
 		// Private (Class)
@@ -55,13 +55,13 @@
 
 		public static function Configure(/*string*/ $currentTheme, /*string*/ $themesFolder)
 		{
-			Theme::$currentTheme = $currentTheme;
-			Theme::$themesFolder = FileSystem::PreparePath($themesFolder);
+			PaladioTheme::$currentTheme = $currentTheme;
+			PaladioTheme::$themesFolder = FileSystem::PreparePath($themesFolder);
 		}
 
 		public static function EmitImage(/*string*/ $path, /*mixed*/ $arguments = null, /*mixed*/ $attributes = null)
 		{
-			$uri = Theme::GetUri($path, $arguments);
+			$uri = PaladioTheme::GetUri($path, $arguments);
 			if ($uri === false)
 			{
 				return false;
@@ -91,9 +91,9 @@
 
 		public static function EmitScripts()
 		{
-			if (is_array(Theme::$scripts))
+			if (is_array(PaladioTheme::$scripts))
 			{
-				foreach (Theme::$scripts as $entry)
+				foreach (PaladioTheme::$scripts as $entry)
 				{
 					echo '<script src="'.$entry['uri'].'"';
 					if (is_array($entry['attributes']))
@@ -117,9 +117,9 @@
 
 		public static function EmitStyleSheets()
 		{
-			if (is_array(Theme::$styleSheets))
+			if (is_array(PaladioTheme::$styleSheets))
 			{
-				foreach (Theme::$styleSheets as $entry)
+				foreach (PaladioTheme::$styleSheets as $entry)
 				{
 					echo '<link rel="stylesheet" href="'.$entry['uri'].'"';
 					if (is_array($entry['attributes']))
@@ -143,19 +143,19 @@
 
 		public static function GetUri(/*string*/ $path, /*mixed*/ $arguments = null)
 		{
-			$resolvedPath = FileSystem::ResolveRelativePath(Theme::$themesFolder.Theme::$currentTheme, $path);
-			$result = Theme::BuildUri($resolvedPath, $arguments);
-			if (Theme::$currentTheme != 'default')
+			$resolvedPath = FileSystem::ResolveRelativePath(PaladioTheme::$themesFolder.PaladioTheme::$currentTheme, $path);
+			$result = PaladioTheme::BuildUri($resolvedPath, $arguments);
+			if (PaladioTheme::$currentTheme != 'default')
 			{
 				if ($result === false)
 				{
-					$resolvedPath = FileSystem::ResolveRelativePath(Theme::$themesFolder.'default', $path);
-					$result = Theme::BuildUri($resolvedPath, $arguments);
+					$resolvedPath = FileSystem::ResolveRelativePath(PaladioTheme::$themesFolder.'default', $path);
+					$result = PaladioTheme::BuildUri($resolvedPath, $arguments);
 				}
 			}
 			if ($result === false)
 			{
-				$result = Theme::BuildUri($path, $arguments);
+				$result = PaladioTheme::BuildUri($path, $arguments);
 			}
 			if ($result === false)
 			{
@@ -173,13 +173,13 @@
 			{
 				foreach($path as $item)
 				{
-					Theme::RequestScript($item, $arguments, $attributes);
+					PaladioTheme::RequestScript($item, $arguments, $attributes);
 				}
 				return true;
 			}
 			else
 			{
-				$uri = Theme::GetUri($path, $arguments);
+				$uri = PaladioTheme::GetUri($path, $arguments);
 				if ($uri === false)
 				{
 					return false;
@@ -187,13 +187,13 @@
 				else
 				{
 					$entry = array('uri' => $uri, 'attributes' => $attributes);
-					if (is_array(Theme::$scripts))
+					if (is_array(PaladioTheme::$scripts))
 					{
-						Theme::$scripts[] = $entry;
+						PaladioTheme::$scripts[] = $entry;
 					}
 					else
 					{
-						Theme::$scripts = array($entry);
+						PaladioTheme::$scripts = array($entry);
 					}
 					return true;
 				}
@@ -206,13 +206,13 @@
 			{
 				foreach($path as $item)
 				{
-					Theme::RequestStyleSheet($item, $arguments, $attributes);
+					PaladioTheme::RequestStyleSheet($item, $arguments, $attributes);
 				}
 				return true;
 			}
 			else
 			{
-				$uri = Theme::GetUri($path, $arguments);
+				$uri = PaladioTheme::GetUri($path, $arguments);
 				if ($uri === false)
 				{
 					return false;
@@ -220,13 +220,13 @@
 				else
 				{
 					$entry = array('uri' => $uri, 'attributes' => $attributes);
-					if (is_array(Theme::$styleSheets))
+					if (is_array(PaladioTheme::$styleSheets))
 					{
-						Theme::$styleSheets[] = $entry;
+						PaladioTheme::$styleSheets[] = $entry;
 					}
 					else
 					{
-						Theme::$styleSheets = array($entry);
+						PaladioTheme::$styleSheets = array($entry);
 					}
 					return true;
 				}
@@ -244,12 +244,12 @@
 	}
 
 	require_once('configuration.lib.php');
-	Theme::Configure('default', FileSystem::FolderCore().'themes');
+	PaladioTheme::Configure('default', FileSystem::FolderCore().'themes');
 	$currentTheme = 'default';
 	$themesFolder = 'themes';
 	function Theme_Configure()
 	{
-		Theme::Configure
+		PaladioTheme::Configure
 		(
 			Configuration::Get('paladio-theme', 'current', 'default'),
 			FileSystem::FolderCore().Configuration::Get('paladio-paths', 'themes', 'themes')

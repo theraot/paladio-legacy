@@ -57,7 +57,12 @@
 			{
 				echo ' id="'.$validUris[$key]['menu-id'].'"';
 			}
-			echo '><a href="'.$key.'">'.$title.'</a></li>';
+			echo '><a href="'.$key.'"';
+			if (isset($validUris[$key]['menu-target']))
+			{
+				echo 'target="'.$validUris[$key]['menu-target'].'"';
+			}
+			echo '>'.$title.'</a></li>';
 		}
 	}
 	echo '</ul></nav>';

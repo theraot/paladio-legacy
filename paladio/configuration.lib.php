@@ -111,32 +111,74 @@
 		 */
 		public static function CategoryExists(/*mixed*/ $categoryName)
 		{
-			if (is_string($categoryName))
+			if (is_null(Configuration::$INI))
 			{
-				if (is_null(Configuration::$INI))
-				{
-					return false;
-				}
-				else
-				{
-					return Configuration::$INI->isset_Category($categoryName);
-				}
-			}
-			else if (is_array($categoryName))
-			{
-				$categoryNames = $categoryName;
-				foreach ($categoryName as $categoryName)
-				{
-					if (!Configuration::$INI->isset_Category($categoryName))
-					{
-						return false;
-					}
-				}
-				return true;
+				return false;
 			}
 			else
 			{
+				if (is_string($categoryName))
+				{
+					return Configuration::$INI->isset_Category($categoryName);
+				}
+				else if (is_array($categoryName))
+				{
+					$categoryNames = $categoryName;
+					foreach ($categoryName as $categoryName)
+					{
+						if (!Configuration::$INI->isset_Category($categoryName))
+						{
+							return false;
+						}
+					}
+					return true;
+				}
+				else
+				{
+					return false;
+				}
+			}
+		}
+
+		/**
+		 * Verifies if the field with the name $fieldName in the category with the name $categoryName is available.
+		 *
+		 * If the category with the name $categoryName exists and contains a field with the name $fieldName then returns true, false otherwise.
+		 *
+		 * @param $categoryName: The name of the requested category.
+		 * @param $fieldName: The name of the requested category.
+		 *
+		 * @access public
+		 * @return bool
+		 */
+		public static function FieldExists(/*mixed*/ $categoryName, /*string*/ $fieldName)
+		{
+			if (is_null(Configuration::$INI))
+			{
 				return false;
+			}
+			else
+			{
+				if (is_string($categoryName))
+				{
+					return Configuration::$INI->isset_Field($categoryName, $fieldName);
+				}
+				else if (is_array($categoryName))
+				{
+					$categoryNames = $categoryName;
+					foreach ($categoryName as $categoryName)
+					{
+						if (!Configuration::$INI->isset_Field($categoryName, $fieldName))
+						{
+							return false;
+						}
+					}
+					return true;
+				}
+				else
+				{
+					return false;
+				}
 			}
 		}
 

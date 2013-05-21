@@ -234,7 +234,7 @@
 		{
 			if (Session::Exists())
 			{
-				if (!array_key_exists('queue', $_SESSION) || !is_array($_SESSION['queue']))
+				if (!array_key_exists('queue', $_SESSION) || !is_array($_SESSION['queue']) || count($_SESSION['queue']) == 0)
 				{
 					return false;
 				}

@@ -6,15 +6,6 @@
 	}
 	$validUris = AccessControl::ValidUris();
 	$keys = array_keys($validUris);
-	echo '<nav>';
-	if (isset($_ELEMENT['attributes']['class']))
-	{
-		echo '<ul class="'.$_ELEMENT['attributes']['class'].'">';
-	}
-	else
-	{
-		echo '<ul>';
-	}
 	$selectedClass = isset($_ELEMENT['attributes']['selected-class']) ? $_ELEMENT['attributes']['selected-class'] : false;
 	$itemClass = isset($_ELEMENT['attributes']['item-class']) ? $_ELEMENT['attributes']['item-class'] : false;
 	$source = $_ELEMENT['source'];
@@ -22,48 +13,123 @@
 	{
 		$source .= '?'.$_ELEMENT['query'];
 	}
+	$tree = array();
+	$data = array();
 	foreach ($keys as $key)
 	{
-		$title = isset($validUris[$key]['menu-title']) ? $validUris[$key]['menu-title'] : false;
-		if ($title !== false)
+		$entry = &$validUris[$key];
+		$entry['_link'] = $key;
+		if (isset($entry['menu-title']))
 		{
-			echo '<li';
-			if ($selectedClass === false)
+			if (isset($entry['menu-parent']))
 			{
-				if ($itemClass === false)
+				$parentId = $entry['menu-parent'];
+				if (!array_key_exists($parentId, $data))
 				{
-					//Empty
+					$data[$parentId] = array('_childs' => array());
+				}
+				else if (!array_key_exists('_childs', $data[$parentId]))
+				{
+					$data[$parentId]['_childs'] = array();
+				}
+				if (isset($entry['menu-id']))
+				{
+					$data[$parentId]['_childs'][] = &$entry;
+					$data[$entry['menu-id']] = &$entry;
 				}
 				else
 				{
-					echo ' class="'.$itemClass.'"';
+					$data[$parentId]['_childs'][] = &$entry;
 				}
 			}
 			else
 			{
-				if ($source == $validUris[$key]['path'])
+				$tree[] = &$entry;
+				if (isset($entry['menu-id']))
+				{
+					$data[$entry['menu-id']] = &$entry;
+				}
+			}
+		}
+	}
+	
+	if (!function_exists("EmitPaladioNavMenu"))
+	{
+		function __EmitPaladioNavMenu($class, $itemClass, $selectedClass, $entries, $source)
+		{
+			if (is_null($class))
+			{
+				echo '<ul>';
+			}
+			else
+			{
+				echo '<ul class="'.$_ELEMENT['attributes']['class'].'">';
+			}
+			foreach ($entries as $entry)
+			{
+				echo '<li';
+				if ($selectedClass === false)
 				{
 					if ($itemClass === false)
 					{
-						echo ' class="'.$selectedClass.'"';
+						//Empty
 					}
 					else
 					{
-						echo ' class="'.$itemClass.' '.$selectedClass.'"';
+						echo ' class="'.$itemClass.'"';
 					}
 				}
+				else
+				{
+					if (isset($entry['path']) && $source == $entry['path'])
+					{
+						if ($itemClass === false)
+						{
+							echo ' class="'.$selectedClass.'"';
+						}
+						else
+						{
+							echo ' class="'.$itemClass.' '.$selectedClass.'"';
+						}
+					}
+				}
+				if (isset($entry['menu-id']))
+				{
+					echo ' id="'.$entry['menu-id'].'"';
+				}
+				echo '><a ';
+				if (isset($entry['_link']))
+				{
+					echo 'href="'.$entry['_link'].'"';
+				}
+				if (isset($entry['menu-target']))
+				{
+					echo 'target="'.$entry['menu-target'].'"';
+				}
+				echo '>';
+				if (isset($entry['menu-title']))
+				{
+					echo $entry['menu-title'];
+				}
+				echo '</a>';
+				if (isset($entry['_childs']))
+				{
+					__EmitPaladioNavMenu(null, $itemClass, $selectedClass, $entry['_childs'], $source);
+				}
+				echo '</li>';
 			}
-			if (isset($validUris[$key]['menu-id']))
-			{
-				echo ' id="'.$validUris[$key]['menu-id'].'"';
-			}
-			echo '><a href="'.$key.'"';
-			if (isset($validUris[$key]['menu-target']))
-			{
-				echo 'target="'.$validUris[$key]['menu-target'].'"';
-			}
-			echo '>'.$title.'</a></li>';
+			echo '</ul>';
 		}
 	}
-	echo '</ul></nav>';
+	
+	echo '<nav>';
+	if (isset($_ELEMENT['attributes']['class']))
+	{
+		__EmitPaladioNavMenu($_ELEMENT['attributes']['class'], $itemClass, $selectedClass, $tree, $source);
+	}
+	else
+	{
+		__EmitPaladioNavMenu(null, $itemClass, $selectedClass, $tree, $source);
+	}
+	echo '</nav>';
 ?>

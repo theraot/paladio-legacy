@@ -969,7 +969,7 @@
 			if (!array_key_exists($fieldName, $this->_record))
 			{
 				$record = array();
-				if (Database::ReadOneRecord($record, $this->_table, array($fieldName), $this->_where))
+				if (Database::TryReadOneRecord($record, $this->_table, array($fieldName), $this->_where))
 				{
 					$this->_record[$fieldName] = $record[$fieldName];
 				}
@@ -1041,7 +1041,7 @@
 		 */
 		public function Load()
 		{
-			return Database::ReadOneRecord($this->_record, $this->_table, null, $this->_where);
+			return Database::TryReadOneRecord($this->_record, $this->_table, null, $this->_where);
 		}
 
 		/**

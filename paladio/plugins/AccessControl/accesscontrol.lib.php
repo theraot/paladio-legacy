@@ -324,7 +324,7 @@
 				{
 					$fields[] = AccessControl::$saltField;
 				}
-				Database::ReadOneRecord
+				Database::TryReadOneRecord
 				(
 					$record,
 					AccessControl::$table,

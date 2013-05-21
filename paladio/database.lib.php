@@ -722,7 +722,7 @@
 		 * @access public
 		 * @return array of mixed
 		 */
-		public static function MapRecords(/*string*/ $table, /*string*/ $keyField, /*string*/ $field, /*mixed*/ $where = null, /*Database*/ $database = null)
+		public static function MapRecords(/*string*/ $table, /*string*/ $keyField, /*mixed*/ $field, /*mixed*/ $where = null, /*Database*/ $database = null)
 		{
 			$nameKeyField = '_key';
 			if (is_array($field))
@@ -812,9 +812,8 @@
 		/**
 		 * Reads one entry of table $table that match the condition $where.
 		 *
-		 * Returns a true if the operation was successful, false otherwise.
+		 * Returns the readed entry if the operation was successful, null otherwise.
 		 *
-		 * @param &$result: Set to the values of the readed entry if the operation was successful, left untouched otherwise.
 		 * @param $table: The table to be read.
 		 * @param $fields: The fields that will be returned in the query.
 		 * @param $where: The condition the entries need to match to be read.
@@ -827,12 +826,12 @@
 		 * @access public
 		 * @return string
 		 */
-		public static function ReadOneRecord(/*array*/ &$record, /*string*/ $table, /*mixed*/ $fields = null, /*mixed*/ $where = null, /*Database*/ $database = null)
+		public static function ReadOneRecord(/*string*/ $table, /*mixed*/ $fields = null, /*mixed*/ $where = null, /*Database*/ $database = null)
 		{
 			$result = Database::Read($table, $fields, $where, $database);
 			if ($result === false)
 			{
-				return false;
+				return null;
 			}
 			else
 			{
@@ -840,11 +839,11 @@
 				Database::ReleaseResult($result);
 				if (!is_null($record))
 				{
-					return true;
+					return $record;
 				}
 				else
 				{
-					return false;
+					return null;
 				}
 			}
 		}
@@ -890,6 +889,46 @@
 			{
 				Database::ReleaseResult($result);
 				return true;
+			}
+		}
+
+		/**
+		 * Reads one entry of table $table that match the condition $where.
+		 *
+		 * Returns a true if the operation was successful, false otherwise.
+		 *
+		 * @param &$result: Set to the values of the readed entry if the operation was successful, left untouched otherwise.
+		 * @param $table: The table to be read.
+		 * @param $fields: The fields that will be returned in the query.
+		 * @param $where: The condition the entries need to match to be read.
+		 * @param $database: A database object that will be used to execute the operation, if null a new connection will be made.
+		 *
+		 * @see Database::ConnectQuery
+		 * @see Database::Query
+		 * @see Database::CreateQueryRead
+		 *
+		 * @access public
+		 * @return string
+		 */
+		public static function TryReadOneRecord(/*array*/ &$record, /*string*/ $table, /*mixed*/ $fields = null, /*mixed*/ $where = null, /*Database*/ $database = null)
+		{
+			$result = Database::Read($table, $fields, $where, $database);
+			if ($result === false)
+			{
+				return false;
+			}
+			else
+			{
+				$record = Database::GetRecord($result);
+				Database::ReleaseResult($result);
+				if (!is_null($record))
+				{
+					return true;
+				}
+				else
+				{
+					return false;
+				}
 			}
 		}
 

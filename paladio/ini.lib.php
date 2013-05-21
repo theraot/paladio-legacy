@@ -78,7 +78,7 @@
 			while($parser->CanConsume())
 			{
 				PEN::ConsumeWhitespace($parser);
-				if ($parser->Consume('<?php') != null)
+				if ($parser->Consume('<?php') !== null)
 				{
 					$parser->ConsumeUntil('?>');
 					$parser->Consume('?>');
@@ -119,6 +119,7 @@
 							{
 								//Ignore
 							}
+							continue;
 						}
 						else if (($fieldName = PEN::ConsumeQuotedString($parser, false)) !== null)
 						{
@@ -167,7 +168,7 @@
 			$categoryNames = array_keys($this->content);
 			foreach ($categoryNames as $categoryName)
 			{
-				if ($categoryName != '')
+				if ($categoryName !== '')
 				{
 					$result .= '['.$categoryName.']'."\n";
 					$result .= $this->CategoryToString($categoryName);

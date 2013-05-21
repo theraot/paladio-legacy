@@ -63,7 +63,7 @@
 		{
 			if (is_string($value))
 			{
-				return PEN::Decode($value);
+				return PEN::Decode($value, true);
 			}
 			else
 			{

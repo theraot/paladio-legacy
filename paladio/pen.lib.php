@@ -17,43 +17,57 @@
 	 */
 	final class PEN
 	{
-		private static $whitespace = array(' ', "\t");
-		private static $unquotedStringEnd = array(' ', "\t", ':', ',', ']');
+		private static $whitespace = array(' ', "\t", "\n", "\r");
+		private static $newLine = array("\n", "\r");
+		private static $unquotedStringEnd = array(' ', "\t", ':', ',', ']', "\n", "\r", '#', ';');
 		
 		private static function EncodeMapEntry($key, $value)
 		{
 			return '"' . $key.'" : '.PEN::Encode($value);
 		}
 		
-		private static function ConsumeArray($parser)
+		public static function ConsumeWhitespace($parser)
+		{
+			$parser->ConsumeWhile(PEN::$whitespace);
+			do
+			{
+				if (($parser->Consume(';') !== null) || ($parser->Consume('#') !== null))
+				{
+					$parser->ConsumeUntil(PEN::$newLine);
+					$parser->Consume(PEN::$newLine);
+				}
+			}while ($parser->ConsumeWhile(PEN::$whitespace) !== '');
+		}
+		
+		private static function ConsumeArray($parser, $eval = false)
 		{
 			$result = array();
 			while (true)
 			{
-				$parser->ConsumeWhile(PEN::$whitespace);
+				PEN::ConsumeWhitespace($parser);
 				if ($parser->Consume(']') !== null)
 				{
 					return $result;
 				}
-				if ($parser->Consume('"') !== null)
+				if (($key = PEN::ConsumeQuotedString($parser, $eval)) !== null)
 				{
-					$key = PEN::ConsumeQuotedString($parser);
+					//Empty
 				}
 				else
 				{
 					$key = $parser->ConsumeUntil(PEN::$unquotedStringEnd);
 				}
-				$parser->ConsumeWhile(PEN::$whitespace);
+				PEN::ConsumeWhitespace($parser);
 				if ($parser->Consume(':') !== null)
 				{
-					$value = $parser->ConsumeValue($parser);
+					$value = PEN::ConsumeValue($parser);
 					$result[$key] = $value;
 				}
 				else
 				{
 					$result[] = $key;
 				}
-				$parser->ConsumeWhile(PEN::$whitespace);
+				PEN::ConsumeWhitespace($parser);
 				if ($parser->Consume(',') === null)
 				{
 					//Ignore
@@ -61,17 +75,37 @@
 			}
 		}
 		
-		private static function ConsumeQuotedString($parser)
+		public static function ConsumeQuotedString($parser, $eval = false)
 		{
+			$expecting = '';
+			if ($parser->Consume('"') !== null)
+			{
+				$expecting = '"';
+			}
+			else if ($parser->Consume("'") !== null)
+			{
+				$expecting = "'";
+			}
+			else
+			{
+				return null;
+			}
 			$result = '';
 			while (true)
 			{
-				$result .= $parser->ConsumeUntil('"', '\\');
-				if ($parser->Consume('"') !== null)
+				$result .= $parser->ConsumeUntil($expecting, '\\');
+				if ($parser->Consume($expecting) !== null)
 				{
-					if ($parser->Consume('@') !== null)
+					if ($eval)
 					{
-						return eval($result);
+						if ($parser->Consume('@') !== null)
+						{
+							return eval($result);
+						}
+						else
+						{
+							return $result;
+						}
 					}
 					else
 					{
@@ -84,9 +118,9 @@
 					{
 						$result .= '\\';
 					}
-					else if ($parser->Consume('"') !== null)
+					else if ($parser->Consume($expecting) !== null)
 					{
-						$result .= '"';
+						$result .= $expecting;
 					}
 					else if ($parser->Consume('f') !== null)
 					{
@@ -112,9 +146,9 @@
 			}
 		}
 		
-		public static function ConsumeValue($parser)
+		public static function ConsumeValue($parser, $eval = false)
 		{
-			$parser->ConsumeWhile(PEN::$whitespace);
+			PEN::ConsumeWhitespace($parser);
 			if ($parser->Consume('null') !== null)
 			{
 				return null;
@@ -127,9 +161,9 @@
 			{
 				return false;
 			}
-			if ($parser->Consume('"') !== null)
+			if (($result = PEN::ConsumeQuotedString($parser, $eval)) !== null)
 			{
-				return PEN::ConsumeQuotedString($parser);
+				return $result;
 			}
 			else if ($parser->Consume('[') !== null)
 			{
@@ -176,10 +210,10 @@
 			}
 		}
 		
-		public static function Decode (/*string*/ $value)
+		public static function Decode (/*string*/ $value, $eval = false)
 		{
 			$parser = new Parser($value);
-			return PEN::ConsumeValue($parser);
+			return PEN::ConsumeValue($parser, $eval);
 		}
 
 		//------------------------------------------------------------

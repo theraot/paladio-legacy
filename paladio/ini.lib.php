@@ -8,7 +8,7 @@
 	else
 	{
 		require_once('string_utility.lib.php');
-		require_once('ini_utility.lib.php');
+		require_once('parser.lib.php');
 		require_once('pen.lib.php');
 	}
 
@@ -22,12 +22,12 @@
 		// Private (Class)
 		//------------------------------------------------------------
 
-		private static function ProcessCategory(/*string*/ $text, /*string*/ &$categoryName)
+		private static function ProcessCategory(/*string*/ $parser, /*string*/ &$categoryName)
 		{
-			//ONLY UTF-8
-			if (preg_match('#^\[(.+?)\]#u', $text, $match))
+			if ($parser->Consume('[') !== null)
 			{
-				$categoryName = $match[1];
+				$categoryName = $parser->ConsumeUntil(']');
+				$parser->Consume(']');
 				return true;
 			}
 			else
@@ -53,108 +53,96 @@
 			fwrite($hFile, $output);
 			fflush($hFile);
 		}
-
-		private function ProcessLines(/*array*/ $lines, /*int*/ $startLine, /*array*/ $validCategories, /*bool*/ $keepCategories)
+		
+		private function ProcessValue(/*Parser*/ $parser, /*string*/ &$value)
 		{
-			$currentCategoryName = '';
-			$linesCount = count($lines);
-			$useValidCategories = !is_null($validCategories) && is_array($validCategories);
-			$continue = false;
-			for ($index = $startLine; $index < $linesCount; $index++)
+			if ($result = PEN::ConsumeQuotedString($parser, true))
 			{
-				$line = trim($lines[$index]);
-				if (String_Utility::StartsWith($line, ';') || String_Utility::StartsWith($line, '#'))
+				return $result;
+			}
+			else
+			{
+				return $parser->ConsumeUntil(array("\n", "\r"));
+			}
+		}
+
+		private function Process(/*Parser*/ $parser, /*int*/ $startLine, /*array*/ $validCategories, /*bool*/ $keepCategories)
+		{
+			$whitespace = array(' ', "\t");
+			//$whitespaceOrNewLine = array(' ', "\t", "\n", "\r");
+			$unquotedStringEnd = array(' ', "\t", "\n", "\r", '=', ';', '#');
+			$newLine = array("\r", "\n");
+			$currentCategoryName = '';
+			$useValidCategories = ($validCategories !== null) && is_array($validCategories);
+			$continue = false;
+			while($parser->CanConsume())
+			{
+				PEN::ConsumeWhitespace($parser);
+				if (INI::ProcessCategory($parser, $currentCategoryName))
 				{
-					continue;
-				}
-				if ($continue)
-				{
-					if (INI_Utility::ProcessValue($line, $extra))
+					if (!$useValidCategories || in_array($currentCategoryName, $validCategories))
 					{
-						if ($keepCategories)
+						if (!isset($this->content[$currentCategoryName]))
 						{
-							$this->content[$currentCategoryName][$fieldName] .= $line;
+							$this->content[$currentCategoryName] = array();
 						}
-						else
-						{
-							$this->content[''][$fieldName] .= $line;
-						}
-						$continue = String_Utility::StartsWith($extra, "\\");
 					}
 				}
 				else
 				{
-					if (INI::ProcessCategory($line, $currentCategoryName))
+					if (!$useValidCategories || in_array($currentCategoryName, $validCategories))
 					{
-						if (!$useValidCategories || in_array($currentCategoryName, $validCategories))
+						if ($parser->Consume('@') !== null)
 						{
-							if (!isset($this->content[$currentCategoryName]))
+							if ($parser->Consume('import') !== null)
 							{
-								$this->content[$currentCategoryName] = array();
-							}
-						}
-					}
-					else
-					{
-						if (!$useValidCategories || in_array($currentCategoryName, $validCategories))
-						{
-							if (String_Utility::StartsWith($line, '@'))
-							{
-								if (String_Utility::StartsWith($line, '@import '))
+								if ($parser->Consume('<?php') !== null)
 								{
-									$data = String_Utility::EnsureEnd(String_Utility::EnsureStart(trim(mb_substr($line, 8)), "return "), ";");
+									$data = $parser->ConsumeUntil('?>');
+									$parser->Consume('?>');
 									$this->merge_Category($currentCategoryName, eval($data));
 								}
 								else
 								{
-									//Ignore
+									//??
 								}
-							}
-							else if (INI_Utility::ProcessLine($line, $fieldName, $fieldValue, $extra))
-							{
-								if (is_string($extra))
-								{
-									if (String_Utility::StartsWith($extra, "\\"))
-									{
-										$continue = true;
-									}
-									else
-									{
-										$continue = false;
-									}
-								}
-								else if ($extra === false)
-								{
-									//take out comments at the end of the line
-									//ONLY UTF-8
-									if (preg_match('@^([^;#]*)?@u', $fieldValue, $match))
-									{
-										$fieldValue = $match[1];
-									}
-								}
-								if ($keepCategories)
-								{
-									$this->content[$currentCategoryName][$fieldName] = PEN::Decode($fieldValue);
-								}
-								else
-								{
-									$this->content[''][$fieldName] = PEN::Decode($fieldValue);
-								}
+								$parser->ConsumeUntil($newLine);
 							}
 							else
 							{
-								if ($fieldName == '')
-								{
-									$fieldName = $line;
-								}
-								if ($keepCategories)
-								{
-									$this->content[$currentCategoryName][$fieldName] = null;
-								}
-								else
-								{
-									$this->content[''][$fieldName] = null;
-								}
+								//Ignore
+							}
+						}
+						else if (($fieldName = PEN::ConsumeQuotedString($parser, false)) !== null)
+						{
+							//Empty
+						}
+						else
+						{
+							$fieldName = $parser->ConsumeUntil($unquotedStringEnd);
+						}
+						$parser->ConsumeWhile($whitespace);
+						if ($parser->Consume('=') !== null)
+						{
+							$fieldValue = PEN::ConsumeValue($parser, true);
+							if ($keepCategories)
+							{
+								$this->content[$currentCategoryName][$fieldName] = $fieldValue;
+							}
+							else
+							{
+								$this->content[''][$fieldName] = $fieldValue;
+							}
+						}
+						else
+						{
+							if ($keepCategories)
+							{
+								$this->content[$currentCategoryName][$fieldName] = null;
+							}
+							else
+							{
+								$this->content[''][$fieldName] = null;
 							}
 						}
 					}
@@ -250,7 +238,7 @@
 				{
 					$this->Clear();
 				}
-				$this->ProcessLines(file($file), $startLine, $validCategories, $keepCategories);
+				$this->Process(new Parser(file_get_contents($file)), $startLine, $validCategories, $keepCategories);
 				return true;
 			}
 		}

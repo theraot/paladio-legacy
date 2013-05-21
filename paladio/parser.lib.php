@@ -51,6 +51,19 @@
 			}
 		}
 
+		public function Flush()
+		{
+			if (isset($this->document))
+			{
+				$this->document = $this->NotConsumed();
+				$this->documentPosition = 0;
+			}
+			else
+			{
+				throw new Exception('parser have been closed');
+			}
+		}
+
 		public function NotConsumed()
 		{
 			if (isset($this->document))

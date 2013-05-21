@@ -78,6 +78,7 @@
 			while($parser->CanConsume())
 			{
 				PEN::ConsumeWhitespace($parser);
+				$parser->Flush();
 				if ($parser->Consume('<?php') !== null)
 				{
 					$parser->ConsumeUntil('?>');

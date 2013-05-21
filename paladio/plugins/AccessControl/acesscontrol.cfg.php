@@ -5,7 +5,7 @@
 [paladio-accesscontrol]
 # table = 
 # id_field = 
-# key_field = 
+# password_field = 
 # salt_field = 
 # role_field = 
 # hash_algorithm = sha1

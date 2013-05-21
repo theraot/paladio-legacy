@@ -21,7 +21,7 @@
 		private static $loadedFiles;
 		private static $table;
 		private static $idField;
-		private static $keyField;
+		private static $passwordField;
 		private static $saltField;
 		private static $roleField;
 		private static $hashAlgorithm;
@@ -120,13 +120,13 @@
 				if (is_null($current))
 				{
 					Session::unset_Status('user_id');
-					Session::unset_Status('user_key');
+					Session::unset_Status('user_password');
 					Session::unset_Status('user_role');
 				}
 				else
 				{
 					Session::set_Status('user_id', $current['id']);
-					Session::set_Status('user_key', $current['key']);
+					Session::set_Status('user_password', $current['password']);
 					Session::set_Status('user_role', $current['role']);
 				}
 			}
@@ -167,11 +167,11 @@
 			AccessControl::Preserve();
 		}
 
-		public static function Configure(/*string*/ $table, /*string*/ $idField, /*string*/ $keyField, /*string*/ $saltField, /*string*/ $roleField, /*string*/ $hashAlgorithm)
+		public static function Configure(/*string*/ $table, /*string*/ $idField, /*string*/ $passwordField, /*string*/ $saltField, /*string*/ $roleField, /*string*/ $hashAlgorithm)
 		{
 			AccessControl::$table = $table;
 			AccessControl::$idField = $idField;
-			AccessControl::$keyField = $keyField;
+			AccessControl::$passwordField = $passwordField;
 			AccessControl::$saltField = $saltField;
 			AccessControl::$roleField = $roleField;
 			AccessControl::$hashAlgorithm = $hashAlgorithm;
@@ -191,7 +191,17 @@
 			foreach($keys as $key)
 			{
 				$file = FileSystem::ResolveRelativePath($path, $key);
-				if (AccessControl::CanAccess($file))
+				$tmp = explode('?', $file);
+				$file = $tmp[0];
+				if (count($tmp) > 1)
+				{
+					$query = $tmp[1];
+				}
+				else
+				{
+					$query = '';
+				}
+				if (AccessControl::CanAccess($file, $query))
 				{
 					return $key;
 				}
@@ -215,7 +225,7 @@
 				{
 					return true;
 				}
-				if (is_null(AccessControl::$table) || is_null(AccessControl::$keyField) || is_null(AccessControl::$idField))
+				if (is_null(AccessControl::$table) || is_null(AccessControl::$passwordField) || is_null(AccessControl::$idField))
 				{
 					$test = AccessControl::ReadCategory('__unconfigured');
 					if (AccessControl::TryGetListedData($full, $test, $path, $result))
@@ -295,9 +305,9 @@
 			}
 		}
 
-		public static function Open(/*string*/ $id, /*string*/ $key)
+		public static function Open(/*string*/ $id, /*string*/ $password)
 		{
-			if (is_null(AccessControl::$table) || is_null(AccessControl::$keyField) || is_null(AccessControl::$idField))
+			if (is_null(AccessControl::$table) || is_null(AccessControl::$passwordField) || is_null(AccessControl::$idField))
 			{
 				AccessControl::$current = null;
 				AccessControl::Preserve();
@@ -305,7 +315,7 @@
 			}
 			else
 			{
-				$fields = array(AccessControl::$keyField);
+				$fields = array(AccessControl::$passwordField);
 				if (!is_null(AccessControl::$roleField))
 				{
 					$fields[] = AccessControl::$roleField;
@@ -318,8 +328,8 @@
 				(
 					$record,
 					AccessControl::$table,
-					array(AccessControl::$idField => $id),
-					$fields
+					$fields,
+					array(AccessControl::$idField => $id)
 				);
 				if (is_null(AccessControl::$saltField))
 				{
@@ -331,28 +341,39 @@
 				}
 				if (is_null(AccessControl::$hashAlgorithm) || AccessControl::$hashAlgorithm == 'none')
 				{
-					$pass = $salt.$key;
+					$pass = $salt.$password;
 				}
 				else if (AccessControl::$hashAlgorithm == 'md5')
 				{
-					$pass = md5($salt.$key);
+					$pass = md5($salt.$password);
+				}
+				else if (AccessControl::$hashAlgorithm == 'sha1')
+				{
+					$pass = sha1($salt.$password);
 				}
 				else
 				{
-					$pass = hash(AccessControl::$hashAlgorithm, $salt.$key);
+					$pass = hash(AccessControl::$hashAlgorithm, $salt.$password);
 				}
-				if ($pass == $record[AccessControl::$keyField])
+				if ($pass == $record[AccessControl::$passwordField])
 				{
 					if (is_null(AccessControl::$roleField))
 					{
-						AccessControl::$current = array('id' => $id, 'key' => $key, 'role' => null);
+						AccessControl::$current = array('id' => $id, 'password' => $password, 'role' => null);
 					}
 					else
 					{
-						AccessControl::$current = array('id' => $id, 'key' => $key, 'role' => $record[AccessControl::$roleField]);
+						AccessControl::$current = array('id' => $id, 'password' => $password, 'role' => $record[AccessControl::$roleField]);
 					}
 					AccessControl::Preserve();
-					return $record[AccessControl::$roleField];
+					if (is_null(AccessControl::$roleField))
+					{
+						return true;
+					}
+					else
+					{
+						return $record[AccessControl::$roleField];
+					}
 				}
 				else
 				{
@@ -369,7 +390,7 @@
 			$path = FileSystem::FolderInstallation();
 			if (is_null($current))
 			{
-				if (is_null(AccessControl::$table) || is_null(AccessControl::$keyField) || is_null(AccessControl::$idField))
+				if (is_null(AccessControl::$table) || is_null(AccessControl::$passwordField) || is_null(AccessControl::$idField))
 				{
 					return array_merge
 					(
@@ -427,9 +448,12 @@
 	function AccessControl_Session()
 	{
 		Session::Start();
-		$id = Session::get_Status('user_id');
-		$key = Session::get_Status('user_key');
-		AccessControl::Open($id, $key);
+		if (Session::isset_Status('user_id') && Session::isset_Status('user_password'))
+		{
+			$id = Session::get_Status('user_id');
+			$password = Session::get_Status('user_password');
+			AccessControl::Open($id, $password);
+		}
 		if (!AccessControl::CanAccess(FileSystem::ScriptPath(), $_SERVER['QUERY_STRING']))
 		{
 			$fallback = AccessControl::Fallback();
@@ -450,7 +474,7 @@
 		(
 			Configuration::Get('paladio-accesscontrol', 'table'),
 			Configuration::Get('paladio-accesscontrol', 'id_field'),
-			Configuration::Get('paladio-accesscontrol', 'key_field'),
+			Configuration::Get('paladio-accesscontrol', 'password_field'),
 			Configuration::Get('paladio-accesscontrol', 'salt_field'),
 			Configuration::Get('paladio-accesscontrol', 'role_field'),
 			Configuration::Get('paladio-accesscontrol', 'hash_algorithm')

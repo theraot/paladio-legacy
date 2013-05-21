@@ -102,7 +102,7 @@
 							{
 								if (String_Utility::StartsWith($line, '@import '))
 								{
-									$data = String_Utility::EnsureEnd(String_Utility::EnsureStart(trim(mb_substr($line, 8)), "return"), ";");
+									$data = String_Utility::EnsureEnd(String_Utility::EnsureStart(trim(mb_substr($line, 8)), "return "), ";");
 									$this->merge_Content(eval($data));
 								}
 								else

@@ -370,7 +370,7 @@
 					$val = $value[$key];
 					if (is_array($val))
 					{
-						$this->set_Categoria($key, $val);
+						$this->set_Category($key, $val);
 					}
 					else
 					{

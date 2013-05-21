@@ -127,6 +127,11 @@
 	 * @package Paladio
 	 */
 	final class DatabaseOperator_Maximun implements IDatabaseOperator {function Type(){return 'aggregation';} public function __toString(){return 'MAX';}}
+	/**
+	 * DatabaseOperator_Concat
+	 * @package Paladio
+	 */
+	final class DatabaseOperator_Concat implements IDatabaseOperator {function Type(){return 'function';} public function __toString(){return 'CONCAT';}}
 
 	/**
 	 * DB
@@ -144,6 +149,7 @@
 		private static $ADD;
 		private static $AND;
 		private static $AVG;
+		private static $CONCAT;
 		private static $COUNT;
 		private static $DIV;
 		private static $EQ;
@@ -179,6 +185,10 @@
 		 * AVG (average) aggreation
 		 */
 		public static function _AVG(){return DB::$AVG;}
+		/**
+		 * CONCAT (concatenation) operator (n-ary)
+		 */
+		public static function _CONCAT(){return DB::$CONCAT;}
 		/**
 		 * COUNT (count) aggregation
 		 */
@@ -265,6 +275,7 @@
 			DB::$ADD = new DatabaseOperator_Addition();
 			DB::$AND = new DatabaseOperator_Conjuntion();
 			DB::$AVG = new DatabaseOperator_Average();
+			DB::$CONCAT = new DatabaseOperator_Concat();
 			DB::$COUNT = new DatabaseOperator_Count();
 			DB::$DIV = new DatabaseOperator_Division();
 			DB::$EQ = new DatabaseOperator_Equal();

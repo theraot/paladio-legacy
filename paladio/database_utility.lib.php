@@ -124,6 +124,21 @@
 		}
 
 		/**
+		 * Internally used to process function expressions.
+		 * @access private
+		 */
+		private static function ProcessExpressionFunction($operator, $parameters)
+		{
+			$processed = array();
+			foreach($parameters as $parameter)
+			{
+				$processed[] = Database_Utility::ProcessValue($parameter);
+			}
+			//ONLY UTF-8
+			return $operator.'('.implode(', ', $processed).')';
+		}
+
+		/**
 		 * Internally used to process n-ary expressions.
 		 * @access private
 		 */
@@ -305,6 +320,18 @@
 						return Utility::Sanitize((string)$field, 'html').' = '.$result;
 					}
 				}
+				else if ($expression->Type() == 'function')
+				{
+					$result = Database_Utility::ProcessExpressionFunction($operator, array());
+					if (is_null($field))
+					{
+						return $result;
+					}
+					else
+					{
+						return Utility::Sanitize((string)$field, 'html').' = '.$result;
+					}
+				}
 				else
 				{
 					throw new Exception ('Invalid operation');
@@ -354,6 +381,18 @@
 					else if ($expression[0]->Type() == 'n-ary')
 					{
 						$result = Database_Utility::ProcessExpressionNAry($operator, array_splice($expression, 1));
+						if (is_null($field))
+						{
+							return $result;
+						}
+						else
+						{
+							return Utility::Sanitize((string)$field, 'html').' = '.$result;
+						}
+					}
+					else if ($expression[0]->Type() == 'function')
+					{
+						$result = Database_Utility::ProcessExpressionFunction($operator, array_splice($expression, 1));
 						if (is_null($field))
 						{
 							return $result;

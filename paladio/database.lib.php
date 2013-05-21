@@ -624,11 +624,11 @@
 		 */
 		public static function GraphRecords(/*string*/ $table, /*string*/ $sourceField, /*string*/ $targetField, /*mixed*/ $where = null, /*Database*/ $database = null)
 		{
-			if (!($sourceField instanceof Database_Field))
+			if (is_string($sourceField))
 			{
 				$sourceField = new Database_Field((string)$sourceField);
 			}
-			if (!($targetField instanceof Database_Field))
+			if (is_string($targetField))
 			{
 				$targetField = new Database_Field((string)$targetField);
 			}
@@ -730,8 +730,12 @@
 		 * @access public
 		 * @return array of mixed
 		 */
-		public static function MapRecords(/*string*/ $table, /*string*/ $keyField, /*mixed*/ $field, /*mixed*/ $where = null, /*Database*/ $database = null)
+		public static function MapRecords(/*string*/ $table, /*mixed*/ $keyField, /*mixed*/ $field, /*mixed*/ $where = null, /*Database*/ $database = null)
 		{
+			if (is_string($keyField))
+			{
+				$keyField = new Database_Field((string)$keyField);
+			}
 			$nameKeyField = '_key';
 			if (is_array($field))
 			{
@@ -739,16 +743,16 @@
 				{
 					$nameKeyField = '_'.$nameKeyField;
 				}
-				$fields[$nameKeyField] = new Database_Field($keyField);
+				$fields[$nameKeyField] = $keyField;
 				return Database::Enumerate('Database::CallbackMapRecordsEx', $table, $fields, $where, $database, $nameKeyField);
 			}
 			else
 			{
-				if (!($field instanceof Database_Field))
+				if (is_string($field))
 				{
 					$field = new Database_Field((string)$field);
 				}
-				return Database::Enumerate('Database::CallbackMapRecords', $table, array($nameKeyField => new Database_Field($keyField), '_value' => $field), $where, $database);
+				return Database::Enumerate('Database::CallbackMapRecords', $table, array($nameKeyField => $keyField, '_value' => $field), $where, $database);
 			}
 		}
 

@@ -66,7 +66,7 @@
 			}
 		}
 
-		private function Process(/*Parser*/ $parser, /*int*/ $startLine, /*array*/ $validCategories, /*bool*/ $keepCategories)
+		private function Process(/*Parser*/ $parser, /*array*/ $validCategories, /*bool*/ $keepCategories)
 		{
 			$whitespace = array(' ', "\t");
 			//$whitespaceOrNewLine = array(' ', "\t", "\n", "\r");
@@ -78,6 +78,12 @@
 			while($parser->CanConsume())
 			{
 				PEN::ConsumeWhitespace($parser);
+				if ($parser->Consume('<?php') != null)
+				{
+					$parser->ConsumeUntil('?>');
+					$parser->Consume('?>');
+					continue;
+				}
 				if (INI::ProcessCategory($parser, $currentCategoryName))
 				{
 					if (!$useValidCategories || in_array($currentCategoryName, $validCategories))
@@ -96,6 +102,7 @@
 						{
 							if ($parser->Consume('import') !== null)
 							{
+								PEN::ConsumeWhitespace($parser);
 								if ($parser->Consume('<?php') !== null)
 								{
 									$data = $parser->ConsumeUntil('?>');
@@ -213,7 +220,7 @@
 		}
 
 		/**
-		 * Loads the contents of the file $file from the line $starLine.
+		 * Loads the contents of the file $file.
 		 *
 		 * Note 1: if $validCategories is an array of string, only the categories with a name that's in $validCategories are loaded.
 		 * Note 2: if $keepCategories is false, all the fields are loaded to the category with name "".
@@ -226,7 +233,7 @@
 		 * @access public
 		 * @return true
 		 */
-		public function Load(/*string*/ $file, /*int*/ $startLine, /*array*/ $validCategories = null, /*bool*/ $keepCategories = true)
+		public function Load(/*string*/ $file, /*array*/ $validCategories = null, /*bool*/ $keepCategories = true)
 		{
 			if (!is_string($file) || mb_strlen($file) == 0 || !is_file($file))
 			{
@@ -238,7 +245,7 @@
 				{
 					$this->Clear();
 				}
-				$this->Process(new Parser(file_get_contents($file)), $startLine, $validCategories, $keepCategories);
+				$this->Process(new Parser(file_get_contents($file)), $validCategories, $keepCategories);
 				return true;
 			}
 		}
@@ -463,9 +470,9 @@
 		// Public (Constructor)
 		//------------------------------------------------------------
 
-		public function __construct(/*string*/ $file = null, /*int*/ $startLine = null, /*array*/ $validCategories = null, /*bool*/ $keepCategories = true)
+		public function __construct(/*string*/ $file = null, /*array*/ $validCategories = null, /*bool*/ $keepCategories = true)
 		{
-			$this->Load($file, $startLine, $validCategories, $keepCategories);
+			$this->Load($file, $validCategories, $keepCategories);
 		}
 	}
 ?>

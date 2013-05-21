@@ -103,7 +103,7 @@
 								if (String_Utility::StartsWith($line, '@import '))
 								{
 									$data = String_Utility::EnsureEnd(String_Utility::EnsureStart(trim(mb_substr($line, 8)), "return "), ";");
-									$this->merge_Content(eval($data));
+									$this->merge_Category($currentCategoryName, eval($data));
 								}
 								else
 								{
@@ -299,6 +299,28 @@
 			}
 			if (array_key_exists($categoryName, $this->content))
 			{
+				return true;
+			}
+			else
+			{
+				return false;
+			}
+		}
+		
+		public function merge_Category(/*string*/ $categoryName, /*array*/ $value)
+		{
+			if (!isset($this->content))
+			{
+				$this->Clear();
+			}
+			if (is_array($value))
+			{
+				$keys = array_keys($value);
+				foreach ($keys as $key)
+				{
+					$val = $value[$key];
+					$this->set_Field($categoryName, $key, $val);
+				}
 				return true;
 			}
 			else

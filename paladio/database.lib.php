@@ -35,7 +35,7 @@
 		 * @see Database::ListRecords
 		 * @access private
 		 */
-		private static function CallbackListRecords(/*array*/ &$result, /*array*/ $record, /*mixed*/ $context)
+		private static function CallbackListRecords(/*array*/ &$result, /*array*/ $record)
 		{
 			$result[] = $record['_value'];
 		}
@@ -45,7 +45,7 @@
 		 * @see Database::ListRecords
 		 * @access private
 		 */
-		private static function CallbackListRecordsEx(/*array*/ &$result, /*array*/ $record, /*mixed*/ $context)
+		private static function CallbackListRecordsEx(/*array*/ &$result, /*array*/ $record)
 		{
 			$result[] = $record;
 		}
@@ -55,7 +55,7 @@
 		 * @see Database::GraphRecords
 		 * @access private
 		 */
-		private static function CallbackGraphRecords(/*array*/ &$result, /*array*/ $record, /*mixed*/ $context)
+		private static function CallbackGraphRecords(/*array*/ &$result, /*array*/ $record)
 		{
 			$source = $record['_source'];
 			$target = $record['_target'];
@@ -82,7 +82,7 @@
 		 * @see Database::MapRecords
 		 * @access private
 		 */
-		private static function CallbackMapRecords(/*array*/ &$result, /*array*/ $record, /*mixed*/ $context)
+		private static function CallbackMapRecords(/*array*/ &$result, /*array*/ $record)
 		{
 			$key = $record['_key'];
 			$value = $record['_value'];
@@ -502,7 +502,7 @@
 		{
 			if (is_callable($callback))
 			{
-				$use_context = func_num_args > 5;
+				$use_context = func_num_args() > 5;
 				$result = array();
 				$databaseResult = Database::Read($table, $fields, $where, $database);
 				if ($databaseResult !== false)
@@ -624,6 +624,14 @@
 		 */
 		public static function GraphRecords(/*string*/ $table, /*string*/ $sourceField, /*string*/ $targetField, /*mixed*/ $where = null, /*Database*/ $database = null)
 		{
+			if (!($sourceField instanceof Database_Field))
+			{
+				$sourceField = new Database_Field((string)$sourceField);
+			}
+			if (!($targetField instanceof Database_Field))
+			{
+				$targetField = new Database_Field((string)$targetField);
+			}
 			return Database::Enumerate('Database::CallbackGraphRecords', $table, array('source' => $sourceField, 'target' => $targetField), $where, $database);
 		}
 
@@ -731,12 +739,16 @@
 				{
 					$nameKeyField = '_'.$nameKeyField;
 				}
-				$fields[$nameKeyField] = $keyField;
+				$fields[$nameKeyField] = new Database_Field($keyField);
 				return Database::Enumerate('Database::CallbackMapRecordsEx', $table, $fields, $where, $database, $nameKeyField);
 			}
 			else
 			{
-				return Database::Enumerate('Database::CallbackMapRecords', $table, array($nameKeyField => $keyField, '_value' => (string)$field), $where, $database);
+				if (!($field instanceof Database_Field))
+				{
+					$field = new Database_Field((string)$field);
+				}
+				return Database::Enumerate('Database::CallbackMapRecords', $table, array($nameKeyField => new Database_Field($keyField), '_value' => $field), $where, $database);
 			}
 		}
 

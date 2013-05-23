@@ -378,14 +378,11 @@
 						$character = $parser->Consume();
 						if ($character == '/')
 						{
-							$tmp = $parser->Consume();
+							$tmp = $parser->Peek();
 							if ($tmp == '>')
 							{
+								$parser->Consume();
 								return array('status' => null, 'contents' => Paladio::ProcessElement($element));
-							}
-							else
-							{
-								$parser->Unconsume();
 							}
 						}
 						if ($character == '>')
@@ -409,40 +406,38 @@
 							}
 							$attributeValue = null;
 							$dump = $parser->ConsumeWhile($whitespace);
-							$character = $parser->Consume();
+							$character = $parser->Peek();
 							if ($character == '=')
 							{
+								$parser->Consume();
 								$dump = $parser->ConsumeWhile($whitespace);
-								$character = $parser->Consume();
+								$character = $parser->Peek();
 								if ($character == '"')
 								{
+									$parser->Consume();
 									$tmp = $parser->ConsumeUntil('"');
 									$attributeValue = $tmp;
 									$dump = $parser->Consume('"');
 								}
 								else if ($character == "'")
 								{
+									$parser->Consume();
 									$tmp = $parser->ConsumeUntil("'");
 									$attributeValue = $tmp;
 									$dump = $parser->Consume("'");
 								}
 								else if (in_array($character, $close))
 								{
-									$parser->Unconsume();
+									//Skip
 								}
 								else
 								{
-									$new = $parser->ConsumeUntil($whitespaceOrClose);
-									$attributeValue = $character.$new;
+									$attributeValue = $parser->ConsumeUntil($whitespaceOrClose);
 									if (is_numeric($attributeValue))
 									{
 										$attributeValue = floatval($attributeValue);
 									}
 								}
-							}
-							else
-							{
-								$parser->Unconsume();
 							}
 							if (!array_key_exists($attributeName, $element['attributes']))
 							{

@@ -8,6 +8,7 @@
 	{
 		require_once('filesystem.lib.php');
 		require_once('ini.lib.php');
+		require_once('session.lib.php');
 	}
 	
 	/**
@@ -275,6 +276,36 @@
 				return $default;
 			}
 		}
+		
+		public static function SyncSession()
+		{
+			Session::Start();
+			$appGUID = FileSystem::AppGUID();
+			$sessionStatusName = $appGUID.'__configuration';
+			if (is_null(Configuration::$INI))
+			{
+				Configuration::$INI = new INI();
+				if (Session::isset_Status($sessionStatusName))
+				{
+					Configuration::$INI->set_Content(Session::get_Status($sessionStatusName));
+					return true;
+				}
+			}
+			else
+			{
+				if (Session::isset_Status($sessionStatusName))
+				{
+					$content = Session::get_Status($sessionStatusName);
+					Configuration::$INI->merge_Content($content, false);
+					return true;
+				}
+				else
+				{
+					Session::set_Status($sessionStatusName, Configuration::$INI->get_Content());
+				}
+			}
+			return false;
+		}
 
 		/**
 		 * Attempts to reads the value of the configuration field identified by $fieldName in the category with the name $categoryName.
@@ -316,5 +347,19 @@
 		}
 	}
 
-	Configuration::Load(FileSystem::FolderCore());
+	if (class_exists('Session'))
+	{
+		if (!Configuration::SyncSession())
+		{
+			Configuration::Load(FileSystem::FolderCore());
+			echo 'load';
+			Configuration::SyncSession();
+		}
+	}
+	else
+	{
+		Configuration::Load(FileSystem::FolderCore());
+		echo 'load';
+		Paladio::Request('Session', 'Configuration::SyncSession');
+	}
 ?>

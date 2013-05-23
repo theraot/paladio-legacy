@@ -26,7 +26,7 @@
 		private static $roleField;
 		private static $hashAlgorithm;
 		private static $current;
-		
+
 		private static function CheckCanAccess(/*mixed*/ $result)
 		{
 			if (is_null($result))
@@ -56,18 +56,6 @@
 			else
 			{
 				return true;
-			}
-		}
-
-		private static function Decode(/*mixed*/ $value)
-		{
-			if (is_string($value))
-			{
-				return PEN::Decode($value, true);
-			}
-			else
-			{
-				return $value;
 			}
 		}
 
@@ -131,13 +119,13 @@
 				}
 			}
 		}
-		
+
 		private static function ReadCategory(/*string*/ $categoryName)
 		{
 			$category = AccessControl::$INI->get_Category($categoryName);
 			if (is_array($category))
 			{
-				return array_map('AccessControl::Decode', $category);
+				return $category;
 			}
 			else
 			{
@@ -176,7 +164,7 @@
 			AccessControl::$roleField = $roleField;
 			AccessControl::$hashAlgorithm = $hashAlgorithm;
 		}
-		
+
 		public static function CurrentSession()
 		{
 			return AccessControl::$current;
@@ -208,7 +196,7 @@
 			}
 			return false;
 		}
-		
+
 		public static function TryGetData(/*string*/ $file, /*string*/ $query, /*mixed*/ &$result)
 		{
 			$full = $file;
@@ -384,6 +372,36 @@
 			}
 		}
 
+		public static function SyncSession()
+		{
+			Session::Start();
+			$appGUID = FileSystem::AppGUID();
+			$sessionStatusName = $appGUID.'__accesscontrol';
+			if (is_null(AccessControl::$INI))
+			{
+				AccessControl::$INI = new INI();
+				if (Session::isset_Status($sessionStatusName))
+				{
+					AccessControl::$INI->set_Content(Session::get_Status($sessionStatusName));
+					return true;
+				}
+			}
+			else
+			{
+				if (Session::isset_Status($sessionStatusName))
+				{
+					$content = Session::get_Status($sessionStatusName);
+					AccessControl::$INI->merge_Content($content, false);
+					return true;
+				}
+				else
+				{
+					Session::set_Status($sessionStatusName, AccessControl::$INI->get_Content());
+				}
+			}
+			return false;
+		}
+
 		public static function ValidUris()
 		{
 			$current = AccessControl::$current;
@@ -442,8 +460,21 @@
 		}
 	}
 
-	AccessControl::Load(FileSystem::FolderCore());
-	AccessControl::Load(dirname(__FILE__));
+	if (class_exists('Session'))
+	{
+		if (!AccessControl::SyncSession())
+		{
+			AccessControl::Load(FileSystem::FolderCore());
+			AccessControl::Load(dirname(__FILE__));
+			AccessControl::SyncSession();
+		}
+	}
+	else
+	{
+		AccessControl::Load(FileSystem::FolderCore());
+		AccessControl::Load(dirname(__FILE__));
+		Paladio::Request('Session', 'AccessControl::SyncSession');
+	}
 
 	function AccessControl_Session()
 	{
@@ -468,6 +499,7 @@
 			exit();
 		}
 	}
+	
 	function AccessControl_Configure()
 	{
 		AccessControl::Configure
@@ -479,10 +511,6 @@
 			Configuration::Get('paladio-accesscontrol', 'role_field'),
 			Configuration::Get('paladio-accesscontrol', 'hash_algorithm')
 		);
-		if (is_file('session.lib.php'))
-		{
-			require_once('session.lib.php');
-		}
 		Paladio::Request('Session', 'AccessControl_Session');
 	}
 	Configuration::Callback('paladio-accesscontrol', 'AccessControl_Configure');

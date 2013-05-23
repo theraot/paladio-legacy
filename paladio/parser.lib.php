@@ -15,6 +15,34 @@
 		private $document;
 		private $documentPosition;
 		private $documentSize;
+		
+		private function ConsumeToPosition(/*int*/ $position)
+		{
+			if (isset($this->document))
+			{
+				if ($position == $this->documentPosition)
+				{
+					return '';
+				}
+				else
+				{
+					if ($position < $this->documentPosition)
+					{
+						throw new Exception('Cannot unconsume');
+					}
+					else
+					{
+						$documentPosition = $this->documentPosition;
+						$this->documentPosition = $position;
+						return substr($this->document, $documentPosition, $position - $documentPosition);
+					}
+				}
+			}
+			else
+			{
+				throw new Exception('parser have been closed');
+			}
+		}
 
 		//------------------------------------------------------------
 		// Public (Instance)
@@ -43,7 +71,7 @@
 		{
 			if (isset($this->document))
 			{
-				return mb_substr($this->document, 0, $this->documentPosition);
+				return substr($this->document, 0, $this->documentPosition);
 			}
 			else
 			{
@@ -68,7 +96,7 @@
 		{
 			if (isset($this->document))
 			{
-				return mb_substr($this->document, $this->documentPosition);
+				return substr($this->document, $this->documentPosition);
 			}
 			else
 			{
@@ -82,10 +110,12 @@
 			{
 				if (func_num_args() == 0)
 				{
-					if ($this->documentPosition + 1 <= $this->documentSize)
+					$chunk = substr($this->document, $this->documentPosition, 6);
+					$result = mb_substr($chunk, 0, 1);
+					$len = strlen($result);
+					if ($len > 0)
 					{
-						$result = mb_substr($this->document, $this->documentPosition, 1);
-						$this->documentPosition += 1;
+						$this->documentPosition += $len;
 						return $result;
 					}
 					else
@@ -98,10 +128,10 @@
 					if (is_string($what))
 					{
 						$item = $what;
-						$len = mb_strlen($item);
+						$len = strlen($item);
 						if ($this->documentPosition + $len <= $this->documentSize)
 						{
-							$result = mb_substr($this->document, $this->documentPosition, $len);
+							$result = substr($this->document, $this->documentPosition, $len);
 							if ($result == $item)
 							{
 								$this->documentPosition += $len;
@@ -112,10 +142,11 @@
 					}
 					else if (is_numeric($what))
 					{
-						$len = $what;
+						$chunk = substr($this->document, $this->documentPosition, $len * 6);
+						$result = mb_substr($chunk, 0, $what);
+						$len = strlen($result);
 						if ($this->documentPosition + $len <= $this->documentSize)
 						{
-							$result = mb_substr($this->document, $this->documentPosition, $len);
 							$this->documentPosition += $len;
 							return $result;
 						}
@@ -130,10 +161,10 @@
 						{
 							foreach ($what as $item)
 							{
-								$len = mb_strlen($item);
+								$len = strlen($item);
 								if ($this->documentPosition + $len <= $this->documentSize)
 								{
-									$result = mb_substr($this->document, $this->documentPosition, $len);
+									$result = substr($this->document, $this->documentPosition, $len);
 									if ($result == $item)
 									{
 										$this->documentPosition += $len;
@@ -162,7 +193,7 @@
 			{
 				$position = $this->documentPosition;
 				$this->documentPosition = $this->documentSize;
-				return mb_substr($this->document, $position);
+				return substr($this->document, $position);
 			}
 			else
 			{
@@ -176,18 +207,13 @@
 			{
 				if (is_callable($callback))
 				{
-					if ($this->documentPosition + 1 <= $this->documentSize)
+					$chunk = substr($this->document, $this->documentPosition, 6);
+					$result = mb_substr($chunk, 0, 1);
+					$len = strlen($result);
+					if ($len > 0 && call_user_func($callback, $result))
 					{
-						$result = mb_substr($this->document, $this->documentPosition, 1);
-						if (call_user_func($callback, $result))
-						{
-							$this->documentPosition += 1;
-							return $result;
-						}
-						else
-						{
-							return null;
-						}
+						$this->documentPosition += $len;
+						return $result;
 					}
 					else
 					{
@@ -205,34 +231,6 @@
 			}
 		}
 
-		public function ConsumeToPosition(/*int*/ $position)
-		{
-			if (isset($this->document))
-			{
-				if ($position == $this->documentPosition)
-				{
-					return '';
-				}
-				else
-				{
-					if ($position < $this->documentPosition)
-					{
-						throw new Exception('Cannot unconsume');
-					}
-					else
-					{
-						$documentPosition = $this->documentPosition;
-						$this->documentPosition = $position;
-						return mb_substr($this->document, $documentPosition, $position - $documentPosition);
-					}
-				}
-			}
-			else
-			{
-				throw new Exception('parser have been closed');
-			}
-		}
-
 		public function ConsumeUntil(/*mixed*/ $what)
 		{
 			if (isset($this->document))
@@ -241,9 +239,9 @@
 				{
 					if (is_string($what))
 					{
-						if (mb_strlen($what) > 0)
+						if (strlen($what) > 0)
 						{
-							if (($position = mb_strpos($this->document, $what, $this->documentPosition)) !== false)
+							if (($position = strpos($this->document, $what, $this->documentPosition)) !== false)
 							{
 								return $this->ConsumeToPosition($position);
 							}
@@ -264,7 +262,7 @@
 						$all = true;
 						foreach ($whats as $what)
 						{
-							if (is_string($what) && ($position = mb_strpos($this->document, $what, $this->documentPosition)) !== false)
+							if (is_string($what) && strlen($what) > 0 && ($position = strpos($this->document, $what, $this->documentPosition)) !== false)
 							{
 								if ($all || $position < $bestPosition)
 								{
@@ -309,7 +307,7 @@
 						$result = '';
 						while (true)
 						{
-							$input = $this->Consume();
+							$input = $this->Peek();
 							if (input === null)
 							{
 								return $result;
@@ -318,6 +316,7 @@
 							{
 								if (!call_user_func($callback, $input))
 								{
+									$this->Consume();
 									$result .= $input;
 								}
 								else
@@ -325,10 +324,6 @@
 									break;
 								}
 							}
-						}
-						if ($input !== null)
-						{
-							$this->Unconsume();
 						}
 					}
 					else
@@ -356,13 +351,10 @@
 					$result = '';
 					if (is_string($what))
 					{
-						while (($input = $this->Consume()) == $what)
+						while (($input = $this->Peek()) == $what)
 						{
+							$this->Consume();
 							$result .= $what;
-						}
-						if (!is_null($input))
-						{
-							$this->Unconsume();
 						}
 					}
 					else if (is_array($what))
@@ -370,19 +362,16 @@
 						$continue = true;
 						while ($continue)
 						{
-							$input = $this->Consume();
+							$input = $this->Peek();
 							if (in_array($input, $what))
 							{
+								$this->Consume();
 								$result .= $input;
 							}
 							else
 							{
 								$continue = false;
 							}
-						}
-						if (!is_null($input))
-						{
-							$this->Unconsume();
 						}
 					}
 					return $result;
@@ -409,7 +398,7 @@
 						$result = '';
 						while (true)
 						{
-							$input = $this->Consume();
+							$input = $this->Peek();
 							if (input === null)
 							{
 								return $result;
@@ -418,6 +407,7 @@
 							{
 								if (call_user_func($callback, $input))
 								{
+									$this->Consume();
 									$result .= $input;
 								}
 								else
@@ -425,10 +415,6 @@
 									break;
 								}
 							}
-						}
-						if ($input !== null)
-						{
-							$this->Unconsume();
 						}
 					}
 					else
@@ -446,23 +432,77 @@
 				throw new Exception('parser have been closed');
 			}
 		}
-
-		public function Unconsume(/*int*/ $amount = null)
+		
+		public function Peek(/*mixed*/ $what = null)
 		{
 			if (isset($this->document))
 			{
-				if (func_num_args() == 1 && is_numeric($amount))
+				if (func_num_args() == 0)
 				{
-					if ($this->documentPosition >= $amount)
+					$chunk = substr($this->document, $this->documentPosition, 6);
+					$result = mb_substr($chunk, 0, 1);
+					$len = strlen($result);
+					if ($len > 0)
 					{
-						$this->documentPosition -= $amount;
+						return $result;
+					}
+					else
+					{
+						return null;
 					}
 				}
 				else
 				{
-					if ($this->documentPosition >= 1)
+					if (is_string($what))
 					{
-						$this->documentPosition--;
+						$item = $what;
+						$len = strlen($item);
+						if ($this->documentPosition + $len <= $this->documentSize)
+						{
+							$result = substr($this->document, $this->documentPosition, $len);
+							if ($result == $item)
+							{
+								return $result;
+							}
+						}
+						return null;
+					}
+					else if (is_numeric($what))
+					{
+						$chunk = substr($this->document, $this->documentPosition, $what * 6);
+						$result = mb_substr($chunk, 0, $what);
+						$len = strlen($result);
+						if ($this->documentPosition + $len <= $this->documentSize)
+						{
+							return $result;
+						}
+						else
+						{
+							return null;
+						}
+					}
+					else if (is_array($what))
+					{
+						if ($this->documentPosition < $this->documentSize)
+						{
+							foreach ($what as $item)
+							{
+								$len = strlen($item);
+								if ($this->documentPosition + $len <= $this->documentSize)
+								{
+									$result = substr($this->document, $this->documentPosition, $len);
+									if ($result == $item)
+									{
+										return $result;
+									}
+								}
+							}
+						}
+						return null;
+					}
+					else
+					{
+						return null;
 					}
 				}
 			}
@@ -472,7 +512,7 @@
 			}
 		}
 
-		public function UnconsumeAll()
+		public function Reset()
 		{
 			if (isset($this->document))
 			{
@@ -493,7 +533,7 @@
 			if (is_string($document))
 			{
 				$this->document = $document;
-				$this->documentSize = mb_strlen($document);
+				$this->documentSize = strlen($document);
 				$this->documentPosition = 0;
 			}
 			else

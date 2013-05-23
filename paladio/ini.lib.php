@@ -108,7 +108,7 @@
 								{
 									$data = $parser->ConsumeUntil('?>');
 									$parser->Consume('?>');
-									$this->merge_Category($currentCategoryName, eval($data));
+									$this->merge_Category($currentCategoryName, eval($data), true);
 								}
 								else
 								{
@@ -304,7 +304,7 @@
 			}
 		}
 		
-		public function merge_Category(/*string*/ $categoryName, /*array*/ $value)
+		public function merge_Category(/*string*/ $categoryName, /*array*/ $value, /*boolean*/ $overwrite)
 		{
 			if (!isset($this->content))
 			{
@@ -316,7 +316,10 @@
 				foreach ($keys as $key)
 				{
 					$val = $value[$key];
-					$this->set_Field($categoryName, $key, $val);
+					if ($overwrite || !$this->isset_Field($categoryName, $key))
+					{
+						$this->set_Field($categoryName, $key, $val);
+					}
 				}
 				return true;
 			}
@@ -366,16 +369,16 @@
 			{
 				$this->Clear();
 			}
-			return $this->contenido;
+			return $this->content;
 		}
 
 		public function set_Content(/*array*/ $value)
 		{
 			$this->Clear();
-			$this->merge_Content($value);
+			$this->merge_Content($value, true);
 		}
 
-		public function merge_Content(/*array*/ $value)
+		public function merge_Content(/*array*/ $value, /*boolean*/ $overwrite)
 		{
 			if (!isset($this->content))
 			{
@@ -389,11 +392,21 @@
 					$val = $value[$key];
 					if (is_array($val))
 					{
-						$this->set_Category($key, $val);
+						if ($overwrite || !$this->isset_Category($key))
+						{
+							$this->set_Category($key, $val);
+						}
+						else
+						{
+							$this->merge_Category($key, $val, $overwrite);
+						}
 					}
 					else
 					{
-						$this->set_Field('', $key, $val);
+						if ($overwrite || !$this->isset_Field('', $key))
+						{
+							$this->set_Field('', $key, $val);
+						}
 					}
 				}
 				return true;

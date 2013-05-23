@@ -162,6 +162,23 @@
 		//------------------------------------------------------------
 
 		/**
+		 * Returns a GUID that unique for this installation of Paladio in this machine.
+		 *
+		 * Returns string that identifies this Paladio installation.
+		 *
+		 * @access public
+		 * @return string
+		 */
+		public static function AppGUID()
+		{
+			$path = FileSystem::FolderInstallation();
+			$salt = "RjfWpx6R";
+			$uname = php_uname('n');
+			$md5 = md5($uname.$path.$salt);
+			return '{'.substr($md5, 0, 8).'-'.substr($md5, 8, 4).'-'.substr($md5, 12, 4).'-'.substr($md5, 16, 4).'-'.substr($md5, 20).'}';
+		}
+
+		/**
 		 * Creates the relative path thats needed to go from $referencePath to $absolutePath.
 		 *
 		 * Note 1: both $referencePath and $absolutePath are expected to be string, no check is performed.

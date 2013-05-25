@@ -195,7 +195,7 @@
 			foreach ($entityFiles as $entityFile)
 			{
 				$filename = basename($entityFile);
-				$table = mb_substr(basename($entityFile), 0, mb_strlen($filename) - mb_strlen($ending));
+				$table = substr(basename($entityFile), 0, strlen($filename) - strlen($ending));
 
 				$INI = new INI();
 				$INI->Load($entityFile, 1);

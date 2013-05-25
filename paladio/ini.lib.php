@@ -45,7 +45,7 @@
 		private function _SaveFile(/*hFile*/ $hFile, /*string*/ $header)
 		{
 			$output = (string)$this;
-			if (mb_strlen($header) > 0)
+			if (strlen($header) > 0)
 			{
 				fwrite($hFile, $header);
 				fwrite($hFile, "\n");
@@ -237,7 +237,7 @@
 		 */
 		public function Load(/*string*/ $file, /*array*/ $validCategories = null, /*bool*/ $keepCategories = true)
 		{
-			if (!is_string($file) || mb_strlen($file) == 0 || !is_file($file))
+			if (!is_string($file) || strlen($file) == 0 || !is_file($file))
 			{
 				return false;
 			}

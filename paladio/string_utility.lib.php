@@ -174,19 +174,19 @@
 				if ($ord !== false)
 				{
 					$hex = dechex($ord);
-					if (mb_strlen($hex) == 0)
+					if (strlen($hex) == 0)
 					{
 						echo 'here';
 					}
-					else if (mb_strlen($hex) == 1)
+					else if (strlen($hex) == 1)
 					{
 						return "\\".'u000'.$hex;
 					}
-					else if (mb_strlen($hex) == 2)
+					else if (strlen($hex) == 2)
 					{
 						return "\\".'u00'.$hex;
 					}
-					else if (mb_strlen($hex) == 3)
+					else if (strlen($hex) == 3)
 					{
 						return "\\".'u0'.$hex;
 					}
@@ -257,24 +257,28 @@
 			{
 				return $specials[$character];
 			}
-			else if
-			(
-				(
-					mb_strlen($character) == 6 &&
-					mb_substr($character, 1, 1) == 'u'
-				)
-			)
-			{
-				$var = mb_substr($character, 2);
-				return utf8_chr(hexdec($var));
-			}
-			else if (mb_strlen($character) == 2)
-			{
-				return mb_substr($character, 1);
-			}
 			else
 			{
-				throw new Exception ('Unsuported character');
+				$len = mb_strlen($character);
+				if
+				(
+					(
+						$len == 6 &&
+						mb_substr($character, 1, 1) == 'u'
+					)
+				)
+				{
+					$var = mb_substr($character, 2);
+					return utf8_chr(hexdec($var));
+				}
+				else if ($len == 2)
+				{
+					return mb_substr($character, 1);
+				}
+				else
+				{
+					throw new Exception ('Unsuported character');
+				}
 			}
 		}
 
@@ -313,7 +317,7 @@
 		 */
 		public static function EndsWith (/*string*/ $string, /*string*/ $with)
 		{
-			if (mb_substr($string, mb_strlen($string) - mb_strlen($with)) == $with)
+			if (substr($string, strlen($string) - strlen($with)) == $with)
 			{
 				return true;
 			}
@@ -480,7 +484,16 @@
 		{
 			if (String_Utility::EndsWith($string, $ending))
 			{
-				return StringUtility::ExceptEnd($string, mb_strlen($ending));
+				$length = strlen($string);
+				$endLength = strlen($ending);
+				if ($length < $endLength)
+				{
+					return '';
+				}
+				else
+				{
+					return substr($string, 0, $length - $endLength);
+				}
 			}
 			else
 			{
@@ -503,7 +516,16 @@
 		{
 			if (String_Utility::StartsWith($string, $start))
 			{
-				return String_Utility::ExceptStart($string, mb_strlen($start));
+				$length = strlen($string);
+				$startLength = strlen($start);
+				if ($length < $startLength)
+				{
+					return '';
+				}
+				else
+				{
+					return substr($string, $startLength);
+				}
 			}
 			else
 			{
@@ -524,7 +546,7 @@
 		 */
 		public static function StartsWith (/*string*/ $string, /*string*/ $with)
 		{
-			if (mb_substr($string, 0, mb_strlen($with)) == $with)
+			if (substr($string, 0, strlen($with)) == $with)
 			{
 				return true;
 			}

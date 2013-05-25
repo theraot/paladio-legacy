@@ -64,11 +64,12 @@
 					}
 					else
 					{
-						$position = mb_strpos($pattern, DIRECTORY_SEPARATOR);
+						$separatorLen = strlen(DIRECTORY_SEPARATOR);
+						$position = strpos($pattern, DIRECTORY_SEPARATOR);
 						if ($position > 0)
 						{
-							$folder = mb_substr($pattern, 0, $position + 1);
-							$pattern = mb_substr($pattern, $position + 1);
+							$folder = substr($pattern, 0, $position + $separatorLen);
+							$pattern = substr($pattern, $position + $separatorLen);
 						}
 						else
 						{
@@ -110,7 +111,7 @@
 
 		private static function EndsWith (/*string*/ $string, /*string*/ $with)
 		{
-			if (mb_substr($string, mb_strlen($string) - mb_strlen($with)) == $with)
+			if (substr($string, strlen($string) - strlen($with)) == $with)
 			{
 				return true;
 			}
@@ -122,7 +123,7 @@
 
 		private static function StartsWith (/*string*/ $string, /*string*/ $with)
 		{
-			if (mb_substr($string, 0, mb_strlen($with)) == $with)
+			if (substr($string, 0, strlen($with)) == $with)
 			{
 				return true;
 			}
@@ -417,9 +418,10 @@
 		public static function ProcessAbsolutePath(/*string*/ $absolutePath)
 		{
 			$absolutePath = str_replace(array('/', '\\'), DIRECTORY_SEPARATOR, $absolutePath);
+			$separatorLen = strlen(DIRECTORY_SEPARATOR);
 			if (FileSystem::EndsWith($absolutePath, DIRECTORY_SEPARATOR))
 			{
-				$absolutePath = mb_substr($absolutePath, 0, mb_strlen($absolutePath) - 1);
+				$absolutePath = substr($absolutePath, 0, strlen($absolutePath) - $separatorLen);
 			}
 			//ONLY UTF-8
 			$folders = explode(DIRECTORY_SEPARATOR, $absolutePath);
@@ -439,9 +441,10 @@
 		public static function ProcessRelativePath(/*string*/ $relativePath)
 		{
 			$relativePath = str_replace(array('/', '\\'), DIRECTORY_SEPARATOR, $relativePath);
+			$separatorLen = strlen(DIRECTORY_SEPARATOR);
 			if (FileSystem::StartsWith($relativePath, DIRECTORY_SEPARATOR))
 			{
-				$relativePath = mb_substr($relativePath, 1);
+				$relativePath = substr($relativePath, $separatorLen);
 			}
 			//ONLY UTF-8
 			$folders = explode(DIRECTORY_SEPARATOR, $relativePath);

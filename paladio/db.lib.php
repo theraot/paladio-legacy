@@ -133,6 +133,70 @@
 	 */
 	final class DatabaseOperator_Concat implements IDatabaseOperator {function Type(){return 'function';} public function __toString(){return 'CONCAT';}}
 
+	final class DBIterator implements Iterator  
+	{
+		private $result;
+		private $position;
+		private $current;
+
+		public function __construct(/*object*/ $result)
+		{
+			if (is_null($result))
+			{
+				throw new Exception ('Invalid result');
+			}
+			else
+			{
+				$this->result = $result;
+				$this->position = 0;
+				$this->current = null;
+			}
+		}
+		
+		public function __destruct()
+		{
+			$this->close();
+		}
+
+		function rewind()
+		{
+			$this->next();
+		}
+
+		function current()
+		{
+			return $this->current;
+		}
+
+		function key()
+		{
+			return $this->position;
+		}
+
+		function next()
+		{
+			if (null !== ($this->current = mysqli_fetch_assoc($this->result)))
+			{
+				++$this->position;
+			}
+		}
+
+		function valid()
+		{
+			return !(is_null($this->current));
+		}
+		
+		function close()
+		{
+			if (!is_null($this->result))
+			{
+				mysqli_free_result($this->result);
+				$this->current = null;
+				$this->result = null;
+			}
+		}
+	}
+
 	/**
 	 * DB
 	 *
@@ -357,24 +421,9 @@
 		}
 
 		/**
-		 * Retrieves an associative array with the next entry of the query result.
-		 *
-		 * Returns an associative array if the operation is successful, false otherwise.
-		 *
-		 * @param $result: the query result.
-		 *
-		 * @access public
-		 * @return mixed
-		 */
-		public static function GetRecord(/*object*/ $result)
-		{
-			return mysqli_fetch_assoc($result);
-		}
-
-		/**
 		 * Executes a query or statement.
 		 *
-		 * If the operation is successful, and $query is a query: returns a query result.
+		 * If the operation is successful, and $query is a query: returns a Iterator object to traverse the result.
 		 * If the operation is successful, and $query is a statement: returns a true.
 		 * Otherwise: returns false
 		 *
@@ -386,28 +435,21 @@
 		 */
 		public static function Query(/*object*/ $connection, /*string*/ $query)
 		{
-			return mysqli_query($connection, $query);
-		}
-
-		/**
-		 * Releases a query result.
-		 *
-		 * Returns an true if the operation is successful, false otherwise.
-		 *
-		 * @param $result: the query result to release.
-		 *
-		 * @access public
-		 * @return bool
-		 */
-		public static function Release(/*object*/ $result)
-		{
-			if (is_resource($result))
+			$result = mysqli_query($connection, $query);
+			if (is_bool($result))
 			{
-				return mysql_free_result($result);
+				if ($result)
+				{
+					return true;
+				}
+				else
+				{
+					return false;
+				}
 			}
 			else
 			{
-				return false;
+				return new DBIterator($result);
 			}
 		}
 

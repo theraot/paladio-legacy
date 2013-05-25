@@ -30,77 +30,7 @@
 		private static $executeUser;
 		private static $executePassword;
 
-		/**
-		 * Internally used to process list entries.
-		 * @see Database::ListRecords
-		 * @access private
-		 */
-		private static function CallbackListRecords(/*array*/ &$result, /*array*/ $record)
-		{
-			$result[] = $record['_value'];
-		}
-
-		/**
-		 * Internally used to process list entries.
-		 * @see Database::ListRecords
-		 * @access private
-		 */
-		private static function CallbackListRecordsEx(/*array*/ &$result, /*array*/ $record)
-		{
-			$result[] = $record;
-		}
-
-		/**
-		 * Internally used to process graph entries.
-		 * @see Database::GraphRecords
-		 * @access private
-		 */
-		private static function CallbackGraphRecords(/*array*/ &$result, /*array*/ $record)
-		{
-			$source = $record['_source'];
-			$target = $record['_target'];
-			if (!array_key_exists($source, $result))
-			{
-				$node = new GraphNode();
-				$node->id = $source;
-				$result[$source] = $node;
-			}
-			if (!array_key_exists($target, $result))
-			{
-				$node = new GraphNode();
-				$node->id = $target;
-				$result[$target] = $node;
-			}
-			$sourceNode = $result[$source];
-			$targetNode = $result[$target];
-			$sourceNode->outgoing[] = $targetNode;
-			$targetNode->incoming[] = $sourceNode;
-		}
-
-		/**
-		 * Internally used to process map entries.
-		 * @see Database::MapRecords
-		 * @access private
-		 */
-		private static function CallbackMapRecords(/*array*/ &$result, /*array*/ $record)
-		{
-			$key = $record['_key'];
-			$value = $record['_value'];
-			$result[$key] = $value;
-		}
-
-		/**
-		 * Internally used to process map entries.
-		 * @see Database::MapRecords
-		 * @access private
-		 */
-		private static function CallbackMapRecordsEx(/*array*/ &$result, /*array*/ $record, /*mixed*/ $context)
-		{
-			$nameKeyField = $context;
-			$key = $record[$nameKeyField];
-			$result[$key] = $record;
-		}
-
+		
 		/**
 		 * Internally used to connect to the database.
 		 * @see Database::__construct
@@ -343,9 +273,10 @@
 		{
 			if (Database::Query(Database::CreateQueryCountRecords($table, $where), $result, $database))
 			{
-				$record = Database::GetRecord($result);
+				$result->rewind();
+				$record = $result->current();
 				$count = $record['_amount'];
-				Database::ReleaseResult($result);
+				$result->close();
 				return $count;
 			}
 			else
@@ -477,63 +408,6 @@
 			return Database::Execute(Database::CreateStatementDelete($table, $where), $database);
 		}
 
-		/**
-		 * Executes a callback for each entry in the table $table that matches the condition $where.
-		 *
-		 * If $context is passed the expected signature of the callback is: function callback(&$result, $record, $context), where $result is array, $record is array, and $context is mixed.
-		 * If $context is not passed the expected signature of the callback is: function callback(&$result, $record), where $result is array, $record is array.
-		 *
-		 * Note: the callbacks will recieve an array $result as first parameter, the final value of $result will be returned.
-		 *
-		 * @param $callback: The function to be executed per each entry.
-		 * @param $table: The table to iterate over.
-		 * @param $fields: The fields to retrieve. The values of the fields will be passed as second parameters to the callback.
-		 * @param $where: The condition the entries need to match to be passed to the callback.
-		 * @param $database: A database object that will be used to execute the operation, if null a new connection will be made.
-		 * @param $context: if passed, $context will be passed to the callbacks as third parameter.
-		 *
-		 * @see Database::ConnectExecute
-		 * @see Database::CreateStatementDelete
-		 *
-		 * @access public
-		 * @return array of mixed
-		 */
-		public static function Enumerate(/*function*/ $callback, /*string*/ $table, /*mixed*/ $fields = null, /*mixed*/ $where = null, /*Database*/ $database = null, /*mixed*/ $context = null)
-		{
-			if (is_callable($callback))
-			{
-				$use_context = func_num_args() > 5;
-				$result = array();
-				$databaseResult = Database::Read($table, $fields, $where, $database);
-				if ($databaseResult !== false)
-				{
-					while (true)
-					{
-						$record = Database::GetRecord($databaseResult);
-						if (is_null($record))
-						{
-							break;
-						}
-						else
-						{
-							if ($use_context)
-							{
-								call_user_func_array($callback, array(&$result, $record, $context));
-							}
-							else
-							{
-								call_user_func_array($callback, array(&$result, $record));
-							}
-						}
-					}
-				}
-				return $result;
-			}
-			else
-			{
-				throw new Exception('invalid callback');
-			}
-		}
 
 		/**
 		 * Executes a statement.
@@ -577,7 +451,7 @@
 				}
 				else
 				{
-					DB::Release($result);
+					$result->close();
 					$ok = false;
 				}
 				if (is_null($database))
@@ -586,53 +460,6 @@
 				}
 				return $ok;
 			}
-		}
-
-		/**
-		 * Reads the values of the entry of a result of a query.
-		 *
-		 * Returns an associative array with the values of the entry.
-		 *
-		 * @param $result: The result of a query.
-		 *
-		 * @access public
-		 * @return array of mixed
-		 */
-		public static function GetRecord(/*object*/ $result)
-		{
-			return DB::GetRecord($result);
-		}
-
-		/**
-		 * Builds a graph with the entries of a table.
-		 *
-		 * Returns an associative array of GraphNode objects.
-		 *
-		 * Note: a graph is a data structure that represents the relations between items, it can be used to represent networks connections.
-		 *
-		 * @param $table: the table that contains the relationships entries to include.
-		 * @param $sourceField: the field that contains the source of the relationship.
-		 * @param $targetField: the field that contains the target of the relationship.
-		 * @param $where: the condition the entries need to match to be included.
-		 * @param $database: A database object that will be used to execute the operation, if null a new connection will be made.
-		 *
-		 * @see Database::ConnectQuery
-		 * @see Database::Enumerate
-		 *
-		 * @access public
-		 * @return array of GraphNode
-		 */
-		public static function GraphRecords(/*string*/ $table, /*string*/ $sourceField, /*string*/ $targetField, /*mixed*/ $where = null, /*Database*/ $database = null)
-		{
-			if (is_string($sourceField))
-			{
-				$sourceField = new Database_Field((string)$sourceField);
-			}
-			if (is_string($targetField))
-			{
-				$targetField = new Database_Field((string)$targetField);
-			}
-			return Database::Enumerate('Database::CallbackGraphRecords', $table, array('source' => $sourceField, 'target' => $targetField), $where, $database);
 		}
 
 		/**
@@ -655,7 +482,7 @@
 			$consulta = Database::CreateQueryRead($table, $fields, array(false));
 			if (Database::Query($consulta, $result, $database))
 			{
-				Database::ReleaseResult($result);
+				$result->close();
 				return true;
 			}
 			else
@@ -682,77 +509,6 @@
 		public static function Insert($record, $table, $database = null)
 		{
 			return Database::Execute(Database::CreateStatementInsert($record, $table), $database);
-		}
-
-		/**
-		 * Builds a list with the entries of a table.
-		 *
-		 * @param $table: the table that contains entries to include.
-		 * @param $field: the field to include.
-		 * @param $where: the condition the entries need to match to be included.
-		 * @param $database: A database object that will be used to execute the operation, if null a new connection will be made.
-		 *
-		 * @see Database::ConnectQuery
-		 * @see Database::Enumerate
-		 *
-		 * @access public
-		 * @return array of mixed
-		 */
-		public static function ListRecords(/*string*/ $table, /*mixed*/ $field, /*mixed*/ $where = null, /*Database*/ $database = null)
-		{
-			if (is_array($field))
-			{
-				return Database::Enumerate('Database::CallbackListRecordsEx', $table, $field, $where, $database);
-			}
-			else if (is_null($field))
-			{
-				return Database::Enumerate('Database::CallbackListRecordsEx', $table, null, $where, $database);
-			}
-			else
-			{
-				return Database::Enumerate('Database::CallbackListRecords', $table, array('_value' => (string)$field), $where, $database);
-			}
-		}
-
-		/**
-		 * Builds a map (associative array) with the entries of a table.
-		 *
-		 * @param $table: the table that contains entries to include.
-		 * @param $keyField: the field to use as key of the map.
-		 * @param $field: the field to include.
-		 * @param $where: the condition the entries need to match to be included.
-		 * @param $database: A database object that will be used to execute the operation, if null a new connection will be made.
-		 *
-		 * @see Database::ConnectQuery
-		 * @see Database::Enumerate
-		 *
-		 * @access public
-		 * @return array of mixed
-		 */
-		public static function MapRecords(/*string*/ $table, /*mixed*/ $keyField, /*mixed*/ $field, /*mixed*/ $where = null, /*Database*/ $database = null)
-		{
-			if (is_string($keyField))
-			{
-				$keyField = new Database_Field((string)$keyField);
-			}
-			$nameKeyField = '_key';
-			if (is_array($field))
-			{
-				while (array_key_exists($nameKeyField, $field) || in_array($nameKeyField, $fields))
-				{
-					$nameKeyField = '_'.$nameKeyField;
-				}
-				$fields[$nameKeyField] = $keyField;
-				return Database::Enumerate('Database::CallbackMapRecordsEx', $table, $fields, $where, $database, $nameKeyField);
-			}
-			else
-			{
-				if (is_string($field))
-				{
-					$field = new Database_Field((string)$field);
-				}
-				return Database::Enumerate('Database::CallbackMapRecords', $table, array($nameKeyField => $keyField, '_value' => $field), $where, $database);
-			}
 		}
 
 		/**
@@ -786,7 +542,18 @@
 			else
 			{
 				$result = DB::Query($connection, $query);
-				$ok = $result !== false;
+				if ($result === true)
+				{
+					$ok = true;
+				}
+				else if ($result === false)
+				{
+					$ok = false;
+				}
+				else
+				{
+					$ok = true;
+				}
 				if (is_null($database))
 				{
 					Database::Disconnect($connection);
@@ -814,7 +581,8 @@
 		 */
 		public static function Read(/*string*/ $table, /*mixed*/ $fields = null, /*mixed*/ $where = null, /*Database*/ $database = null)
 		{
-			if (Database::Query(Database::CreateQueryRead($table, $fields, $where), $result, $database))
+			$query = Database::CreateQueryRead($table, $fields, $where);
+			if (Database::Query($query, $result, $database))
 			{
 				return $result;
 			}
@@ -850,8 +618,9 @@
 			}
 			else
 			{
-				$record = Database::GetRecord($result);
-				Database::ReleaseResult($result);
+				$result->rewind();
+				$record = $result->current();
+				$result->close();
 				if (!is_null($record))
 				{
 					return $record;
@@ -861,21 +630,6 @@
 					return null;
 				}
 			}
-		}
-
-		/**
-		 * Releases a query result that will no longer be used.
-		 *
-		 * Returns a true if the operation was successful, false otherwise.
-		 *
-		 * @param $result: the query result to release.
-		 *
-		 * @access public
-		 * @return string
-		 */
-		public static function ReleaseResult(/*object*/ $result)
-		{
-			return DB::Release($result);
 		}
 
 		/**
@@ -901,7 +655,7 @@
 			}
 			else
 			{
-				Database::ReleaseResult($result);
+				$result->close();
 				return true;
 			}
 		}
@@ -933,8 +687,9 @@
 			}
 			else
 			{
-				$record = Database::GetRecord($result);
-				Database::ReleaseResult($result);
+				$result->rewind();
+				$record = $result->current();
+				$result->close();
 				if (!is_null($record))
 				{
 					return true;
@@ -1071,32 +826,6 @@
 		{
 			$this->connection = Database::Connect($user, $password);
 		}
-	}
-
-	/**
-	 * GraphNode
-	 * @package Paladio
-	 */
-	final class GraphNode
-	{
-		//------------------------------------------------------------
-		// Public (Instance)
-		//------------------------------------------------------------
-
-		/**
-		 * The id of the node
-		 */
-		public $id;
-
-		/**
-		 * The incomming relationships
-		 */
-		public $incoming;
-
-		/**
-		 * The outgoing relationships
-		 */
-		public $outgoing;
 	}
 
 	require_once('configuration.lib.php');

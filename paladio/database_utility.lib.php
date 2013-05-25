@@ -78,6 +78,18 @@
 				$result = 'NULL';
 				return true;
 			}
+			else if (is_bool($value))
+			{
+				if ($value)
+				{
+					$result = 'TRUE';
+				}
+				else
+				{
+					$result = 'FALSE';
+				}
+				return true;
+			}
 			else if (is_array($value))
 			{
 				$result = Database_Utility::ProcessExpression(null, $value);

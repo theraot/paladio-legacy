@@ -15,7 +15,7 @@
 		private $document;
 		private $documentPosition;
 		private $documentSize;
-		
+
 		private function ConsumeToPosition(/*int*/ $position)
 		{
 			if (isset($this->document))
@@ -432,7 +432,7 @@
 				throw new Exception('parser have been closed');
 			}
 		}
-		
+
 		public function Peek(/*mixed*/ $what = null)
 		{
 			if (isset($this->document))
@@ -546,6 +546,5 @@
 		{
 			$this->Close();
 		}
-
 	}
 ?>

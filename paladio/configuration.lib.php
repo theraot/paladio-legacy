@@ -352,14 +352,12 @@
 		if (!Configuration::SyncSession())
 		{
 			Configuration::Load(FileSystem::FolderCore());
-			echo 'load';
 			Configuration::SyncSession();
 		}
 	}
 	else
 	{
 		Configuration::Load(FileSystem::FolderCore());
-		echo 'load';
 		Paladio::Request('Session', 'Configuration::SyncSession');
 	}
 ?>

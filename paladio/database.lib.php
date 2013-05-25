@@ -652,8 +652,7 @@
 		 */
 		public static function HasFields(/*string*/ $table, /*mixed*/ $fields, /*Database*/ $database = null)
 		{
-			//TODO: where to false
-			$consulta = Database::CreateQueryRead($table, $fields, array())/*.' LIMIT 0, 1'*/;
+			$consulta = Database::CreateQueryRead($table, $fields, array(false));
 			if (Database::Query($consulta, $result, $database))
 			{
 				Database::ReleaseResult($result);
@@ -895,8 +894,7 @@
 		 */
 		public static function TableExists(/*string*/ $table, /*Database*/ $database = null)
 		{
-			//TODO request no fields
-			$result = Database::Read($table, null, null, $database);
+			$result = Database::Read($table, array(0), null, $database);
 			if ($result === false)
 			{
 				return false;

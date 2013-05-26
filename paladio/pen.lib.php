@@ -20,12 +20,12 @@
 		private static $whitespace = array(' ', "\t", "\n", "\r");
 		private static $newLine = array("\n", "\r");
 		private static $unquotedStringEnd = array(' ', "\t", ':', ',', ']', "\n", "\r", '#', ';');
-		
+
 		private static function EncodeMapEntry($key, $value)
 		{
 			return '"' . $key.'" : '.PEN::Encode($value);
 		}
-		
+
 		public static function ConsumeWhitespace($parser)
 		{
 			$parser->ConsumeWhile(PEN::$whitespace);
@@ -38,7 +38,7 @@
 				}
 			}while ($parser->ConsumeWhile(PEN::$whitespace) !== '');
 		}
-		
+
 		private static function ConsumeArray($parser, $eval = false)
 		{
 			$result = array();
@@ -74,7 +74,7 @@
 				}
 			}
 		}
-		
+
 		public static function ConsumeQuotedString($parser, $eval = false)
 		{
 			$expecting = '';
@@ -145,7 +145,7 @@
 				}
 			}
 		}
-		
+
 		public static function ConsumeValue($parser, $eval = false)
 		{
 			PEN::ConsumeWhitespace($parser);
@@ -174,7 +174,7 @@
 				return $parser->ConsumeUntil(PEN::$unquotedStringEnd);
 			}
 		}
-		
+
 		public static function Encode(/*mixed*/ $value)
 		{
 			if (is_array($value))
@@ -209,7 +209,7 @@
 				throw new Exception('Unable to encode value');
 			}
 		}
-		
+
 		public static function Decode (/*string*/ $value, $eval = false)
 		{
 			$parser = new Parser($value);

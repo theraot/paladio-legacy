@@ -30,7 +30,7 @@
 		private static $executeUser;
 		private static $executePassword;
 
-		
+
 		/**
 		 * Internally used to connect to the database.
 		 * @see Database::__construct
@@ -829,7 +829,7 @@
 	}
 
 	require_once('configuration.lib.php');
-	
+
 	/**
 	 * Intended for internal use only
 	 */

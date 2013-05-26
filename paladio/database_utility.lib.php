@@ -18,25 +18,25 @@
 		//------------------------------------------------------------
 		// Private (Instance)
 		//------------------------------------------------------------
-		
+
 		private $fieldName;
-		
+
 		//------------------------------------------------------------
 		// Public (Instance)
 		//------------------------------------------------------------
-		
+
 		/**
-		 * Convert this instance to string 
+		 * Convert this instance to string
 		 */
 		public function __toString()
 		{
 			return $this->fieldName;
 		}
-		
+
 		//------------------------------------------------------------
 		// Public (Constructor)
 		//------------------------------------------------------------
-		
+
 		/**
 		 * Creates a new instance of Database_Field
 		 * @param $fieldName: the name of the field to refer to.
@@ -212,7 +212,7 @@
 				return $value;
 			}
 		}
-		
+
 		/**
 		 * Combine two where conditions into one.
 		 *

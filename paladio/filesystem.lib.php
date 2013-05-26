@@ -5,6 +5,7 @@
 		header('HTTP/1.0 404 Not Found');
 		exit();
 	}
+	//TODO: Make get GetFolderItemsRelative return an Iterable instead of an array
 
 	/**
 	 * FileSystem
@@ -34,7 +35,7 @@
 			}
 			return $result;
 		}
-		
+
 		private static function _RequireOnce(/*string*/ $_REQUIRE)
 		{
 			require_once($_REQUIRE);

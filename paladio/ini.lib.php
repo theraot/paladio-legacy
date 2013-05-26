@@ -11,6 +11,7 @@
 		require_once('parser.lib.php');
 		require_once('pen.lib.php');
 	}
+	//TODO: allow importing another INI [low priority]
 
 	/**
 	 * INI
@@ -53,7 +54,7 @@
 			fwrite($hFile, $output);
 			fflush($hFile);
 		}
-		
+
 		private function ProcessValue(/*Parser*/ $parser, /*string*/ &$value)
 		{
 			if ($result = PEN::ConsumeQuotedString($parser, true))
@@ -303,7 +304,7 @@
 				return false;
 			}
 		}
-		
+
 		public function merge_Category(/*string*/ $categoryName, /*array*/ $value, /*boolean*/ $overwrite)
 		{
 			if (!isset($this->content))

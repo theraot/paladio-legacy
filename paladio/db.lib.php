@@ -4,6 +4,7 @@
 		header('HTTP/1.0 404 Not Found');
 		exit();
 	}
+	//TODO create mechanism for multiple database engines [low priority]
 
 	/**
 	 * IDatabaseOperator
@@ -133,7 +134,7 @@
 	 */
 	final class DatabaseOperator_Concat implements IDatabaseOperator {function Type(){return 'function';} public function __toString(){return 'CONCAT';}}
 
-	final class DBIterator implements Iterator  
+	final class DBIterator implements Iterator
 	{
 		private $result;
 		private $position;
@@ -152,7 +153,7 @@
 				$this->current = null;
 			}
 		}
-		
+
 		public function __destruct()
 		{
 			$this->close();
@@ -185,7 +186,7 @@
 		{
 			return !(is_null($this->current));
 		}
-		
+
 		function close()
 		{
 			if (!is_null($this->result))

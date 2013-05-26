@@ -4,6 +4,7 @@
 		header('HTTP/1.0 404 Not Found');
 		exit();
 	}
+	//TODO: allow path info to be used [low priority]
 
 	final class Data
 	{

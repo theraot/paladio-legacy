@@ -10,6 +10,7 @@
 		require_once('configuration.lib.php');
 		require_once('pen.lib.php');
 	}
+	//TODO: add support for wildcards (*) and (?) or similar solution, take care of them in menu.pet.php
 
 	final class AccessControl
 	{

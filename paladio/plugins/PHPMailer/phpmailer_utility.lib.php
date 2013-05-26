@@ -10,6 +10,7 @@
 		require_once(FileSystem::PreparePath(dirname(__FILE__)).'PHPMailer'.DIRECTORY_SEPARATOR.'class.phpmailer.php');
 		require_once(FileSystem::PreparePath(dirname(__FILE__)).'PHPMailer'.DIRECTORY_SEPARATOR.'class.smtp.php');
 	}
+	//TODO: sending HTML needs testing
 
 	final class PHPMailer_Utility
 	{

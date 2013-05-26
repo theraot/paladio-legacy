@@ -10,7 +10,7 @@
 		require_once('ini.lib.php');
 		require_once('session.lib.php');
 	}
-	
+
 	/**
 	 * Configuration
 	 * @package Paladio
@@ -32,6 +32,7 @@
 		 */
 		private static function Dispatch()
 		{
+			//TODO: create a central callback system for Configuration and Paladio
 			if (is_array(Configuration::$entries))
 			{
 				$keys = array_keys(Configuration::$entries);
@@ -122,6 +123,7 @@
 		 */
 		public static function CategoryExists(/*mixed*/ $categoryName)
 		{
+			//TODO: move multiple category checks to INI [low priority]
 			if (is_null(Configuration::$INI))
 			{
 				return false;
@@ -164,6 +166,7 @@
 		 */
 		public static function FieldExists(/*mixed*/ $categoryName, /*string*/ $fieldName)
 		{
+			//TODO: move multiple field check to INI [low priority]
 			if (is_null(Configuration::$INI))
 			{
 				return false;
@@ -276,9 +279,10 @@
 				return $default;
 			}
 		}
-		
+
 		public static function SyncSession()
 		{
+			//TODO: create sync in session for Configuration and AccessControl
 			Session::Start();
 			$appGUID = FileSystem::AppGUID();
 			$sessionStatusName = $appGUID.'__configuration';

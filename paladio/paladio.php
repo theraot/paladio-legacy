@@ -13,6 +13,9 @@
 		require_once('configuration.lib.php');
 		FileSystem::RequireAll('*.lib.php', FileSystem::FolderCore());
 	}
+	//TODO: add ways to avoid looking for PETs in code
+	//TODO: paladio "modes" needs testing
+	//TODO: create forms.lib.php
 
 	if (!function_exists('stripslashes_utf8'))
 	{

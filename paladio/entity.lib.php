@@ -12,6 +12,8 @@
 			require_once('addendum_utility.lib.php');
 		}
 	}
+	//TODO: parse real SQL create Table and View statements, export schema object (possibly need a new class)
+	//TODO: support mapping entities to multiple databases [low priority]
 
 	/**
 	 * Intended for internal use only
@@ -1045,7 +1047,7 @@
 		}
 
 		/**
-		 * Returns the primary. 
+		 * Returns the primary.
 		 *
 		 * @access plubic
 		 * @return mixed
@@ -1056,7 +1058,7 @@
 		}
 
 		/**
-		 * Returns the values of this instance. 
+		 * Returns the values of this instance.
 		 *
 		 * @access plubic
 		 * @return mixed
@@ -1067,7 +1069,7 @@
 		}
 
 		/**
-		 * Writes the values of this instance to the database. 
+		 * Writes the values of this instance to the database.
 		 *
 		 		 * Returns true if the operation was successful, false otherwise.
 		 *

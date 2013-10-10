@@ -221,6 +221,14 @@
 					{
 						return true;
 					}
+					else
+					{
+						$test = AccessControl::ReadCategory('__anonymous');
+						if (AccessControl::TryGetListedData($full, $test, $path, $result))
+						{
+							return true;
+						}
+					}
 				}
 				else
 				{
@@ -231,10 +239,18 @@
 					}
 					if (is_null($current))
 					{
-						$test = AccessControl::ReadCategory('__unauthenticated');
+						$test = AccessControl::ReadCategory('__anonymous');
 						if (AccessControl::TryGetListedData($full, $test, $path, $result))
 						{
 							return true;
+						}
+						else
+						{
+							$test = AccessControl::ReadCategory('__unauthenticated');
+							if (AccessControl::TryGetListedData($full, $test, $path, $result))
+							{
+								return true;
+							}
 						}
 					}
 					else
@@ -414,6 +430,7 @@
 					return array_merge
 					(
 						AccessControl::GetListedFiles(AccessControl::ReadCategory('__all'), $path),
+						AccessControl::GetListedFiles(AccessControl::ReadCategory('__anonymous'), $path),
 						AccessControl::GetListedFiles(AccessControl::ReadCategory('__unconfigured'), $path)
 					);
 				}
@@ -422,6 +439,7 @@
 					return array_merge
 					(
 						AccessControl::GetListedFiles(AccessControl::ReadCategory('__all'), $path),
+						AccessControl::GetListedFiles(AccessControl::ReadCategory('__anonymous'), $path),
 						AccessControl::GetListedFiles(AccessControl::ReadCategory('__configured'), $path),
 						AccessControl::GetListedFiles(AccessControl::ReadCategory('__unauthenticated'), $path)
 					);

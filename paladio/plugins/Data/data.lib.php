@@ -4,7 +4,6 @@
 		header('HTTP/1.0 404 Not Found');
 		exit();
 	}
-	//TODO: allow path info to be used [low priority]
 
 	final class Data
 	{
@@ -19,7 +18,7 @@
 				if ($method == 'READ')
 				{
 					//Query items
-					return Database::ListRecords($table, $fields, $where);
+					return Iteration::ListRecords(Database::Read($table, $fields, $where), $fields);
 				}
 				else if ($method == 'WRITE')
 				{

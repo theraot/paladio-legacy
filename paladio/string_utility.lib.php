@@ -139,16 +139,21 @@
 		private static $weekdays;
 		private static $months;
 
+		//------------------------------------------------------------
+		// Public (Class)
+		//------------------------------------------------------------
+
 		/**
 		 * Escapes a character in C style.
 		 *
 		 * @param $data: an array, of which the first item is the character to escape.
 		 *
-		 * @access private
+		 * @access public
 		 * @return string
 		 */
-		private static function EscapeCharacter(/*array*/ $data)
+		public static function EscapeCharacter(/*array*/ $data)
 		{
+			//TODO improve encapsulation
 			$character = $data[0];
 			//strict on output
 			$specials = array
@@ -197,16 +202,48 @@
 			}
 		}
 
-				/**
+		/**
+		 * Escapes a string in C style.
+		 *
+		 * @param $string: the string to escape.
+		 * @param $characters: the charactes to escape.
+		 * @param $escapeControlCharacters: if true all control characters will be escaped.
+		 *
+		 * @access public
+		 * @return string
+		 */
+		public static function EscapeString(/*string*/ $string, /*array*/ $characters, /*bool*/ $escapeControlCharacters = true)
+		{
+			$class = '';
+			if ($escapeControlCharacters)
+			{
+				$class .= '\x00-\x1F\x7F\x80-\x9F';
+			}
+			if (is_array($characters))
+			{
+				$class .= implode('', array_map('preg_quote', $characters));
+			}
+			if ($class != '')
+			{
+				return preg_replace_callback('@['.$class.']@u', 'String_Utility::EscapeCharacter', $string);
+			}
+			else
+			{
+				return $string;
+			}
+		}
+
+		/**
 		 * Unescapes a character in C style.
 		 *
 		 * @param $data: an array, of which the first item is the character to escape.
 		 *
-		 * @access private
+		 * @access public
 		 * @return string
 		 */
-		private static function UnescapeCharacter(/*array*/ $data)
+		public static function UnescapeCharacter(/*array*/ $data)
 		{
+			//TODO improve encapsulation
 			$character = $data[0];
 			$specials = array
 			(
@@ -242,41 +279,6 @@
 				{
 					throw new Exception ('Unsuported character');
 				}
-			}
-		}
-
-		//------------------------------------------------------------
-		// Public (Class)
-		//------------------------------------------------------------
-
-		/**
-		 * Escapes a string in C style.
-		 *
-		 * @param $string: the string to escape.
-		 * @param $characters: the charactes to escape.
-		 * @param $escapeControlCharacters: if true all control characters will be escaped.
-		 *
-		 * @access public
-		 * @return string
-		 */
-		public static function EscapeString(/*string*/ $string, /*array*/ $characters, /*bool*/ $escapeControlCharacters = true)
-		{
-			$class = '';
-			if ($escapeControlCharacters)
-			{
-				$class .= '\x00-\x1F\x7F\x80-\x9F';
-			}
-			if (is_array($characters))
-			{
-				$class .= implode('', array_map('preg_quote', $characters));
-			}
-			if ($class != '')
-			{
-				return preg_replace_callback('@['.$class.']@u', 'String_Utility::EscapeCharacter', $string);
-			}
-			else
-			{
-				return $string;
 			}
 		}
 

@@ -52,7 +52,7 @@
 			}
 		}
 	}
-	
+
 	if (!function_exists("EmitPaladioNavMenu"))
 	{
 		function __EmitPaladioNavMenu($class, $itemClass, $selectedClass, $entries, $source)
@@ -63,7 +63,7 @@
 			}
 			else
 			{
-				echo '<ul class="'.$_ELEMENT['attributes']['class'].'">';
+				echo '<ul class="'.$class.'">';
 			}
 			foreach ($entries as $entry)
 			{

@@ -479,22 +479,6 @@
 		}
 	}
 
-	if (class_exists('Session'))
-	{
-		if (!AccessControl::SyncSession())
-		{
-			AccessControl::Load(FileSystem::FolderCore());
-			AccessControl::Load(dirname(__FILE__));
-			AccessControl::SyncSession();
-		}
-	}
-	else
-	{
-		AccessControl::Load(FileSystem::FolderCore());
-		AccessControl::Load(dirname(__FILE__));
-		Paladio::Request('Session', 'AccessControl::SyncSession');
-	}
-
 	function AccessControl_Session()
 	{
 		Session::Start();
@@ -530,6 +514,29 @@
 			Configuration::Get('paladio-accesscontrol', 'role_field'),
 			Configuration::Get('paladio-accesscontrol', 'hash_algorithm')
 		);
+		if (Configuration::FieldExists('paladio-accesscontrol', 'disable_session_cache'))
+		{
+			AccessControl::Load(FileSystem::FolderCore());
+			AccessControl::Load(dirname(__FILE__));
+		}
+		else
+		{
+			if (class_exists('Session'))
+			{
+				if (!AccessControl::SyncSession())
+				{
+					AccessControl::Load(FileSystem::FolderCore());
+					AccessControl::Load(dirname(__FILE__));
+					AccessControl::SyncSession();
+				}
+			}
+			else
+			{
+				AccessControl::Load(FileSystem::FolderCore());
+				AccessControl::Load(dirname(__FILE__));
+				Paladio::Request('Session', 'AccessControl::SyncSession');
+			}
+		}
 		Paladio::Request('Session', 'AccessControl_Session');
 	}
 	Configuration::Callback('paladio-accesscontrol', 'AccessControl_Configure');

@@ -90,7 +90,7 @@
 				{
 					if (!$useValidCategories || in_array($currentCategoryName, $validCategories))
 					{
-						if (!isset($this->content[$currentCategoryName]))
+						if (!array_key_exists($currentCategoryName, $this->content))
 						{
 							$this->content[$currentCategoryName] = array();
 						}
@@ -123,36 +123,35 @@
 							}
 							continue;
 						}
-						else if (($fieldName = PEN::ConsumeQuotedString($parser, false)) !== null)
-						{
-							//Empty
-						}
-						else
+						else if (($fieldName = PEN::ConsumeQuotedString($parser, false)) === null)
 						{
 							$fieldName = $parser->ConsumeUntil($unquotedStringEnd);
 						}
 						$parser->ConsumeWhile($whitespace);
-						if ($parser->Consume('=') !== null)
+						if ($fieldName !== '')
 						{
-							$fieldValue = PEN::ConsumeValue($parser, true);
-							if ($keepCategories)
+							if ($parser->Consume('=') !== null)
 							{
-								$this->content[$currentCategoryName][$fieldName] = $fieldValue;
+								$fieldValue = PEN::ConsumeValue($parser, true);
+								if ($keepCategories)
+								{
+									$this->content[$currentCategoryName][$fieldName] = $fieldValue;
+								}
+								else
+								{
+									$this->content[''][$fieldName] = $fieldValue;
+								}
 							}
 							else
 							{
-								$this->content[''][$fieldName] = $fieldValue;
-							}
-						}
-						else
-						{
-							if ($keepCategories)
-							{
-								$this->content[$currentCategoryName][$fieldName] = null;
-							}
-							else
-							{
-								$this->content[''][$fieldName] = null;
+								if ($keepCategories)
+								{
+									$this->content[$currentCategoryName][$fieldName] = null;
+								}
+								else
+								{
+									$this->content[''][$fieldName] = null;
+								}
 							}
 						}
 					}
@@ -218,7 +217,7 @@
 		 */
 		public function Clear()
 		{
-			$this->content = array(array());
+			$this->content = array();
 			return true;
 		}
 
@@ -244,7 +243,7 @@
 			}
 			else
 			{
-				if (!isset($this->content))
+				if (!is_array($this->content))
 				{
 					$this->Clear();
 				}
@@ -275,7 +274,7 @@
 
 		public function get_Category(/*string*/ $categoryName)
 		{
-			if (!isset($this->content))
+			if (!is_array($this->content))
 			{
 				$this->Clear();
 			}
@@ -291,7 +290,7 @@
 
 		public function isset_Category(/*string*/ $categoryName)
 		{
-			if (!isset($this->content))
+			if (!is_array($this->content))
 			{
 				$this->Clear();
 			}
@@ -307,7 +306,7 @@
 
 		public function merge_Category(/*string*/ $categoryName, /*array*/ $value, /*boolean*/ $overwrite)
 		{
-			if (!isset($this->content))
+			if (!is_array($this->content))
 			{
 				$this->Clear();
 			}
@@ -332,7 +331,7 @@
 
 		public function set_Category(/*string*/ $categoryName, /*array*/ $value)
 		{
-			if (!isset($this->content))
+			if (!is_array($this->content))
 			{
 				$this->Clear();
 			}
@@ -355,7 +354,7 @@
 
 		public function unset_Category(/*string*/ $categoryName)
 		{
-			if (!isset($this->content))
+			if (!is_array($this->content))
 			{
 				$this->Clear();
 			}
@@ -366,7 +365,7 @@
 
 		public function get_Content()
 		{
-			if (!isset($this->content))
+			if (!is_array($this->content))
 			{
 				$this->Clear();
 			}
@@ -381,7 +380,7 @@
 
 		public function merge_Content(/*array*/ $value, /*boolean*/ $overwrite)
 		{
-			if (!isset($this->content))
+			if (!is_array($this->content))
 			{
 				$this->Clear();
 			}
@@ -422,7 +421,7 @@
 
 		public function get_Field(/*string*/ $categoryName, /*string*/ $fieldName)
 		{
-			if (!isset($this->content))
+			if (!is_array($this->content))
 			{
 				$this->Clear();
 			}
@@ -438,7 +437,7 @@
 
 		public function isset_Field(/*string*/ $categoryName, /*string*/ $fieldName)
 		{
-			if (!isset($this->content))
+			if (!is_array($this->content))
 			{
 				$this->Clear();
 			}
@@ -457,7 +456,7 @@
 
 		public function set_Field(/*string*/ $categoryName, /*string*/ $fieldName, /*mixed*/ $value)
 		{
-			if (!isset($this->content))
+			if (!is_array($this->content))
 			{
 				$this->Clear();
 			}
@@ -467,7 +466,7 @@
 
 		public function unset_Field(/*string*/ $categoryName, /*string*/ $fieldName)
 		{
-			if (!isset($this->content))
+			if (!is_array($this->content))
 			{
 				$this->Clear();
 			}

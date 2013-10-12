@@ -83,7 +83,9 @@
 		{
 			if (isset($this->document))
 			{
-				$this->document = $this->NotConsumed();
+				$document = $this->NotConsumed();
+				$this->document = $document;
+				$this->documentSize = strlen($document);
 				$this->documentPosition = 0;
 			}
 			else

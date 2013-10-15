@@ -312,13 +312,7 @@
 
 		public static function Open(/*string*/ $id, /*string*/ $password)
 		{
-			if (is_null(AccessControl::$table) || is_null(AccessControl::$passwordField) || is_null(AccessControl::$idField))
-			{
-				AccessControl::$current = null;
-				AccessControl::Preserve();
-				return false;
-			}
-			else
+			if (!is_null(AccessControl::$table) && !is_null(AccessControl::$passwordField) && !is_null(AccessControl::$idField))
 			{
 				$fields = array(AccessControl::$passwordField);
 				if (!is_null(AccessControl::$roleField))
@@ -329,64 +323,63 @@
 				{
 					$fields[] = AccessControl::$saltField;
 				}
-				Database::TryReadOneRecord
+				if (Database::TryReadOneRecord
 				(
 					$record,
 					AccessControl::$table,
 					$fields,
 					array(AccessControl::$idField => $id)
-				);
-				if (is_null(AccessControl::$saltField))
+				))
 				{
-					$salt = '';
-				}
-				else
-				{
-					$salt = $record[AccessControl::$saltField];
-				}
-				if (is_null(AccessControl::$hashAlgorithm) || AccessControl::$hashAlgorithm == 'none')
-				{
-					$pass = $salt.$password;
-				}
-				else if (AccessControl::$hashAlgorithm == 'md5')
-				{
-					$pass = md5($salt.$password);
-				}
-				else if (AccessControl::$hashAlgorithm == 'sha1')
-				{
-					$pass = sha1($salt.$password);
-				}
-				else
-				{
-					$pass = hash(AccessControl::$hashAlgorithm, $salt.$password);
-				}
-				if ($pass == $record[AccessControl::$passwordField])
-				{
-					if (is_null(AccessControl::$roleField))
+					if (is_null(AccessControl::$saltField))
 					{
-						AccessControl::$current = array('id' => $id, 'password' => $password, 'role' => null);
+						$salt = '';
 					}
 					else
 					{
-						AccessControl::$current = array('id' => $id, 'password' => $password, 'role' => $record[AccessControl::$roleField]);
+						$salt = $record[AccessControl::$saltField];
 					}
-					AccessControl::Preserve();
-					if (is_null(AccessControl::$roleField))
+					if (is_null(AccessControl::$hashAlgorithm) || AccessControl::$hashAlgorithm == 'none')
 					{
-						return true;
+						$pass = $salt.$password;
+					}
+					else if (AccessControl::$hashAlgorithm == 'md5')
+					{
+						$pass = md5($salt.$password);
+					}
+					else if (AccessControl::$hashAlgorithm == 'sha1')
+					{
+						$pass = sha1($salt.$password);
 					}
 					else
 					{
-						return $record[AccessControl::$roleField];
+						$pass = hash(AccessControl::$hashAlgorithm, $salt.$password);
 					}
-				}
-				else
-				{
-					AccessControl::$current = null;
-					AccessControl::Preserve();
-					return false;
+					if ($pass == $record[AccessControl::$passwordField])
+					{
+						if (is_null(AccessControl::$roleField))
+						{
+							AccessControl::$current = array('id' => $id, 'password' => $password, 'role' => null);
+						}
+						else
+						{
+							AccessControl::$current = array('id' => $id, 'password' => $password, 'role' => $record[AccessControl::$roleField]);
+						}
+						AccessControl::Preserve();
+						if (is_null(AccessControl::$roleField))
+						{
+							return true;
+						}
+						else
+						{
+							return $record[AccessControl::$roleField];
+						}
+					}
 				}
 			}
+			AccessControl::$current = null;
+			AccessControl::Preserve();
+			return false;
 		}
 
 		public static function SyncSession()

@@ -9,6 +9,7 @@
 	$selectedClass = isset($_ELEMENT['attributes']['selected-class']) ? $_ELEMENT['attributes']['selected-class'] : false;
 	$itemClass = isset($_ELEMENT['attributes']['item-class']) ? $_ELEMENT['attributes']['item-class'] : false;
 	$source = $_ELEMENT['source'];
+	$path = $_ELEMENT['path']; 
 	if ($_ELEMENT['query'] !== '')
 	{
 		$source .= '?'.$_ELEMENT['query'];
@@ -18,7 +19,7 @@
 	foreach ($keys as $key)
 	{
 		$entry = &$validUris[$key];
-		$entry['_link'] = $key;
+		$entry['_link'] = $path.'/'.$key;
 		if (isset($entry['menu-title']))
 		{
 			if (isset($entry['menu-parent']))

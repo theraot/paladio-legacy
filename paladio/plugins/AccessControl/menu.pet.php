@@ -88,65 +88,23 @@
 	}
 	if (!function_exists("EmitPaladioNavMenu"))
 	{
-		function __EmitPaladioNavMenu($id, $class, $itemClass, $selectedClass, $activeClass, $entries)
+		function __EmitPaladioNavMenu($attributes, $itemClass, $selectedClass, $activeClass, $entries)
 		{
-			if (is_null($id))
-			{
-				if (is_null($class))
-				{
-					echo '<ul>';
-				}
-				else
-				{
-					echo '<ul class="'.$class.'">';
-				}
-			}
-			else
-			{
-				if (is_null($class))
-				{
-					echo '<ul id="'.$id.'">';
-				}
-				else
-				{
-					echo '<ul id="'.$id.'" class="'.$class.'">';
-				}
-			}
+			echo '<ul'.PET_Utility::BuildAttributesString($attributes).'>';
 			foreach ($entries as $entry)
 			{
 				echo '<li';
-				$classes = array();
-				if ($itemClass !== false)
-				{
-					$classes[] = $itemClass;
-				}
-				if ($selectedClass !== false && array_key_exists('selected', $entry))
-				{
-					$classes[] = $selectedClass;
-				}
-				if ($activeClass !== false && array_key_exists('active', $entry))
-				{
-					$classes[] = $activeClass;
-				}
-				if (count($classes) > 0)
-				{
-					echo ' class="';
-					echo implode(' ', $classes);
-					echo '"';
-				}
-				if (array_key_exists('menu-id', $entry))
-				{
-					echo ' id="'.$entry['menu-id'].'"';
-				}
-				echo '><a ';
-				if (array_key_exists('_link', $entry))
-				{
-					echo 'href="'.$entry['_link'].'"';
-				}
-				if (array_key_exists('menu-target', $entry))
-				{
-					echo 'target="'.$entry['menu-target'].'"';
-				}
+				echo PET_Utility::BuildClassesString
+				(
+					array
+					(
+						$itemClass !== false ? $itemClass : null, 
+						$selectedClass !== false && array_key_exists('selected', $entry) ? $selectedClass : null,
+						$activeClass !== false && array_key_exists('active', $entry) ? $activeClass : null
+					)
+				);
+				echo '><a';
+				echo PET_Utility::BuildAttributesString(Utility::SubArray($entry, array('menu-id' => 'id', '_link' => 'href', 'menu-target' => 'target')));
 				echo '>';
 				if (array_key_exists('menu-title', $entry))
 				{
@@ -155,7 +113,7 @@
 				echo '</a>';
 				if (array_key_exists('_childs', $entry))
 				{
-					__EmitPaladioNavMenu(null, null, $itemClass, $selectedClass, $activeClass, $entry['_childs']);
+					__EmitPaladioNavMenu(null, $itemClass, $selectedClass, $activeClass, $entry['_childs']);
 				}
 				echo '</li>';
 			}
@@ -166,8 +124,7 @@
 	echo '<nav>';
 	__EmitPaladioNavMenu
 		(
-			array_key_exists('id', $_ELEMENT['attributes']) ? $_ELEMENT['attributes']['id'] : null,
-			array_key_exists('class', $_ELEMENT['attributes']) ? $_ELEMENT['attributes']['class'] : null,
+			Utility::SubArray($_ELEMENT['attributes'], array('id', 'class')),
 			$itemClass,
 			$selectedClass,
 			$activeClass,

@@ -21,11 +21,6 @@
 		private static $newLine = array("\n", "\r");
 		private static $unquotedStringEnd = array(' ', "\t", ':', ',', ']', "\n", "\r", '#', ';');
 
-		private static function EncodeMapEntry($key, $value)
-		{
-			return '"' . $key.'" : '.PEN::Encode($value);
-		}
-
 		public static function ConsumeWhitespace($parser)
 		{
 			$parser->ConsumeWhile(PEN::$whitespace);
@@ -175,15 +170,35 @@
 			}
 		}
 
-		public static function Encode(/*mixed*/ $value)
+		public static function Encode(/*mixed*/ $value, $alternativeQuotes)
 		{
 			if (is_array($value))
 			{
-				return '['.implode(', ', array_map('PEN::EncodeMapEntry', $value)).']';
+				$result = array();
+				foreach ($value as $key => $val)
+				{
+					$val = PEN::Encode($val, $alternativeQuotes);
+					if ($alternativeQuotes)
+					{
+						$result[] = "'" . $key."' : ".$val;
+					}
+					else
+					{
+						$result[] = '"' . $key.'" : '.$val;
+					}
+				}
+				return '['.implode(', ', $result).']';
 			}
 			else if (is_string($value))
 			{
-				return '"'.String_Utility::EscapeString($value, array("\\", "\"")).'"';
+				if ($alternativeQuotes)
+				{
+					return "'".String_Utility::EscapeString($value, array("\\", "\'"))."'";
+				}
+				else
+				{
+					return '"'.String_Utility::EscapeString($value, array("\\", "\"")).'"';
+				}
 			}
 			else if (is_numeric($value))
 			{

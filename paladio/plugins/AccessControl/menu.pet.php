@@ -86,7 +86,7 @@
 			}
 		}
 	}
-	if (!function_exists("EmitPaladioNavMenu"))
+	if (!function_exists("__EmitPaladioNavMenu"))
 	{
 		function __EmitPaladioNavMenu($attributes, $itemClass, $selectedClass, $activeClass, $entries)
 		{

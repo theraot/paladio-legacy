@@ -230,18 +230,18 @@
 			Paladio::Dispatch();
 		}
 
-		private static function ProcessDocumentFragment($parser, $source, $query)
+		private static function ProcessDocumentFragment($parser, $path, $source, $query)
 		{
 			$contents = '';
 			while($parser->CanConsume())
 			{
 				$new = $parser->ConsumeUntil(array('<@', '</@'));
 				$contents .= $new;
-				$elementResult = Paladio::ReadElement($parser, $source, $query, $element);
+				$elementResult = Paladio::ReadElement($parser, $path, $source, $query, $element);
 				if ($elementResult['status'] === false)
 				{
 					//OPEN
-					$documentResult = Paladio::ProcessDocumentFragment($parser, $source, $query);
+					$documentResult = Paladio::ProcessDocumentFragment($parser, $path, $source, $query);
 					$element['contents'] = $documentResult['contents'];
 					$new = Paladio::ProcessElement($element);
 					$contents .= $new;
@@ -335,7 +335,7 @@
 			return $result;
 		}
 
-		private static function ReadElement($parser, $source, $query, &$element)
+		private static function ReadElement($parser, $path, $source, $query, &$element)
 		{
 			$whitespace = array("\t", "\n", "\r", "\f", ' ');
 			$whitespaceOrClose = array("\t", "\n", "\r", "\f", ' ', '/', '>');
@@ -374,7 +374,7 @@
 				else
 				{
 					$tmp = $parser->ConsumeUntil($whitespaceOrClose);
-					$element = array('name' => $tmp, 'attributes' => array(), 'contents' => null, 'source' => $source, 'query' => $query, 'multiple' => $multiple);
+					$element = array('name' => $tmp, 'attributes' => array(), 'contents' => null, 'path' => $path, 'source' => $source, 'query' => $query, 'multiple' => $multiple);
 					for(;;)
 					{
 						$dump = $parser->ConsumeWhile($whitespace);
@@ -589,7 +589,8 @@
 			if (class_exists('Parser'))
 			{
 				$parser = new Parser($document);
-				$documentResult = Paladio::ProcessDocumentFragment($parser, $source, $query);
+				$path = FileSystem::CreateRelativePath(dirname($source), FileSystem::FolderInstallation());
+				$documentResult = Paladio::ProcessDocumentFragment($parser, $path, $source, $query);
 				return $documentResult['contents'];
 			}
 			else

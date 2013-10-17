@@ -179,7 +179,7 @@
 		{
 			if (is_array($value))
 			{
-				return '['.implode(', ', array_map('PEN::EncodeMapÈntry', $value)).']';
+				return '['.implode(', ', array_map('PEN::EncodeMapEntry', $value)).']';
 			}
 			else if (is_string($value))
 			{

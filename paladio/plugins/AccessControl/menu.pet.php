@@ -88,15 +88,29 @@
 	}
 	if (!function_exists("EmitPaladioNavMenu"))
 	{
-		function __EmitPaladioNavMenu($class, $itemClass, $selectedClass, $activeClass, $entries)
+		function __EmitPaladioNavMenu($id, $class, $itemClass, $selectedClass, $activeClass, $entries)
 		{
-			if (is_null($class))
+			if (is_null($id))
 			{
-				echo '<ul>';
+				if (is_null($class))
+				{
+					echo '<ul>';
+				}
+				else
+				{
+					echo '<ul class="'.$class.'">';
+				}
 			}
 			else
 			{
-				echo '<ul class="'.$class.'">';
+				if (is_null($class))
+				{
+					echo '<ul id="'.$id.'">';
+				}
+				else
+				{
+					echo '<ul id="'.$id.'" class="'.$class.'">';
+				}
 			}
 			foreach ($entries as $entry)
 			{
@@ -141,7 +155,7 @@
 				echo '</a>';
 				if (array_key_exists('_childs', $entry))
 				{
-					__EmitPaladioNavMenu(null, $itemClass, $selectedClass, $activeClass, $entry['_childs']);
+					__EmitPaladioNavMenu(null, null, $itemClass, $selectedClass, $activeClass, $entry['_childs']);
 				}
 				echo '</li>';
 			}
@@ -150,13 +164,14 @@
 	}
 	
 	echo '<nav>';
-	if (array_key_exists('class', $_ELEMENT['attributes']))
-	{
-		__EmitPaladioNavMenu($_ELEMENT['attributes']['class'], $itemClass, $selectedClass, $activeClass, $tree);
-	}
-	else
-	{
-		__EmitPaladioNavMenu(null, $itemClass, $selectedClass, $activeClass, $tree);
-	}
+	__EmitPaladioNavMenu
+		(
+			array_key_exists('id', $_ELEMENT['attributes']) ? $_ELEMENT['attributes']['id'] : null,
+			array_key_exists('class', $_ELEMENT['attributes']) ? $_ELEMENT['attributes']['class'] : null,
+			$itemClass,
+			$selectedClass,
+			$activeClass,
+			$tree
+		);
 	echo '</nav>';
 ?>

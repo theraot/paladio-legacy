@@ -8,6 +8,7 @@
 	$keys = array_keys($validUris);
 	$selectedClass = isset($_ELEMENT['attributes']['selected-class']) ? $_ELEMENT['attributes']['selected-class'] : false;
 	$itemClass = isset($_ELEMENT['attributes']['item-class']) ? $_ELEMENT['attributes']['item-class'] : false;
+	$activeClass = isset($_ELEMENT['attributes']['active-class']) ? $_ELEMENT['attributes']['active-class'] : false;
 	$source = $_ELEMENT['source'];
 	$path = $_ELEMENT['path']; 
 	if ($_ELEMENT['query'] !== '')
@@ -22,6 +23,10 @@
 		$entry['_link'] = $path.'/'.$key;
 		if (isset($entry['menu-title']))
 		{
+			if ($entry['path'] == $source)
+			{
+				$entry['selected'] = true;
+			}
 			if (isset($entry['menu-parent']))
 			{
 				$parentId = $entry['menu-parent'];
@@ -42,6 +47,10 @@
 				{
 					$data[$parentId]['_childs'][] = &$entry;
 				}
+				if (array_key_exists('selected', $entry) || array_key_exists('active', $entry))
+				{
+					$data[$parentId]['active'] = true;
+				}
 			}
 			else
 			{
@@ -53,10 +62,10 @@
 			}
 		}
 	}
-
+	
 	if (!function_exists("EmitPaladioNavMenu"))
 	{
-		function __EmitPaladioNavMenu($class, $itemClass, $selectedClass, $entries, $source)
+		function __EmitPaladioNavMenu($class, $itemClass, $selectedClass, $activeClass, $entries)
 		{
 			if (is_null($class))
 			{
@@ -69,30 +78,24 @@
 			foreach ($entries as $entry)
 			{
 				echo '<li';
-				if ($selectedClass === false)
+				$classes = array();
+				if ($itemClass !== false)
 				{
-					if ($itemClass === false)
-					{
-						//Empty
-					}
-					else
-					{
-						echo ' class="'.$itemClass.'"';
-					}
+					$classes[] = $itemClass;
 				}
-				else
+				if ($selectedClass !== false && array_key_exists('selected', $entry))
 				{
-					if (isset($entry['path']) && $source == $entry['path'])
-					{
-						if ($itemClass === false)
-						{
-							echo ' class="'.$selectedClass.'"';
-						}
-						else
-						{
-							echo ' class="'.$itemClass.' '.$selectedClass.'"';
-						}
-					}
+					$classes[] = $selectedClass;
+				}
+				if ($activeClass !== false && array_key_exists('active', $entry))
+				{
+					$classes[] = $activeClass;
+				}
+				if (count($classes) > 0)
+				{
+					echo ' class="';
+					echo implode(' ', $classes);
+					echo '"';
 				}
 				if (isset($entry['menu-id']))
 				{
@@ -115,7 +118,7 @@
 				echo '</a>';
 				if (isset($entry['_childs']))
 				{
-					__EmitPaladioNavMenu(null, $itemClass, $selectedClass, $entry['_childs'], $source);
+					__EmitPaladioNavMenu(null, $itemClass, $selectedClass, $activeClass, $entry['_childs']);
 				}
 				echo '</li>';
 			}
@@ -126,11 +129,11 @@
 	echo '<nav>';
 	if (isset($_ELEMENT['attributes']['class']))
 	{
-		__EmitPaladioNavMenu($_ELEMENT['attributes']['class'], $itemClass, $selectedClass, $tree, $source);
+		__EmitPaladioNavMenu($_ELEMENT['attributes']['class'], $itemClass, $selectedClass, $activeClass, $tree);
 	}
 	else
 	{
-		__EmitPaladioNavMenu(null, $itemClass, $selectedClass, $tree, $source);
+		__EmitPaladioNavMenu(null, $itemClass, $selectedClass, $activeClass, $tree);
 	}
 	echo '</nav>';
 ?>

@@ -58,7 +58,14 @@
 				{
 					//ONLY UTF-8
 					$pattern = str_replace(array('/', '\\'), DIRECTORY_SEPARATOR, $pattern);
-					$_file = FileSystem::ResolveRelativePath($path, $pattern);
+					if (is_string($path))
+					{
+						$_file = FileSystem::ResolveRelativePath($path, $pattern);
+					}
+					else
+					{
+						$_file = $pattern;
+					}
 					if (is_file($_file))
 					{
 						return array($_file);
@@ -83,10 +90,13 @@
 					$pattern = '*';
 				}
 				$result = array();
-				//ONLY UTF-8
-				$folder = FileSystem::ResolveRelativePath($path, $folder);
+				if (is_string($path))
+				{
+					$folder = FileSystem::ResolveRelativePath($path, $folder);
+				}
 				if (is_dir($folder) && ($handle = opendir($folder)) !== false)
 				{
+					//ONLY UTF-8
 					$regexPattern = '@^'.str_replace(array('\*', '\?'), array('.*', '.'), preg_quote($pattern)).'$@u';
 					while (($item = readdir($handle)) !== false)
 					{
@@ -384,6 +394,26 @@
 				}
 			}
 			return $file;
+		}
+
+		/**
+		 * Verifies if the item matches the given windows file search pattern.
+		 *
+		 * Returns true if the item matches the windows file search pattern, false otherwise.
+		 * The Windows file search pattern uses:
+		 * "?" : any character
+		 * "*" : any character, zero or more times
+		 *
+		 * @param $pattern: the windows file search pattern.
+		 * @param $item: the item to verify.
+		 *
+		 * @access public
+		 * @return bool
+		 */
+		public static function Match(/*string*/ $pattern, /*string*/ $item)
+		{
+			$regexPattern = '@^'.str_replace(array('\*', '\?'), array('.*', '.'), preg_quote($pattern)).'$@u';
+			return preg_match($regexPattern, $item);
 		}
 
 		/**

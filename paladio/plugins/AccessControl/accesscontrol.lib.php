@@ -10,7 +10,6 @@
 		require_once('configuration.lib.php');
 		require_once('pen.lib.php');
 	}
-	//TODO: add support for wildcards (*) and (?) or similar solution, take care of them in menu.pet.php
 
 	final class AccessControl
 	{
@@ -68,13 +67,22 @@
 				$keys = array_keys($list);
 				foreach($keys as $key)
 				{
-					$file = FileSystem::ResolveRelativePath($path, $key);
-					if (FileSystem::UriExists($file))
+					if (AccessControl::CheckCanAccess($list[$key]))
 					{
-						if (AccessControl::CheckCanAccess($list[$key]))
+						$solved = FileSystem::ResolveRelativePath($path, $key);
+						$count = String_Utility::CountCharacters($solved, '*?');
+						if ($count == 0)
+						{
+							if (FileSystem::UriExists($solved))
+							{
+								$result[$key] = $list[$key];
+								$result[$key]['path'] = $solved;
+							}
+						}
+						else
 						{
 							$result[$key] = $list[$key];
-							$result[$key]['path'] = $file;
+							$result[$key]['path'] = FileSystem::GetFolderItems($solved, null);
 						}
 					}
 				}
@@ -82,22 +90,62 @@
 			return $result;
 		}
 
-		private static function TryGetListedData(/*string*/ $file, /*array*/ $list, /*string*/ $path, /*mixed*/ &$result)
+		private static function TryGetListedData(/*string*/ $file, /*string*/ $query, /*array*/ $list, /*string*/ $path, /*mixed*/ &$result)
 		{
+			$full = $file;
+			if ($query !== '')
+			{
+				$full .= '?'.$query;
+			}
+			$bestCount = 0;
+			$bestKey = null;
 			if (is_array($list))
 			{
 				$keys = array_keys($list);
 				foreach($keys as $key)
 				{
-					if (FileSystem::ResolveRelativePath($path, $key) == $file)
+					$solved = FileSystem::ResolveRelativePath($path, $key);
+					if ($solved == $full)
 					{
-						$result = $list[$key];
-						$result['path'] = $file;
-						return true;
+						$bestKey = $key;
+						break;
+					}
+					else if ($solved == $file)
+					{
+						if (is_null($bestKey) || 1 < $bestCount)
+						{
+							$bestKey = $key;
+							$bestCount = 1;
+						}
+					}
+					else
+					{
+						if (FileSystem::Match($solved, $key))
+						{
+							$count = String_Utility::CountCharacters($solved, '*?');
+							if (is_null($bestKey) || $count < $bestCount)
+							{
+								$bestKey = $key;
+								$bestCount = $count;
+							}
+						}
 					}
 				}
 			}
-			return false;
+			if (is_null($bestKey))
+			{
+				return false;
+			}
+			else
+			{
+				$result = $list[$bestKey];
+				if (is_bool($result))
+				{
+					$result = array('accesscontrol' => $result);
+				}
+				$result['path'] = $full;
+				return true;
+			}
 		}
 
 		private static function Preserve()
@@ -200,31 +248,26 @@
 
 		public static function TryGetData(/*string*/ $file, /*string*/ $query, /*mixed*/ &$result)
 		{
-			$full = $file;
-			if ($query !== '')
-			{
-				$full .= '?'.$query;
-			}
 			if (FileSystem::UriExists($file))
 			{
 				$current = AccessControl::$current;
 				$path = FileSystem::FolderInstallation();
 				$test = AccessControl::ReadCategory('__all');
-				if (AccessControl::TryGetListedData($full, $test, $path, $result))
+				if (AccessControl::TryGetListedData($file, $query, $test, $path, $result))
 				{
 					return true;
 				}
 				if (is_null(AccessControl::$table) || is_null(AccessControl::$passwordField) || is_null(AccessControl::$idField))
 				{
 					$test = AccessControl::ReadCategory('__unconfigured');
-					if (AccessControl::TryGetListedData($full, $test, $path, $result))
+					if (AccessControl::TryGetListedData($file, $query, $test, $path, $result))
 					{
 						return true;
 					}
 					else
 					{
 						$test = AccessControl::ReadCategory('__anonymous');
-						if (AccessControl::TryGetListedData($full, $test, $path, $result))
+						if (AccessControl::TryGetListedData($file, $query, $test, $path, $result))
 						{
 							return true;
 						}
@@ -233,21 +276,21 @@
 				else
 				{
 					$test = AccessControl::ReadCategory('__configured');
-					if (AccessControl::TryGetListedData($full, $test, $path, $result))
+					if (AccessControl::TryGetListedData($file, $query, $test, $path, $result))
 					{
 						return true;
 					}
 					if (is_null($current))
 					{
 						$test = AccessControl::ReadCategory('__anonymous');
-						if (AccessControl::TryGetListedData($full, $test, $path, $result))
+						if (AccessControl::TryGetListedData($file, $query, $test, $path, $result))
 						{
 							return true;
 						}
 						else
 						{
 							$test = AccessControl::ReadCategory('__unauthenticated');
-							if (AccessControl::TryGetListedData($full, $test, $path, $result))
+							if (AccessControl::TryGetListedData($file, $query, $test, $path, $result))
 							{
 								return true;
 							}
@@ -256,14 +299,14 @@
 					else
 					{
 						$test = AccessControl::ReadCategory('__authenticated');
-						if (AccessControl::TryGetListedData($full, $test, $path, $result))
+						if (AccessControl::TryGetListedData($file, $query, $test, $path, $result))
 						{
 							return true;
 						}
 						if (!is_null($current['role']))
 						{
 							$test = AccessControl::ReadCategory('rol:'.$current['role']);
-							if (AccessControl::TryGetListedData($full, $test, $path, $result))
+							if (AccessControl::TryGetListedData($file, $query, $test, $path, $result))
 							{
 								return true;
 							}

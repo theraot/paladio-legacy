@@ -23,65 +23,68 @@
 		$entry['_link'] = $path.'/'.$key;
 		if (array_key_exists('menu-title', $entry))
 		{
-			if ($entry['path'] == $source)
+			if (is_string($entry['path']))
 			{
-				$entry['selected'] = true;
-			}
-			if (array_key_exists('menu-parent', $entry))
-			{
-				$virtual = 0;
-				$parentId = $entry['menu-parent'];
-				$array = array();
-				if (is_array($parentId))
+				if ($entry['path'] == $source)
 				{
-					$virtual = 1;
-					$array = array_merge($array, $parentId);
-					if (array_key_exists('menu-id', $parentId))
-					{
-						$parentId = $parentId['menu-id'];
-						$entry['menu-parent'] = $parentId;
-					}
+					$entry['selected'] = true;
 				}
-				if (!array_key_exists($parentId, $data))
+				if (array_key_exists('menu-parent', $entry))
 				{
-					$data[$parentId] = $array;
-					if ($virtual == 1)
+					$virtual = 0;
+					$parentId = $entry['menu-parent'];
+					$array = array();
+					if (is_array($parentId))
 					{
-						$virtual = 2;
+						$virtual = 1;
+						$array = array_merge($array, $parentId);
+						if (array_key_exists('menu-id', $parentId))
+						{
+							$parentId = $parentId['menu-id'];
+							$entry['menu-parent'] = $parentId;
+						}
 					}
-					$data[$parentId]['_childs'][] = &$entry;
-				}
-				else
-				{
-					if (array_key_exists('_childs', $data[$parentId]))
+					if (!array_key_exists($parentId, $data))
 					{
+						$data[$parentId] = $array;
+						if ($virtual == 1)
+						{
+							$virtual = 2;
+						}
 						$data[$parentId]['_childs'][] = &$entry;
 					}
 					else
 					{
-						$data[$parentId]['_childs'] = array(&$entry);
+						if (array_key_exists('_childs', $data[$parentId]))
+						{
+							$data[$parentId]['_childs'][] = &$entry;
+						}
+						else
+						{
+							$data[$parentId]['_childs'] = array(&$entry);
+						}
+						$data[$parentId] = array_merge($array, $data[$parentId]);
 					}
-					$data[$parentId] = array_merge($array, $data[$parentId]);
+					if (array_key_exists('menu-id', $entry))
+					{
+						$data[$entry['menu-id']] = &$entry;
+					}
+					if (array_key_exists('selected', $entry) || array_key_exists('active', $entry))
+					{
+						$data[$parentId]['active'] = true;
+					}
+					if ($virtual == 2)
+					{
+						$tree[] = &$data[$parentId];
+					}
 				}
-				if (array_key_exists('menu-id', $entry))
+				else
 				{
-					$data[$entry['menu-id']] = &$entry;
-				}
-				if (array_key_exists('selected', $entry) || array_key_exists('active', $entry))
-				{
-					$data[$parentId]['active'] = true;
-				}
-				if ($virtual == 2)
-				{
-					$tree[] = &$data[$parentId];
-				}
-			}
-			else
-			{
-				$tree[] = &$entry;
-				if (array_key_exists('menu-id', $entry))
-				{
-					$data[$entry['menu-id']] = &$entry;
+					$tree[] = &$entry;
+					if (array_key_exists('menu-id', $entry))
+					{
+						$data[$entry['menu-id']] = &$entry;
+					}
 				}
 			}
 		}

@@ -90,6 +90,12 @@
 			return $result;
 		}
 
+		private static function Match(/*string*/ $pattern, /*string*/ $item)
+		{
+			$regexPattern = '@^'.str_replace(array('\*'), array('.*'), preg_quote($pattern)).'$@u';
+			return preg_match($regexPattern, $item);
+		}
+
 		private static function TryGetListedData(/*string*/ $file, /*string*/ $query, /*array*/ $list, /*string*/ $path, /*mixed*/ &$result)
 		{
 			$full = $file;
@@ -97,7 +103,7 @@
 			{
 				$full .= '?'.$query;
 			}
-			$bestCount = 0;
+			$bestCount = -1;
 			$bestKey = null;
 			if (is_array($list))
 			{
@@ -112,18 +118,18 @@
 					}
 					else if ($solved == $file)
 					{
-						if (is_null($bestKey) || 1 < $bestCount)
+						if (is_null($bestKey) || $bestCount == -1)
 						{
 							$bestKey = $key;
-							$bestCount = 1;
+							$bestCount = -1;
 						}
 					}
 					else
 					{
-						if (FileSystem::Match($solved, $key))
+						if (AccessControl::Match($solved, $key))
 						{
-							$count = String_Utility::CountCharacters($solved, '*?');
-							if (is_null($bestKey) || $count < $bestCount)
+							$count = String_Utility::CountCharacters($solved, '*');
+							if (is_null($bestKey) || $bestCount == -1 || $count < $bestCount)
 							{
 								$bestKey = $key;
 								$bestCount = $count;

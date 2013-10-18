@@ -143,6 +143,11 @@
 		// Public (Class)
 		//------------------------------------------------------------
 
+		public static function CountCharacters(/*string*/ $string, /*string*/ $characters)
+		{
+			return strlen($string) - strlen(str_replace(str_split($characters), '', $string));
+		}
+
 		/**
 		 * Escapes a character in C style.
 		 *

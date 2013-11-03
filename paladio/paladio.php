@@ -230,7 +230,7 @@
 			Paladio::Dispatch();
 		}
 
-		private static function ProcessDocumentFragment($parser, $path, $source, $query)
+		private static function ProcessDocumentFragment($parser, $path, $source, $query, $parent)
 		{
 			$contents = '';
 			while($parser->CanConsume())
@@ -241,7 +241,8 @@
 				if ($elementResult['status'] === false)
 				{
 					//OPEN
-					$documentResult = Paladio::ProcessDocumentFragment($parser, $path, $source, $query);
+					$element['__parent'] = $parent;
+					$documentResult = Paladio::ProcessDocumentFragment($parser, $path, $source, $query, $element);
 					$element['contents'] = $documentResult['contents'];
 					$new = Paladio::ProcessElement($element);
 					$contents .= $new;
@@ -590,7 +591,7 @@
 			{
 				$parser = new Parser($document);
 				$path = FileSystem::CreateRelativePath(dirname($source), FileSystem::FolderInstallation());
-				$documentResult = Paladio::ProcessDocumentFragment($parser, $path, $source, $query);
+				$documentResult = Paladio::ProcessDocumentFragment($parser, $path, $source, $query, null);
 				return $documentResult['contents'];
 			}
 			else

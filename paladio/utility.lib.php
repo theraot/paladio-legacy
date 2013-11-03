@@ -16,7 +16,7 @@
 		//------------------------------------------------------------
 
 		/**
-		 * Creates a new array with the numeric keys arranged.
+		 * Creates a new array with the numeric keys arranged and nulls removed.
 		 *
 		 * @param $array: the array to process.
 		 *
@@ -161,6 +161,36 @@
 					$key = $alias;
 				}
 				if (array_key_exists($key, $array))
+				{
+					$value = $array[$key];
+					if (!is_null($value))
+					{
+						$result[$alias] = $value;
+					}
+				}
+			}
+			return $result;
+		}
+
+		/**
+		 * Creates a new array containing items except those that belong to the given keys.
+		 *
+		 * @param $array: the array to process.
+		 * @param $keys: the keys to take.
+		 *
+		 * @access public
+		 * @return array
+		 */
+		public static function SubArrayInverse(/*array*/ $array, /*array*/ $keys)
+		{
+			$result = array();
+			foreach ($keys as $key => $alias)
+			{
+				if (!is_string($key))
+				{
+					$key = $alias;
+				}
+				if (!array_key_exists($key, $array))
 				{
 					$value = $array[$key];
 					if (!is_null($value))

@@ -93,10 +93,11 @@
 	{
 		function __EmitPaladioNavMenu($attributes, $itemClass, $selectedClass, $activeClass, $entries)
 		{
+			$index = 0;
 			echo '<ul'.PET_Utility::BuildAttributesString($attributes).'>';
 			foreach ($entries as $entry)
 			{
-				echo '<li';
+				echo '<li tabindex="'.$index.'"';
 				echo PET_Utility::BuildClassesString
 				(
 					array
@@ -119,6 +120,7 @@
 					__EmitPaladioNavMenu(null, $itemClass, $selectedClass, $activeClass, $entry['_childs']);
 				}
 				echo '</li>';
+				$index++;
 			}
 			echo '</ul>';
 		}

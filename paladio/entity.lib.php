@@ -305,7 +305,7 @@
 			{
 				return $this->_entity->$fieldName;
 			}
-			else if (!is_null($entity = CreateBasesUntilField($fieldName)))
+			else if (!is_null($entity = EntityBase::CreateBasesUntilField($fieldName)))
 			{
 				return $entity->$fieldName;
 			}
@@ -355,7 +355,7 @@
 			{
 				return true;
 			}
-			else if (!is_null($entity = CreateBasesUntilField($fieldName)))
+			else if (!is_null($entity = EntityBase::CreateBasesUntilField($fieldName)))
 			{
 				return true;
 			}
@@ -396,7 +396,7 @@
 					$this->Save();
 				}
 			}
-			else if (!is_null($entity = CreateBasesUntilField($fieldName)))
+			else if (!is_null($entity = EntityBase::CreateBasesUntilField($fieldName)))
 			{
 				return $entity->$fieldName = $value;
 			}
@@ -433,7 +433,7 @@
 			{
 				unset($this->entity->$fieldName);
 			}
-			else if (!is_null($entity = CreateBasesUntilField($fieldName)))
+			else if (!is_null($entity = EntityBase::CreateBasesUntilField($fieldName)))
 			{
 				unset($entity->$fieldName);
 			}
@@ -559,7 +559,7 @@
 		private function ProcessReferences()
 		{
 			$result = array();
-			if (is_callable($this.'::References'))
+			if (is_callable($this->_class.'::References'))
 			{
 				$references = call_user_func($this->_class.'::References');
 			}
@@ -888,7 +888,28 @@
 			{
 				if (is_array($primaryKeyValue))
 				{
-					$where = array($primaryKey => $primaryKeyValue[0]);
+					if (count($primaryKeyValue) > 0)
+					{
+						if (array_key_exists($primaryKey, $primaryKeyValue))
+						{
+							$where = array($primaryKey => $primaryKeyValue[$primaryKey]);
+						}
+						else
+						{
+							if (array_key_exists(0, $primaryKeyValue))
+							{
+								$where = array($primaryKey => $primaryKeyValue[0]);
+							}
+							else
+							{
+								throw new Exception('Invalid Primary Key Value');
+							}
+						}
+					}
+					else
+					{
+						throw new Exception('Invalid Primary Key Value');
+					}
 				}
 				else
 				{

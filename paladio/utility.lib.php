@@ -44,6 +44,66 @@
 			}
 			return $result;
 		}
+		
+		/**
+		 * Creates a new array containing items except those that belong to the given keys.
+		 *
+		 * @param $array: the array to process.
+		 * @param $keys: the keys to take.
+		 *
+		 * @access public
+		 * @return array
+		 */
+		public static function ArraySkip(/*array*/ $array, /*array*/ $keys)
+		{
+			$result = array();
+			foreach ($keys as $key => $alias)
+			{
+				if (!is_string($key))
+				{
+					$key = $alias;
+				}
+				if (!array_key_exists($key, $array))
+				{
+					$value = $array[$key];
+					if (!is_null($value))
+					{
+						$result[$alias] = $value;
+					}
+				}
+			}
+			return $result;
+		}
+		
+		/**
+		 * Creates a new array containing only the items that belong to the given keys.
+		 *
+		 * @param $array: the array to process.
+		 * @param $keys: the keys to take.
+		 *
+		 * @access public
+		 * @return array
+		 */
+		public static function ArrayTake(/*array*/ $array, /*array*/ $keys)
+		{
+			$result = array();
+			foreach ($keys as $key => $alias)
+			{
+				if (!is_string($key))
+				{
+					$key = $alias;
+				}
+				if (array_key_exists($key, $array))
+				{
+					$value = $array[$key];
+					if (!is_null($value))
+					{
+						$result[$alias] = $value;
+					}
+				}
+			}
+			return $result;
+		}
 
 		/**
 		 * Creates a new string with the dangerous characters escaped.
@@ -140,66 +200,6 @@
 
 				return $data;
 			}
-		}
-
-		/**
-		 * Creates a new array containing only the items that belong to the given keys.
-		 *
-		 * @param $array: the array to process.
-		 * @param $keys: the keys to take.
-		 *
-		 * @access public
-		 * @return array
-		 */
-		public static function ArrayTake(/*array*/ $array, /*array*/ $keys)
-		{
-			$result = array();
-			foreach ($keys as $key => $alias)
-			{
-				if (!is_string($key))
-				{
-					$key = $alias;
-				}
-				if (array_key_exists($key, $array))
-				{
-					$value = $array[$key];
-					if (!is_null($value))
-					{
-						$result[$alias] = $value;
-					}
-				}
-			}
-			return $result;
-		}
-
-		/**
-		 * Creates a new array containing items except those that belong to the given keys.
-		 *
-		 * @param $array: the array to process.
-		 * @param $keys: the keys to take.
-		 *
-		 * @access public
-		 * @return array
-		 */
-		public static function ArraySkip(/*array*/ $array, /*array*/ $keys)
-		{
-			$result = array();
-			foreach ($keys as $key => $alias)
-			{
-				if (!is_string($key))
-				{
-					$key = $alias;
-				}
-				if (!array_key_exists($key, $array))
-				{
-					$value = $array[$key];
-					if (!is_null($value))
-					{
-						$result[$alias] = $value;
-					}
-				}
-			}
-			return $result;
 		}
 
 		/**

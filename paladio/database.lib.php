@@ -355,6 +355,11 @@
 		 */
 		public static function CreateStatementInsert(/*array*/ $record, /*string*/ $table)
 		{
+			if (!is_array($record))
+			{
+				$record = array($record);
+			}
+			$record = Utility::CompactArray($record);
 			$fields = array_keys($record);
 			//ONLY UTF-8
 			$statement = 'INSERT INTO '.$table.' ('.implode(', ', $fields).') VALUES (';
@@ -758,17 +763,20 @@
 			}
 			else
 			{
-				$keys = array_keys($where);
-				foreach ($keys as $key)
+				if (is_array($where))
 				{
-					if
-					(
-						is_string($key) &&
-						!($where[$key] instanceof IDatabaseOperator) &&
-						!(is_array($where[$key]))
-					)
+					$keys = array_keys($where);
+					foreach ($keys as $key)
 					{
-						$record[$key] = $where[$key];
+						if
+						(
+							is_string($key) &&
+							!($where[$key] instanceof IDatabaseOperator) &&
+							!(is_array($where[$key]))
+						)
+						{
+							$record[$key] = $where[$key];
+						}
 					}
 				}
 				$result = Database::Insert($record, $table, $_database);

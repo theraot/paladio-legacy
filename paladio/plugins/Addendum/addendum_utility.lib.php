@@ -40,7 +40,7 @@
 		public static function ReadAnnotation(/*string*/ $object, /*string*/ $annotationName, /*mixed*/ $field)
 		{
 			$reflection = new ReflectionAnnotatedClass($object);
-			if ($reflection->hasAnnotations($annotation))
+			if ($reflection->hasAnnotation($annotationName))
 			{
 				$annotation = $reflection->getAnnotation($annotationName);
 				return Addendum_Utility::ProcessAnnotation($annotation, $field);
@@ -55,7 +55,7 @@
 		{
 			$reflection = new ReflectionAnnotatedClass($object);
 			$result = array();
-			if ($reflection->hasAnnotations($annotation))
+			if ($reflection->hasAnnotation($annotationName))
 			{
 				$annotations = $reflection->getAllAnnotations($annotationName);
 				foreach ($annotations as $annotation)

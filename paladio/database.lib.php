@@ -359,7 +359,7 @@
 			{
 				$record = array($record);
 			}
-			$record = Utility::CompactArray($record);
+			$record = Utility::ArrayCompact($record);
 			$fields = array_keys($record);
 			//ONLY UTF-8
 			$statement = 'INSERT INTO '.$table.' ('.implode(', ', $fields).') VALUES (';

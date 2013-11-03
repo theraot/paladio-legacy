@@ -23,7 +23,7 @@
 		 * @access public
 		 * @return array
 		 */
-		public static function CompactArray(/*array*/ $array)
+		public static function ArrayCompact(/*array*/ $array)
 		{
 			$result = array();
 			$keys = array_keys($array);

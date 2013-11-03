@@ -11,6 +11,7 @@
 
 [paladio] #Configuración global
 timezone = America/Bogota
+sitename = Paladio
 
 [paladio-paths] #Configuración de rutas de acceso
 entities = ../files/entities

@@ -107,7 +107,7 @@
 					)
 				);
 				echo '><a';
-				echo PET_Utility::BuildAttributesString(Utility::SubArray($entry, array('menu-id' => 'id', '_link' => 'href', 'menu-target' => 'target')));
+				echo PET_Utility::BuildAttributesString(Utility::ArrayTake($entry, array('menu-id' => 'id', '_link' => 'href', 'menu-target' => 'target')));
 				echo '>';
 				if (array_key_exists('menu-title', $entry))
 				{
@@ -127,7 +127,7 @@
 	echo '<nav>';
 	__EmitPaladioNavMenu
 		(
-			Utility::SubArray($_ELEMENT['attributes'], array('id', 'class')),
+			Utility::ArrayTake($_ELEMENT['attributes'], array('id', 'class')),
 			$itemClass,
 			$selectedClass,
 			$activeClass,

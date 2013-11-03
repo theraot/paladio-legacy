@@ -151,7 +151,7 @@
 		 * @access public
 		 * @return array
 		 */
-		public static function SubArray(/*array*/ $array, /*array*/ $keys)
+		public static function ArrayTake(/*array*/ $array, /*array*/ $keys)
 		{
 			$result = array();
 			foreach ($keys as $key => $alias)
@@ -181,7 +181,7 @@
 		 * @access public
 		 * @return array
 		 */
-		public static function SubArrayInverse(/*array*/ $array, /*array*/ $keys)
+		public static function ArraySkip(/*array*/ $array, /*array*/ $keys)
 		{
 			$result = array();
 			foreach ($keys as $key => $alias)

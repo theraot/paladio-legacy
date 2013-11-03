@@ -4,7 +4,7 @@
 		header('HTTP/1.0 404 Not Found');
 		exit();
 	}
-	echo '<select'.PET_Utility::BuildAttributesString(Utility::SubArray($_ELEMENT['attributes'], array('id', 'class', 'name'))).'>';
+	echo '<select'.PET_Utility::BuildAttributesString(Utility::ArrayTake($_ELEMENT['attributes'], array('id', 'class', 'name'))).'>';
 	if (array_key_exists('options', $_ELEMENT['attributes']))
 	{
 		if (array_key_exists('selected', $_ELEMENT['attributes']))

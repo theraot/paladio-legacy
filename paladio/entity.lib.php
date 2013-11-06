@@ -41,26 +41,6 @@
 	abstract class EntityBase
 	{
 		//------------------------------------------------------------
-		// Private (Class)
-		//------------------------------------------------------------
-
-		/**
-		 * Internally used to retrieve the table and primary key of an entity.
-		 * @access private
-		 */
-		private static function GetEntityData(/*string*/ $class)
-		{
-			if (is_callable($class.'::Mapping'))
-			{
-				return call_user_func($class.'::Mapping');
-			}
-			else
-			{
-				return Addendum_Utility::ReadAnnotation($class, 'Mapping', array('table', 'primaryKey'));
-			}
-		}
-
-		//------------------------------------------------------------
 		// Public (Class)
 		//------------------------------------------------------------
 
@@ -87,7 +67,7 @@
 					throw new Exception('Unable to infer class');
 				}
 			}
-			$data = EntityBase::GetEntityData($class);
+			$data = Entity::GetEntityData($class);
 			$table = $data['table'];
 			$primaryKey = $data['primaryKey'];
 			if (Entity::Exists($table, $primaryKey, $primaryKeyValue))
@@ -126,7 +106,7 @@
 					throw new Exception('Unable to infer class');
 				}
 			}
-			$data = EntityBase::GetEntityData($class);
+			$data = Entity::GetEntityData($class);
 			return Entity::Exists($data['table'], $data['primaryKey'], $primaryKeyValue);
 		}
 
@@ -154,7 +134,7 @@
 					throw new Exception('Unable to infer class');
 				}
 			}
-			$data = EntityBase::GetEntityData($class);
+			$data = Entity::GetEntityData($class);
 			$table = $data['table'];
 			$primaryKey = $data['primaryKey'];
 			if (Entity::Exists($table, $primaryKey, $primaryKeyValue))
@@ -292,7 +272,7 @@
 			{
 				$reference = $this->_references[$fieldName];
 				$method = $reference['method'];
-				if (is_callable('method'))
+				if (is_callable($method))
 				{
 					return call_user_func($method, $this->get($reference['reference']));
 				}
@@ -342,7 +322,7 @@
 			{
 				$reference = $this->_references[$fieldName];
 				$method = $reference['method'];
-				if (is_callable('method'))
+				if (is_callable($method))
 				{
 					return true;
 				}
@@ -491,7 +471,7 @@
 				$class = get_parent_class($this);
 				if ($class != __CLASS__)
 				{
-					$data = EntityBase::GetEntityData($class);
+					$data = Entity::GetEntityData($class);
 					$primaryKey = $data['primaryKey'];
 					$primaryKeyValue = array();
 					if (is_array($primaryKey))
@@ -550,28 +530,6 @@
 			{
 				return $this->_baseEntityBase;
 			}
-		}
-
-		/**
-		 * Internally used to process the references defined in the entity class
-		 * @access private
-		 */
-		private function ProcessReferences()
-		{
-			$result = array();
-			if (is_callable($this->_class.'::References'))
-			{
-				$references = call_user_func($this->_class.'::References');
-			}
-			else
-			{
-				$references = Addendum_Utility::ReadAnnotationes($this, 'Reference', array('alias', 'reference', 'method'));
-			}
-			foreach ($references as $reference)
-			{
-				$result[$reference['alias']] = $references;
-			}
-			$this->_references = $result;
 		}
 
 		//------------------------------------------------------------
@@ -862,7 +820,7 @@
 			$this->_primaryKeyValue = $entity->get($primaryKey);
 			$this->_primaryKey = $primaryKey;
 
-			$this->ProcessReferences();
+			$this->_references = Entity::GetEntityReferences($this->_class);
 			$this->ProcessInheritance();
 		}
 	}
@@ -874,14 +832,14 @@
 	final class Entity
 	{
 		//------------------------------------------------------------
-		// Private (Class)
+		// Public (Class)
 		//------------------------------------------------------------
 
 		/**
-		 * Internally used to create a where condition for the primarykey.
-		 * @access private
+		 * Used to create a where condition for the primarykey.
+		 * @access public
 		 */
-		private static function CreateWhere (/*mixed*/ $primaryKey, /*mixed*/ $primaryKeyValue)
+		public static function CreateWhere (/*mixed*/ $primaryKey, /*mixed*/ $primaryKeyValue)
 		{
 			$where = array();
 			if (is_string($primaryKey))
@@ -938,10 +896,6 @@
 			return $where;
 		}
 
-		//------------------------------------------------------------
-		// Public (Class)
-		//------------------------------------------------------------
-
 		/**
 		 * Verifies if the entity exists on the database.
 		 *
@@ -955,6 +909,44 @@
 		public static function Exists(/*string*/ $table, /*mixed*/ $primaryKey, /*mixed*/ $primaryKeyValue)
 		{
 			return (Database::CountRecords($table, Entity::CreateWhere($primaryKey, $primaryKeyValue)) == 1);
+		}
+
+		/**
+		 * Used to retrieve the table and primary key of an entity.
+		 * @access public
+		 */
+		public static function GetEntityData(/*string*/ $class)
+		{
+			if (is_callable($class.'::Mapping'))
+			{
+				return call_user_func($class.'::Mapping');
+			}
+			else
+			{
+				return Addendum_Utility::ReadAnnotation($class, 'Mapping', array('table', 'primaryKey'));
+			}
+		}
+		
+		/**
+		 * Used to retrieve the references of the entity.
+		 * @access public
+		 */
+		public static function GetEntityReferences(/*string*/ $class)
+		{
+			$result = array();
+			if (is_callable($class.'::References'))
+			{
+				$references = call_user_func($class.'::References');
+			}
+			else
+			{
+				$references = Addendum_Utility::ReadAnnotations($class, 'Reference', array('alias', 'reference', 'method'));
+			}
+			foreach ($references as $reference)
+			{
+				$result[$reference['alias']] = $reference;
+			}
+			return $result;
 		}
 
 		//------------------------------------------------------------

@@ -19,7 +19,7 @@
 	{
 		private static $whitespace = array(' ', "\t", "\n", "\r");
 		private static $newLine = array("\n", "\r");
-		private static $unquotedStringEnd = array(' ', "\t", ':', ',', ']', "\n", "\r", '#', ';');
+		private static $unquotedStringEnd = array(' ', "\t", ':', ',', "\n", "\r", '#', ';');
 
 		public static function ConsumeWhitespace($parser)
 		{
@@ -31,16 +31,33 @@
 					$parser->ConsumeUntil(PEN::$newLine);
 					$parser->Consume(PEN::$newLine);
 				}
+				if (!$parser->CanConsume())
+				{
+					break;
+				}
 			}while ($parser->ConsumeWhile(PEN::$whitespace) !== '');
 		}
 
 		private static function ConsumeArray($parser, $eval = false)
 		{
+			$expecting = '';
+			if ($parser->Consume('[') !== null)
+			{
+				$expecting = ']';
+			}
+			else if ($parser->Consume('(') !== null)
+			{
+				$expecting = ')';
+			}
+			else
+			{
+				return null;
+			}
 			$result = array();
-			while (true)
+			while ($parser->CanConsume())
 			{
 				PEN::ConsumeWhitespace($parser);
-				if ($parser->Consume(']') !== null)
+				if ($parser->Consume($expecting) !== null)
 				{
 					return $result;
 				}
@@ -50,12 +67,12 @@
 				}
 				else
 				{
-					$key = $parser->ConsumeUntil(PEN::$unquotedStringEnd);
+					$key = $parser->ConsumeUntil(array_merge(PEN::$unquotedStringEnd, array($expecting)));
 				}
 				PEN::ConsumeWhitespace($parser);
 				if ($parser->Consume(':') !== null)
 				{
-					$value = PEN::ConsumeValue($parser);
+					$value = PEN::ConsumeValue($parser, $expecting);
 					$result[$key] = $value;
 				}
 				else
@@ -67,6 +84,10 @@
 				{
 					//Ignore
 				}
+			}
+			if (!$parser->CanConsume())
+			{
+				throw new Exception ('Unexpected end of string');
 			}
 		}
 
@@ -86,7 +107,7 @@
 				return null;
 			}
 			$result = '';
-			while (true)
+			while ($parser->CanConsume())
 			{
 				$result .= $parser->ConsumeUntil($expecting, '\\');
 				if ($parser->Consume($expecting) !== null)
@@ -139,9 +160,13 @@
 					}
 				}
 			}
+			if (!$parser->CanConsume())
+			{
+				throw new Exception ('Unexpected end of string');
+			}
 		}
 
-		public static function ConsumeValue($parser, $eval = false)
+		public static function ConsumeValue($parser, $expecting, $eval = false)
 		{
 			PEN::ConsumeWhitespace($parser);
 			if ($parser->Consume('null') !== null)
@@ -160,17 +185,24 @@
 			{
 				return $result;
 			}
-			else if ($parser->Consume('[') !== null)
+			else if (($result = PEN::ConsumeArray($parser, $eval)) !== null)
 			{
-				return PEN::ConsumeArray($parser);
+				return $result;
 			}
 			else
 			{
-				return $parser->ConsumeUntil(PEN::$unquotedStringEnd);
+				if (is_null($expecting))
+				{
+					return $parser->ConsumeUntil(PEN::$unquotedStringEnd);
+				}
+				else
+				{
+					return $parser->ConsumeUntil(array_merge(PEN::$unquotedStringEnd, array($expecting)));
+				}
 			}
 		}
 
-		public static function Encode(/*mixed*/ $value, $alternativeQuotes)
+		public static function Encode(/*mixed*/ $value, $alternativeQuotes = false, $alternativeBrackets = false)
 		{
 			if (is_array($value))
 			{
@@ -180,14 +212,21 @@
 					$val = PEN::Encode($val, $alternativeQuotes);
 					if ($alternativeQuotes)
 					{
-						$result[] = "'" . $key."' : ".$val;
+						$result[] = "'" . $key."':".$val;
 					}
 					else
 					{
-						$result[] = '"' . $key.'" : '.$val;
+						$result[] = '"' . $key.'":'.$val;
 					}
 				}
-				return '['.implode(', ', $result).']';
+				if ($alternativeBrackets)
+				{
+					return '('.implode(', ', $result).')';
+				}
+				else
+				{
+					return '['.implode(', ', $result).']';
+				}
 			}
 			else if (is_string($value))
 			{
@@ -228,7 +267,7 @@
 		public static function Decode (/*string*/ $value, $eval = false)
 		{
 			$parser = new Parser($value);
-			return PEN::ConsumeValue($parser, $eval);
+			return PEN::ConsumeValue($parser, null, $eval);
 		}
 
 		//------------------------------------------------------------

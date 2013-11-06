@@ -54,21 +54,20 @@
 		 * @access public
 		 * @return array
 		 */
-		public static function ArraySkip(/*array*/ $array, /*array*/ $keys)
+		public static function ArraySkip(/*array*/ $array, /*mixed*/ $keys)
 		{
 			$result = array();
-			foreach ($keys as $key => $alias)
+			if (!is_array($keys))
 			{
-				if (!is_string($key))
+				$keys = array($keys);
+			}
+			foreach ($array as $key => $value)
+			{
+				if (!in_array($key, $keys))
 				{
-					$key = $alias;
-				}
-				if (!array_key_exists($key, $array))
-				{
-					$value = $array[$key];
 					if (!is_null($value))
 					{
-						$result[$alias] = $value;
+						$result[$key] = $value;
 					}
 				}
 			}

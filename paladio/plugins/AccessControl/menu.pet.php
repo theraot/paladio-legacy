@@ -91,9 +91,8 @@
 	}
 	if (!function_exists("__EmitPaladioNavMenu"))
 	{
-		function __EmitPaladioNavMenu($attributes, $itemClass, $selectedClass, $activeClass, $entries)
+		function __EmitPaladioNavMenu($attributes, $itemClass, $selectedClass, $activeClass, $entries, &$index)
 		{
-			$index = 0;
 			echo '<ul'.PET_Utility::BuildAttributesString($attributes).'>';
 			foreach ($entries as $entry)
 			{
@@ -117,7 +116,7 @@
 				echo '</a>';
 				if (array_key_exists('_childs', $entry))
 				{
-					__EmitPaladioNavMenu(null, $itemClass, $selectedClass, $activeClass, $entry['_childs']);
+					__EmitPaladioNavMenu(null, $itemClass, $selectedClass, $activeClass, $entry['_childs'], $index);
 				}
 				echo '</li>';
 				$index++;
@@ -127,13 +126,15 @@
 	}
 	
 	echo '<nav>';
+	$index = 0;
 	__EmitPaladioNavMenu
 		(
 			Utility::ArrayTake($_ELEMENT['attributes'], array('id', 'class')),
 			$itemClass,
 			$selectedClass,
 			$activeClass,
-			$tree
+			$tree,
+			$index
 		);
 	echo '</nav>';
 ?>

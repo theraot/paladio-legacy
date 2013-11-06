@@ -125,20 +125,35 @@
 			}
 		}
 
-		public static function GetKeys($array, /*mixed*/ $key)
+		public static function GetRecords($iterator)
 		{
-			if (is_array($key))
+			if ($iterator === false)
+			{
+				return false;
+			}
+			else if ($iterator === null)
+			{
+				return null;
+			}
+			else if ($iterator instanceof Iterator)
 			{
 				$result = array();
-				foreach($key as $keyItem)
+				foreach($iterator as $record)
 				{
-					$result[$keyItem] = $array[$keyItem];
+					if (is_null($record))
+					{
+						break;
+					}
+					else
+					{
+						$result[] = $record;
+					}
 				}
 				return $result;
 			}
 			else
 			{
-				return $array[$key];
+				throw new Exception('Invalid Iterator');
 			}
 		}
 

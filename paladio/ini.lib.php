@@ -132,7 +132,7 @@
 						{
 							if ($parser->Consume('=') !== null)
 							{
-								$fieldValue = PEN::ConsumeValue($parser, true);
+								$fieldValue = PEN::ConsumeValue($parser, null, true);
 								if ($keepCategories)
 								{
 									$this->content[$currentCategoryName][$fieldName] = $fieldValue;

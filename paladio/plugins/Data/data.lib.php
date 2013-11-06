@@ -119,18 +119,9 @@
 				{
 					$where = $extraWhere;
 				}
-				if (is_array($data))
+				if (is_array($data) && is_array($allowedFields))
 				{
-					$newData = array();
-					$dataKeys = array_keys($data);
-					foreach ($dataKeys as $dataKey)
-					{
-						if (in_array($dataKey, $allowedFields))
-						{
-							$newData[$dataKey] = $data[$dataKey];
-						}
-					}
-					$data = $newData;
+					$data = Utility::ArrayTake($data, $allowedFields);
 				}
 				return Data::_AccessTable($entity, $allowedFields, $method, $data, $where);
 			}

@@ -51,7 +51,7 @@
 			}
 		}
 
-		public static function ReadAnnotationes(/*string*/ $object, /*string*/ $annotationName, /*mixed*/ $field)
+		public static function ReadAnnotations(/*string*/ $object, /*string*/ $annotationName, /*mixed*/ $field)
 		{
 			$reflection = new ReflectionAnnotatedClass($object);
 			$result = array();

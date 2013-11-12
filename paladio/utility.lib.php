@@ -44,7 +44,44 @@
 			}
 			return $result;
 		}
-		
+
+		/**
+		 * Creates a new array containing items except those that match the criteria.
+		 *
+		 * @param $array: the array to process.
+		 * @param $criteria: the criteria to remove.
+		 *
+		 * @access public
+		 * @return array
+		 */
+		public static function ArrayRemove(/*array*/ $array, /*mixed*/ $criteria)
+		{
+			$result = array();
+			if (!is_array($criteria))
+			{
+				$criteria = array($criteria);
+			}
+			foreach ($array as $key => $value)
+			{
+				foreach ($criteria as $predicate)
+				{
+					if (is_callable($predicate))
+					{
+						if (call_user_func($predicate, $value))
+						{
+							continue;
+						}
+					}
+					else if ($predicate === $value)
+					{
+						continue;
+					}
+					$result[$key] = $value;
+				}
+			}
+			return $result;
+		}
+
 		/**
 		 * Creates a new array containing items except those that belong to the given keys.
 		 *
@@ -73,7 +110,7 @@
 			}
 			return $result;
 		}
-		
+
 		/**
 		 * Creates a new array containing only the items that belong to the given keys.
 		 *

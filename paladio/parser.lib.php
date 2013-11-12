@@ -9,6 +9,407 @@
 	final class Parser
 	{
 		//------------------------------------------------------------
+		// Private (Class)
+		//------------------------------------------------------------
+
+		private static function _ConsumeToPosition(/*string*/ $input, /*int*/ $offset, /*int*/ $length, /*int*/ $position, /*int*/ &$consumedLength)
+		{
+			if ($position == $offset)
+			{
+				$consumedLength = 0;
+				return '';
+			}
+			else
+			{
+				if ($position < $offset)
+				{
+					throw new Exception('Cannot unconsume');
+				}
+				else
+				{
+					$consumedLength = $position - $offset;
+					return substr($input, $offset, $consumedLength);
+				}
+			}
+		}
+
+		private static function _Consume(/*string*/ $input, /*int*/ $offset, /*int*/ $length, /*mixed*/ $what = null, /*int*/ &$consumedLength)
+		{
+			if (is_null($what))
+			{
+				$chunk = substr($input, $offset, 6);
+				$result = mb_substr($chunk, 0, 1);
+				$len = strlen($result);
+				if ($len > 0)
+				{
+					$consumedLength = $len;
+					return $result;
+				}
+				else
+				{
+					return null;
+				}
+			}
+			else
+			{
+				if (is_string($what))
+				{
+					$item = $what;
+					$len = strlen($item);
+					if ($offset + $len <= $length)
+					{
+						$result = substr($input, $offset, $len);
+						if ($result == $item)
+						{
+							$consumedLength = $len;
+							return $result;
+						}
+					}
+					return null;
+				}
+				else if (is_numeric($what))
+				{
+					$chunk = substr($input, $offset, $len * 6);
+					$result = mb_substr($chunk, 0, $what);
+					$len = strlen($result);
+					if ($offset + $len <= $length)
+					{
+						$consumedLength = $len;
+						return $result;
+					}
+					else
+					{
+						return null;
+					}
+				}
+				else if (is_array($what))
+				{
+					if ($offset < $length)
+					{
+						foreach ($what as $item)
+						{
+							$len = strlen($item);
+							if ($offset + $len <= $length)
+							{
+								$result = substr($input, $offset, $len);
+								if ($result == $item)
+								{
+									$consumedLength = $len;
+									return $result;
+								}
+							}
+						}
+					}
+					return null;
+				}
+				else
+				{
+					return null;
+				}
+			}
+		}
+
+		private static function _ConsumeCallback(/*string*/ $input, /*int*/ $offset, /*int*/ $length, /*function*/ $callback = null, /*int*/ &$consumedLength)
+		{
+			if (is_callable($callback))
+			{
+				$chunk = substr($input, $offset, 6);
+				$result = mb_substr($chunk, 0, 1);
+				$len = strlen($result);
+				if ($len > 0 && call_user_func($callback, $result))
+				{
+					$consumedLength = $len;
+					return $result;
+				}
+				else
+				{
+					return null;
+				}
+			}
+			else
+			{
+				return null;
+			}
+		}
+
+		private static function _ConsumeUntil(/*string*/ $input, /*int*/ $offset, /*int*/ $length, /*mixed*/ $what, /*int*/ &$consumedLength)
+		{
+			if ($offset < $length)
+			{
+				if (is_string($what))
+				{
+					if (strlen($what) > 0)
+					{
+						if (($position = strpos($input, $what, $offset)) !== false)
+						{
+							return Parser::_ConsumeToPosition($input, $offset, $length, $position, $consumedLength);
+						}
+						else
+						{
+							$consumedLength = $length - $offset;
+							return substr($input, $offset);
+						}
+					}
+					else
+					{
+						$consumedLength = $length - $offset;
+						return substr($input, $offset);
+					}
+				}
+				else if (is_array($what))
+				{
+					$whats = $what;
+					$bestPosition = 0;
+					$all = true;
+					foreach ($whats as $what)
+					{
+						if (is_string($what) && strlen($what) > 0 && ($position = strpos($input, $what, $offset)) !== false)
+						{
+							if ($all || $position < $bestPosition)
+							{
+								$bestPosition = $position;
+								$all = false;
+							}
+						}
+					}
+					if ($all)
+					{
+						$consumedLength = $length - $offset;
+						return substr($input, $offset);
+					}
+					else
+					{
+						return Parser::_ConsumeToPosition($input, $offset, $length, $bestPosition, $consumedLength);
+					}
+				}
+				else
+				{
+					return '';
+				}
+			}
+			else
+			{
+				return '';
+			}
+		}
+
+		private static function _ConsumeUntilCallback(/*string*/ $input, /*int*/ $offset, /*int*/ $length, /*function*/ $callback, /*int*/ &$consumedLength)
+		{
+			$consumedLength = 0;
+			if ($offset < $length)
+			{
+				if (is_callable($callback))
+				{
+					$result = '';
+					while (true)
+					{
+						$chunk = substr($input, $offset, 6);
+						$_input = mb_substr($chunk, 0, 1);
+						if ($_input === '')
+						{
+							return $result;
+						}
+						else
+						{
+							if (!call_user_func($callback, $_input))
+							{
+								$len = strlen($_input);
+								$consumedLength += $len;
+								$offset += $len;
+								$result .= $_input;
+							}
+							else
+							{
+								break;
+							}
+						}
+					}
+				}
+				else
+				{
+					return '';
+				}
+			}
+			else
+			{
+				return '';
+			}
+		}
+
+		private static function _ConsumeWhile(/*string*/ $input, /*int*/ $offset, /*int*/ $length, /*mixed*/ $what, /*int*/ &$consumedLength)
+		{
+			$consumedLength = 0;
+			if ($offset < $length)
+			{
+				$result = '';
+				if (is_string($what))
+				{
+					while (true)
+					{
+						$chunk = substr($input, $offset, 6);
+						$_input = mb_substr($chunk, 0, 1);
+						if ($_input == $what)
+						{
+							$len = strlen($_input);
+							$consumedLength += $len;
+							$offset += $len;
+							$result .= $_input;
+						}
+						else
+						{
+							break;
+						}
+					}
+				}
+				else if (is_array($what))
+				{
+					while (true)
+					{
+						$chunk = substr($input, $offset, 6);
+						$_input = mb_substr($chunk, 0, 1);
+						if (in_array($_input, $what))
+						{
+							$len = strlen($_input);
+							$consumedLength += $len;
+							$offset += $len;
+							$result .= $_input;
+						}
+						else
+						{
+							break;
+						}
+					}
+				}
+				return $result;
+			}
+			else
+			{
+				return '';
+			}
+		}
+
+		private static function _ConsumeWhileCallback(/*string*/ $input, /*int*/ $offset, /*int*/ $length, /*function*/ $callback, /*int*/ &$consumedLength)
+		{
+			$consumedLength = 0;
+			if ($offset < $length)
+			{
+				if (is_callable($callback))
+				{
+					$result = '';
+					while (true)
+					{
+						$chunk = substr($input, $offset, 6);
+						$_input = mb_substr($chunk, 0, 1);
+						if ($_input === '')
+						{
+							return $result;
+						}
+						else
+						{
+							if (call_user_func($callback, $_input))
+							{
+								$len = strlen($_input);
+								$consumedLength += $len;
+								$offset += $len;
+								$result .= $_input;
+							}
+							else
+							{
+								break;
+							}
+						}
+					}
+				}
+				else
+				{
+					return '';
+				}
+			}
+			else
+			{
+				return '';
+			}
+		}
+
+
+		//------------------------------------------------------------
+		// Public (Class)
+		//------------------------------------------------------------
+
+		public static function StringConsume(/*string*/ $input, /*int*/ $offset, /*mixed*/ $what = null, /*int*/ &$consumedLength = null)
+		{
+			if (is_string($input))
+			{
+				return Parser::_Consume($input, $offset, strlen($input), $what, $consumedLength);
+			}
+			else
+			{
+				throw new Exception('expected input as string');
+			}
+		}
+
+
+		public static function StringConsumeCallback(/*string*/ $input, /*int*/ $offset, /*mixed*/ $callback = null, /*int*/ &$consumedLength = null)
+		{
+			if (is_string($input))
+			{
+				return Parser::_ConsumeCallback($input, $offset, strlen($input), $callback, $consumedLength);
+			}
+			else
+			{
+				throw new Exception('expected input as string');
+			}
+		}
+
+		public static function StringConsumeUntil(/*string*/ $input, /*int*/ $offset, /*mixed*/ $what = null, /*int*/ &$consumedLength = null)
+		{
+			if (is_string($input))
+			{
+				return Parser::_ConsumeUntil($input, $offset, strlen($input), $what, $consumedLength);
+			}
+			else
+			{
+				throw new Exception('expected input as string');
+			}
+		}
+		
+		public static function StringConsumeUntilCallback(/*string*/ $input, /*int*/ $offset, /*mixed*/ $callback = null, /*int*/ &$consumedLength = null)
+		{
+			if (is_string($input))
+			{
+				return Parser::_ConsumeUntilCallback($input, $offset, strlen($input), $callback, $consumedLength);
+			}
+			else
+			{
+				throw new Exception('expected input as string');
+			}
+		}
+
+		public static function StringConsumeWhile(/*string*/ $input, /*int*/ $offset, /*mixed*/ $what = null, /*int*/ &$consumedLength = null)
+		{
+			if (is_string($input))
+			{
+				return Parser::_ConsumeWhile($input, $offset, strlen($input), $what, $consumedLength);
+			}
+			else
+			{
+				throw new Exception('expected input as string');
+			}
+		}
+		
+		public static function StringConsumeWhileCallback(/*string*/ $input, /*int*/ $offset, /*mixed*/ $callback = null, /*int*/ &$consumedLength = null)
+		{
+			if (is_string($input))
+			{
+				return Parser::_ConsumeWhileCallback($input, $offset, strlen($input), $callback = $consumedLength);
+			}
+			else
+			{
+				throw new Exception('expected input as string');
+			}
+		}
+
+		//------------------------------------------------------------
 		// Private (Instance)
 		//------------------------------------------------------------
 
@@ -20,23 +421,12 @@
 		{
 			if (isset($this->document))
 			{
-				if ($position == $this->documentPosition)
+				$result = Parser::_ConsumeToPosition($this->document, $this->documentPosition, $this->documentSize, $position, $consumedLength);
+				if (!is_null($result))
 				{
-					return '';
+					$this->documentPosition += $consumedLength;
 				}
-				else
-				{
-					if ($position < $this->documentPosition)
-					{
-						throw new Exception('Cannot unconsume');
-					}
-					else
-					{
-						$documentPosition = $this->documentPosition;
-						$this->documentPosition = $position;
-						return substr($this->document, $documentPosition, $position - $documentPosition);
-					}
-				}
+				return $result;
 			}
 			else
 			{
@@ -110,78 +500,12 @@
 		{
 			if (isset($this->document))
 			{
-				if (func_num_args() == 0)
+				$result = Parser::_Consume($this->document, $this->documentPosition, $this->documentSize, $what, $consumedLength);
+				if (!is_null($result))
 				{
-					$chunk = substr($this->document, $this->documentPosition, 6);
-					$result = mb_substr($chunk, 0, 1);
-					$len = strlen($result);
-					if ($len > 0)
-					{
-						$this->documentPosition += $len;
-						return $result;
-					}
-					else
-					{
-						return null;
-					}
+					$this->documentPosition += $consumedLength;
 				}
-				else
-				{
-					if (is_string($what))
-					{
-						$item = $what;
-						$len = strlen($item);
-						if ($this->documentPosition + $len <= $this->documentSize)
-						{
-							$result = substr($this->document, $this->documentPosition, $len);
-							if ($result == $item)
-							{
-								$this->documentPosition += $len;
-								return $result;
-							}
-						}
-						return null;
-					}
-					else if (is_numeric($what))
-					{
-						$chunk = substr($this->document, $this->documentPosition, $len * 6);
-						$result = mb_substr($chunk, 0, $what);
-						$len = strlen($result);
-						if ($this->documentPosition + $len <= $this->documentSize)
-						{
-							$this->documentPosition += $len;
-							return $result;
-						}
-						else
-						{
-							return null;
-						}
-					}
-					else if (is_array($what))
-					{
-						if ($this->documentPosition < $this->documentSize)
-						{
-							foreach ($what as $item)
-							{
-								$len = strlen($item);
-								if ($this->documentPosition + $len <= $this->documentSize)
-								{
-									$result = substr($this->document, $this->documentPosition, $len);
-									if ($result == $item)
-									{
-										$this->documentPosition += $len;
-										return $result;
-									}
-								}
-							}
-						}
-						return null;
-					}
-					else
-					{
-						return null;
-					}
-				}
+				return $result;
 			}
 			else
 			{
@@ -207,25 +531,12 @@
 		{
 			if (isset($this->document))
 			{
-				if (is_callable($callback))
+				$result = Parser::_Consume($this->document, $this->documentPosition, $this->documentSize, $callback, $consumedLength);
+				if (!is_null($result))
 				{
-					$chunk = substr($this->document, $this->documentPosition, 6);
-					$result = mb_substr($chunk, 0, 1);
-					$len = strlen($result);
-					if ($len > 0 && call_user_func($callback, $result))
-					{
-						$this->documentPosition += $len;
-						return $result;
-					}
-					else
-					{
-						return null;
-					}
+					$this->documentPosition += $consumedLength;
 				}
-				else
-				{
-					return null;
-				}
+				return $result;
 			}
 			else
 			{
@@ -237,60 +548,12 @@
 		{
 			if (isset($this->document))
 			{
-				if ($this->CanConsume())
+				$result = Parser::_ConsumeUntil($this->document, $this->documentPosition, $this->documentSize, $what, $consumedLength);
+				if (!is_null($result))
 				{
-					if (is_string($what))
-					{
-						if (strlen($what) > 0)
-						{
-							if (($position = strpos($this->document, $what, $this->documentPosition)) !== false)
-							{
-								return $this->ConsumeToPosition($position);
-							}
-							else
-							{
-								return $this->ConsumeAll();
-							}
-						}
-						else
-						{
-							return $this->ConsumeAll();
-						}
-					}
-					else if (is_array($what))
-					{
-						$whats = $what;
-						$bestPosition = 0;
-						$all = true;
-						foreach ($whats as $what)
-						{
-							if (is_string($what) && strlen($what) > 0 && ($position = strpos($this->document, $what, $this->documentPosition)) !== false)
-							{
-								if ($all || $position < $bestPosition)
-								{
-									$bestPosition = $position;
-									$all = false;
-								}
-							}
-						}
-						if ($all)
-						{
-							return $this->ConsumeAll();
-						}
-						else
-						{
-							return $this->ConsumeToPosition($bestPosition);
-						}
-					}
-					else
-					{
-						return '';
-					}
+					$this->documentPosition += $consumedLength;
 				}
-				else
-				{
-					return '';
-				}
+				return $result;
 			}
 			else
 			{
@@ -302,41 +565,12 @@
 		{
 			if (isset($this->document))
 			{
-				if ($this->CanConsume())
+				$result = Parser::_ConsumeUntilCallback($this->document, $this->documentPosition, $this->documentSize, $callback, $consumedLength);
+				if (!is_null($result))
 				{
-					if (is_callable($callback))
-					{
-						$result = '';
-						while (true)
-						{
-							$input = $this->Peek();
-							if (input === null)
-							{
-								return $result;
-							}
-							else
-							{
-								if (!call_user_func($callback, $input))
-								{
-									$this->Consume();
-									$result .= $input;
-								}
-								else
-								{
-									break;
-								}
-							}
-						}
-					}
-					else
-					{
-						return '';
-					}
+					$this->documentPosition += $consumedLength;
 				}
-				else
-				{
-					return '';
-				}
+				return $result;
 			}
 			else
 			{
@@ -348,40 +582,12 @@
 		{
 			if (isset($this->document))
 			{
-				if ($this->CanConsume())
+				$result = Parser::_ConsumeWhile($this->document, $this->documentPosition, $this->documentSize, $what, $consumedLength);
+				if (!is_null($result))
 				{
-					$result = '';
-					if (is_string($what))
-					{
-						while (($input = $this->Peek()) == $what)
-						{
-							$this->Consume();
-							$result .= $what;
-						}
-					}
-					else if (is_array($what))
-					{
-						$continue = true;
-						while ($continue)
-						{
-							$input = $this->Peek();
-							if (in_array($input, $what))
-							{
-								$this->Consume();
-								$result .= $input;
-							}
-							else
-							{
-								$continue = false;
-							}
-						}
-					}
-					return $result;
+					$this->documentPosition += $consumedLength;
 				}
-				else
-				{
-					return '';
-				}
+				return $result;
 			}
 			else
 			{
@@ -393,41 +599,12 @@
 		{
 			if (isset($this->document))
 			{
-				if ($this->CanConsume())
+				$result = Parser::_ConsumeUWhileCallback($this->document, $this->documentPosition, $this->documentSize, $callback, $consumedLength);
+				if (!is_null($result))
 				{
-					if (is_callable($callback))
-					{
-						$result = '';
-						while (true)
-						{
-							$input = $this->Peek();
-							if (input === null)
-							{
-								return $result;
-							}
-							else
-							{
-								if (call_user_func($callback, $input))
-								{
-									$this->Consume();
-									$result .= $input;
-								}
-								else
-								{
-									break;
-								}
-							}
-						}
-					}
-					else
-					{
-						return '';
-					}
+					$this->documentPosition += $consumedLength;
 				}
-				else
-				{
-					return '';
-				}
+				return $result;
 			}
 			else
 			{
@@ -439,74 +616,7 @@
 		{
 			if (isset($this->document))
 			{
-				if (func_num_args() == 0)
-				{
-					$chunk = substr($this->document, $this->documentPosition, 6);
-					$result = mb_substr($chunk, 0, 1);
-					$len = strlen($result);
-					if ($len > 0)
-					{
-						return $result;
-					}
-					else
-					{
-						return null;
-					}
-				}
-				else
-				{
-					if (is_string($what))
-					{
-						$item = $what;
-						$len = strlen($item);
-						if ($this->documentPosition + $len <= $this->documentSize)
-						{
-							$result = substr($this->document, $this->documentPosition, $len);
-							if ($result == $item)
-							{
-								return $result;
-							}
-						}
-						return null;
-					}
-					else if (is_numeric($what))
-					{
-						$chunk = substr($this->document, $this->documentPosition, $what * 6);
-						$result = mb_substr($chunk, 0, $what);
-						$len = strlen($result);
-						if ($this->documentPosition + $len <= $this->documentSize)
-						{
-							return $result;
-						}
-						else
-						{
-							return null;
-						}
-					}
-					else if (is_array($what))
-					{
-						if ($this->documentPosition < $this->documentSize)
-						{
-							foreach ($what as $item)
-							{
-								$len = strlen($item);
-								if ($this->documentPosition + $len <= $this->documentSize)
-								{
-									$result = substr($this->document, $this->documentPosition, $len);
-									if ($result == $item)
-									{
-										return $result;
-									}
-								}
-							}
-						}
-						return null;
-					}
-					else
-					{
-						return null;
-					}
-				}
+				return Parser::_Consume($this->document, $this->documentPosition, $this->documentSize, $what, $consumedLength);
 			}
 			else
 			{

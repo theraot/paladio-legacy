@@ -558,7 +558,7 @@
 		 */
 		public static function TryNeglectStart(/*string*/ $string, /*string*/ $start, /*string*/ &$result)
 		{
-			$startLength = strlen($ending);
+			$startLength = strlen($start);
 			if (substr($string, 0, $startLength) == $start)
 			{
 				$length = strlen($string);

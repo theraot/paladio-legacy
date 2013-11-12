@@ -51,12 +51,16 @@
 	{
 		if ($type == 'textarea')
 		{
-			echo '<textarea'.PET_Utility::BuildAttributesString(Utility::ArraySkip($_ELEMENT['attributes'], array('type', 'valie'))).'>';
+			echo '<textarea'.PET_Utility::BuildAttributesString(Utility::ArraySkip($_ELEMENT['attributes'], array('type', 'value'))).'>';
 			if (array_key_exists('value', $_ELEMENT['attributes']))
 			{
 				echo $_ELEMENT['attributes']['value'];
 			}
 			echo '</textarea>';
+		}
+		else if ($type = 'select')
+		{
+			echo '<@select'.PET_Utility::BuildAttributeString(Utility::ArraySkip($_ELEMENT['attributes'], array('type')).'/>';
 		}
 		else if ($type == 'entity-select')
 		{

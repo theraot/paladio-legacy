@@ -121,7 +121,7 @@
 		 * @access public
 		 * @return entity object
 		 */
-		public static function Existing(/*/mixed*/ $primaryKeyValue, /*string*/ $class = null)
+		public static function Existing(/*mixed*/ $primaryKeyValue, /*string*/ $class = null)
 		{
 			if (!is_string($class))
 			{

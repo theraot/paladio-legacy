@@ -70,6 +70,7 @@
 					if (AccessControl::CheckCanAccess($list[$key]))
 					{
 						$solved = FileSystem::ResolveRelativePath($path, $key);
+						//TODO
 						$count = String_Utility::CountCharacters($solved, '*?');
 						if ($count == 0)
 						{

@@ -145,6 +145,7 @@
 
 		public static function CountCharacters(/*string*/ $string, /*string*/ $characters)
 		{
+			//TODO
 			return strlen($string) - strlen(str_replace(str_split($characters), '', $string));
 		}
 

@@ -2,7 +2,6 @@
 	header('HTTP/1.0 404 Not Found'); exit(); //Esta página no deve ser vista.
 	/*PHPMailer is distributed under the licence below*/
 ?>
-
 		  GNU LESSER GENERAL PUBLIC LICENSE
 		       Version 2.1, February 1999
 
@@ -317,7 +316,7 @@ of these things:
     from a designated place, offer equivalent access to copy the above
     specified materials from the same place.
 
-    e) Verify that the user has already received a copy of these
+    e) verify that the user has already received a copy of these
     materials or that you have already sent this user a copy.
 
   For an executable, the required form of the "work that uses the

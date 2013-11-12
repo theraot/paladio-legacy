@@ -7,7 +7,7 @@
 	header('Content-Type: text/html; charset=UTF-8');
 	if (array_key_exists('menu', $_ELEMENT['attributes']))
 	{
-		$__menu = $_ELEMENT['attributes'][$menu];
+		$__menu = $_ELEMENT['attributes']['menu'];
 	}
 	else
 	{

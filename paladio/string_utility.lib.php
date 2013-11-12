@@ -487,23 +487,8 @@
 		 */
 		public static function NeglectEnd(/*string*/ $string, /*string*/ $ending)
 		{
-			if (String_Utility::EndsWith($string, $ending))
-			{
-				$length = strlen($string);
-				$endLength = strlen($ending);
-				if ($length < $endLength)
-				{
-					return '';
-				}
-				else
-				{
-					return substr($string, 0, $length - $endLength);
-				}
-			}
-			else
-			{
-				return $string;
-			}
+			String_Utility::TryNeglectEnd($string, $ending, $result);
+			return $result;
 		}
 
 		/**
@@ -519,22 +504,79 @@
 		 */
 		public static function NeglectStart(/*string*/ $string, /*string*/ $start)
 		{
-			if (String_Utility::StartsWith($string, $start))
+			String_Utility::TryNeglectStart($string, $ending, $result);
+			return $result;
+		}
+
+		/**
+		 * Attempts to create a a new string equal to $string that doesn't end with $ending.
+		 *
+		 * If $string ends with $ending, the returns true, false otherwise.
+		 *
+		 * @param $string: the string to verify.
+		 * @param $ending: the ending to neglect.
+		 * @param $result: the new string that was created.
+		 *
+		 * @access public
+		 * @return string
+		 */
+		public static function TryNeglectEnd(/*string*/ $string, /*string*/ $ending, /*string*/ &$result)
+		{
+			$length = strlen($string);
+			$endLength = strlen($ending);
+			if (substr($string, $length - $endLength) == $ending)
 			{
-				$length = strlen($string);
-				$startLength = strlen($start);
-				if ($length < $startLength)
+				if ($length < $endLength)
 				{
-					return '';
+					$result = '';
+					return true;
 				}
 				else
 				{
-					return substr($string, $startLength);
+					$result = substr($string, 0, $length - $endLength);
 				}
+				return true;
 			}
 			else
 			{
-				return $string;
+				$result = $string;
+				return false;
+			}
+		}
+
+		/**
+		 * Attempts to create a a new string equal to $string that doesn't start with $start.
+		 *
+		 * If $string starts with $start, the returns true, false otherwise.
+		 *
+		 * @param $string: the string to verify.
+		 * @param $ending: the start to neglect.
+		 * @param $result: the new string that was created.
+		 *
+		 * @access public
+		 * @return string
+		 */
+		public static function TryNeglectStart(/*string*/ $string, /*string*/ $start, /*string*/ &$result)
+		{
+			$startLength = strlen($ending);
+			if (substr($string, 0, $startLength) == $start)
+			{
+				$length = strlen($string);
+				if ($length < $startLength)
+				{
+					$result = '';
+					return true;
+				}
+				else
+				{
+					$result = substr($string, $startLength);
+				}
+				return true;
+			}
+			else
+			{
+				$result = $string;
+				return false;
 			}
 		}
 

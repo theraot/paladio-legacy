@@ -6,4 +6,7 @@
 # server = localhost
 # port =
 # user =
-# key =
+# password =
+# secure = tls
+# sender = 
+# sender_name =

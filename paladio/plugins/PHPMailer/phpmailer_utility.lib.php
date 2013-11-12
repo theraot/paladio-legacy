@@ -18,7 +18,7 @@
 		private static $server;
 		private static $port;
 		private static $user;
-		private static $key;
+		private static $password;
 		private static $sender;
 		private static $senderName;
 
@@ -29,16 +29,19 @@
 		private static function GetMailer()
 		{
 			$mailer = new PHPMailer();
-			$mailer->isSMTP();
-			$mailer->SMTPAuth = true;
-			$mailer->CharSet = 'UTF-8';
-			$mailer->SMTPSecure = PHPMailer_Utility::$secure;
 			$mailer->Host = PHPMailer_Utility::$sever;
 			$mailer->Port = PHPMailer_Utility::$port;
+			$mailer->isSMTP();
+			$mailer->SMTPAuth = true;
 			$mailer->Username = PHPMailer_Utility::$user;
-			$mailer->Password = PHPMailer_Utility::$key;
+			$mailer->Password = PHPMailer_Utility::$password;
+			$mailer->SMTPSecure = PHPMailer_Utility::$secure;
+			
 			$mailer->From = PHPMailer_Utility::$sender;
 			$mailer->FromName = PHPMailer_Utility::$senderName;
+			
+			$mailer->CharSet = 'UTF-8';
+			
 			return $mailer;
 		}
 
@@ -46,13 +49,13 @@
 		// Public (Class)
 		//------------------------------------------------------------
 
-		public static function Configure(/*string*/ $secure, /*string*/ $server, /*string*/ $port, /*string*/ $user, /*string*/ $key, /*string*/ $sender, /*string*/ $senderName)
+		public static function Configure(/*string*/ $secure, /*string*/ $server, /*string*/ $port, /*string*/ $user, /*string*/ $password, /*string*/ $sender, /*string*/ $senderName)
 		{
 			PHPMailer_Utility::$secure = $secure;
 			PHPMailer_Utility::$server = $server;
 			PHPMailer_Utility::$port = $port;
 			PHPMailer_Utility::$user = $user;
-			PHPMailer_Utility::$key = $key;
+			PHPMailer_Utility::$password = $password;
 			PHPMailer_Utility::$sender = $sender;
 			PHPMailer_Utility::$senderName = $senderName;
 		}
@@ -102,7 +105,7 @@
 			Configuration::Get('paladio-mail', 'server'),
 			Configuration::Get('paladio-mail', 'port'),
 			Configuration::Get('paladio-mail', 'user'),
-			Configuration::Get('paladio-mail', 'key'),
+			Configuration::Get('paladio-mail', 'password'),
 			Configuration::Get('paladio-mail', 'sender'),
 			Configuration::Get('paladio-mail', 'sender_name')
 		);

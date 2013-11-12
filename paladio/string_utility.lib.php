@@ -298,7 +298,6 @@
 		 */
 		public static function UnescapeString(/*string*/ $string)
 		{
-			//ONLY UTF-8
 			$result = preg_replace_callback
 			(
 				'@\x5Cu[0-9a-fA-F]{4}|\x5Cu[fnrt]@u',
@@ -627,10 +626,8 @@
 			}
 			if (!is_null($weekdays))
 			{
-				//ONLY UTF-8
 				$_weekdays = array_map('trim', $weekdays);
 				$weekday = date('w', $date);
-				//ONLY UTF-8
 				$weekday_string = implode('\\',utf8_str_split($_weekdays[$weekday], 1));
 				if ($weekday_string != '')
 				{
@@ -645,10 +642,8 @@
 			}
 			if (!is_null($months))
 			{
-				//ONLY UTF-8
 				$_months = array_map('trim', $months);
 				$month = date('n', $date);
-				//ONLY UTF-8
 				$month_string = implode('\\',utf8_str_split($_months[$month - 1], 1));
 				if ($month_string != '')
 				{

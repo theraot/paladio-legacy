@@ -188,7 +188,6 @@
 					$pieces = array();
 					foreach ($keys as $key)
 					{
-						//ONLY UTF-8
 						if (preg_match('@([a-z ]+)(.*)@u', trim(mb_strtolower($category[$key]['type'])), $matches))
 						{
 							$type = DB::MapType($matches[1]);
@@ -199,14 +198,11 @@
 							$piece = $key.' '.$type;
 							if (preg_match('@\(([0-9, ]*)\)@', $matches[2], $matches))
 							{
-								//ONLY UTF-8
 								$typeModifier = array_map('trim', explode(',', $matches[1]));
-								//ONLY UTF-8
 								$piece .= '('.implode(', ', $typeModifier).')';
 							}
 							if (isset($category[$key]['constraint']))
 							{
-								//ONLY UTF-8
 								$constraint = trim(mb_strtolower($category[$key]['constraint']));
 								if (in_array($constraint, $constraints))
 								{

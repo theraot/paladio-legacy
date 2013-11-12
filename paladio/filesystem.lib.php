@@ -56,7 +56,6 @@
 			{
 				if (is_string($pattern))
 				{
-					//ONLY UTF-8
 					$pattern = str_replace(array('/', '\\'), DIRECTORY_SEPARATOR, $pattern);
 					if (is_string($path))
 					{
@@ -96,7 +95,6 @@
 				}
 				if (is_dir($folder) && ($handle = opendir($folder)) !== false)
 				{
-					//ONLY UTF-8
 					$regexPattern = '@^'.str_replace(array('\*', '\?'), array('.*', '.'), preg_quote($pattern)).'$@u';
 					while (($item = readdir($handle)) !== false)
 					{
@@ -106,7 +104,6 @@
 							$isDir = is_dir($item);
 							if (is_null($folders) || ($folders && $isDir) || (!$folders && !$isDir))
 							{
-								//ONLY UTF-8
 								if (preg_match($regexPattern, $item))
 								{
 									$result[] = $item;
@@ -234,7 +231,6 @@
 			{
 				$result[] = '.';
 			}
-			//ONLY UTF-8
 			return implode(DIRECTORY_SEPARATOR, $result);
 		}
 
@@ -248,7 +244,6 @@
 		 */
 		public static function DocumentRoot()
 		{
-			//ONLY UTF-8
 			return FileSystem::PreparePath($_SERVER['DOCUMENT_ROOT']);
 		}
 
@@ -454,7 +449,6 @@
 			{
 				$absolutePath = substr($absolutePath, 0, strlen($absolutePath) - $separatorLen);
 			}
-			//ONLY UTF-8
 			$folders = explode(DIRECTORY_SEPARATOR, $absolutePath);
 			return FileSystem::_ProcessPath($folders);
 		}
@@ -477,7 +471,6 @@
 			{
 				$relativePath = substr($relativePath, $separatorLen);
 			}
-			//ONLY UTF-8
 			$folders = explode(DIRECTORY_SEPARATOR, $relativePath);
 			return FileSystem::_ProcessPath($folders);
 		}
@@ -541,7 +534,6 @@
 		 */
 		public static function ScriptPath()
 		{
-			//ONLY UTF-8 $_SERVER['SCRIPT_FILENAME']
 			return str_replace(array('/', '\\'), DIRECTORY_SEPARATOR, $_SERVER['SCRIPT_FILENAME']);
 		}
 

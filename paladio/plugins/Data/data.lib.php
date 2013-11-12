@@ -48,7 +48,6 @@
 		{
 			if (array_key_exists($key, $parameters))
 			{
-				//ONLY UTF-8
 				return json_decode($parameters[$key], true);
 			}
 			else

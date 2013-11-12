@@ -28,7 +28,6 @@
 		 */
 		function stripslashes_utf8($str)
 		{
-			//ONLY UTF-8
 			return preg_replace(array('@\x5C(?!\x5C)@u', '@\x5C\x5C@u'), array('','\\'), $str);
 		}
 	}
@@ -130,7 +129,6 @@
 				{
 					foreach (Paladio::$extraPets[$key] as $extraPet)
 					{
-						//ONLY UTF-8
 						if (preg_match('@.*\.'.preg_quote($petName).'\.pet\.php@u', $extraPet))
 						{
 							if (is_file($extraPet))
@@ -156,7 +154,6 @@
 					{
 						foreach (Paladio::$extraPets[$key] as $extraPet)
 						{
-							//ONLY UTF-8
 							if (preg_match('@'.preg_quote(DIRECTORY_SEPARATOR).preg_quote($petName).'\.pet\.php@u', $extraPet))
 							{
 								if (is_file($extraPet))
@@ -192,17 +189,14 @@
 					}
 					else
 					{
-						//ONLY UTF-8
 						if (preg_match('@^.*\.lib\.php$@u', $item))
 						{
 							$pluginFiles[] = $item;
 						}
-						//ONLY UTF-8
 						else if (preg_match('@^.*\.cfg\.php$@u', $item))
 						{
 							$configurationFiles[] = $item;
 						}
-						//ONLY UTF-8
 						else if (preg_match('@^.*\.pet\.php$@u', $item))
 						{
 							$petFiles[$path][] = $item;

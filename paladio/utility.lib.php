@@ -199,7 +199,6 @@
 				//"{", "}" : dangerous to JSON
 				//"@" : dangerous to paladio
 
-				//ONLY UTF-8
 				$data = trim($data);
 
 				//\x00-\x1F
@@ -218,7 +217,6 @@
 				//127       : delete                           -> removed
 				//\x80-\x9F
 				//128 - 159 : Latin-1 supplement non-printable -> removed
-				//ONLY UTF-8
 				$data = preg_replace('/[\x00-\x1F\x7F\x80-\x9F]/u', '', $data);
 
 				if ($encoding == 'url')
@@ -231,7 +229,6 @@
 					$danger = array("\\"   , "'"    , '"'     , '%'     , '&'    ,  '<'  , '>'   , '('    , ')'    , '{'     , '}'     , '['    , ']'    , ':'    , '@'    );
 					$secure = array('&#92;', '&#39;', '&quot;', '&#37;' , '&amp;', '&lt;', '&gt;', '&#40;', '&#41;', '&#123;', '&#125;', '&#91;', '&#93;', '&#58;', '&#64;');
 				}
-				//ONLY UTF-8
 				$data = str_replace($danger, $secure, $data);
 
 				return $data;
@@ -254,7 +251,6 @@
 			$text = $character.'+'; //text ::= character+ //One or more
 			$domain = $text.'(\.'.$text.')*'; //domain :: = text ("." + text)* /*text followed by none or many ("." followed by text).
 			$pattern = $domain.'@'.$domain; //pattern ::= domain "@" domain /*domain followed by "@" followed by domain
-			//ONLY UTF-8
 			if(preg_match('#^'.$pattern.'$#u', $email))
 			{
 				return true;

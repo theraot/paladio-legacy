@@ -4,7 +4,7 @@
 		header('HTTP/1.0 404 Not Found');
 		exit();
 	}
-	//TODO create mechanism for multiple database engines [low priority]
+	//TODO create mechanism for multiple database engines at the same time [low priority]
 
 	/**
 	 * IDatabaseOperator
@@ -176,7 +176,7 @@
 
 		function next()
 		{
-			if (null !== ($this->current = mysqli_fetch_assoc($this->result)))
+			if (null !== ($this->current = $this->result->fetch(PDO::FETCH_ASSOC)))
 			{
 				++$this->position;
 			}
@@ -184,14 +184,14 @@
 
 		function valid()
 		{
-			return !(is_null($this->current));
+			return $this->current !== false;
 		}
 
 		function close()
 		{
 			if (!is_null($this->result))
 			{
-				mysqli_free_result($this->result);
+				$this->result->closeCursor();
 				$this->current = null;
 				$this->result = null;
 			}
@@ -379,31 +379,33 @@
 		 */
 		public static function Connect(/*string*/ $server, /*int*/ $port, /*string*/ $user, /*string*/ $password, /*string*/ $database)
 		{
+			$DSN = 'mysql:host='.Parser::StringConsumeUntil((string)$server, 0, array(':', ';'), $length).';';
 			if (!is_numeric($port))
 			{
-				$severstring = $server;
+				$extra = substr($server, $length);
+				if (String_Utility::TryNeglectStart($extra, ':', $result))
+				{
+					$port = $result;
+				}
 			}
-			else
+			if (is_numeric($port))
 			{
-				$severstring = $server.':'.$port;
+				$DSN .= 'port='.$port.';';
 			}
-			$connection = mysqli_connect($severstring, $user, $password);
-			if ($connection === false)
+			$database = (string)$database;
+			if (strlen($database) > 0)
+			{
+				$DSN .= 'dbname='.Parser::StringConsumeUntil($database, 0, ';').';';
+			}
+			try
+			{
+				$connection = new PDO($DSN, $user, $password);
+			}
+			catch (PDOException $e)
 			{
 				return false;
 			}
-			else
-			{
-				if (mysqli_select_db($connection, $database))
-				{
-					return $connection;
-				}
-				else
-				{
-					mysqli_close($connection);
-					return false;
-				}
-			}
+			return $connection;
 		}
 
 		/**
@@ -418,7 +420,7 @@
 		 */
 		public static function Disconnect(/*object*/ $connection)
 		{
-			return mysqli_close($connection);
+			return true;
 		}
 
 		/**
@@ -434,9 +436,30 @@
 		 * @access public
 		 * @return mixed
 		 */
-		public static function Query(/*object*/ $connection, /*string*/ $query)
+		public static function Query(/*object*/ $connection, /*mixed*/ $query)
 		{
-			$result = mysqli_query($connection, $query);
+			if (is_string($query))
+			{
+				$result = $connection->query($query);
+			}
+			else if
+			(
+				is_array($query)
+				&& array_key_exists('statement', $query) && is_string($query['statement'])
+				&& array_key_exists('parameters', $query) && is_array($query['parameters'])
+			)
+			{
+				if (count($query['parameters']) > 0)
+				{
+					$result = $connection->prepare($query['statement']);
+					$result->execute($query['parameters']);
+				}
+				else
+				{
+					$result = $connection->query($query['statement']);
+				}
+			}
+			
 			if (is_bool($result))
 			{
 				if ($result)
@@ -455,6 +478,11 @@
 		}
 
 		//------------------------------------------------------------
+		
+		public static function QuoteIdentifier($identifier)
+		{
+			return '`' . str_replace('`', '``', $identifier) . '`';
+		}
 
 		/**
 		 * Gets the database specific name of a common datatype.

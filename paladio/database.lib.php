@@ -56,9 +56,8 @@
 		 * @see Database::CreateStatementUpdate
 		 * @access private
 		 */
-		private static function CreateAssignment(/*array*/ $record)
+		private static function CreateAssignment(/*array*/ $record, /*array*/ &$parameters)
 		{
-			//HACK
 			$assignment = '';
 			if (is_array($record) && count($record) > 0)
 			{
@@ -67,10 +66,9 @@
 				$array = array();
 				foreach ($fields as $field)
 				{
-					$value = $record[$field];
-					$array[] = Database_Utility::CreateEquation($field, $value);
+					$array[] = DB::QuoteIdentifier($field).' = ?';
+					$parameters[] = $record[$field];
 				}
-				//ONLY UTF-8
 				$assignment .= implode(', ', $array);
 			}
 			return $assignment;
@@ -100,12 +98,11 @@
 		 * @see Database::CreateQueryRead
 		 * @access private
 		 */
-		private static function ProcessFields(/*mixed*/ $fields = null)
+		private static function ProcessFields(/*mixed*/ $fields = null, /*array*/ &$parameters)
 		{
 			if (is_array($fields) && count($fields) > 0)
 			{
-				$processed = Database_Utility::ProcessFragment($fields, 'Database_Utility::CreateAlias');
-				//ONLY UTF-8
+				$processed = Database_Utility::ProcessFragment($fields, 'Database_Utility::CreateAlias', $parameters);
 				return implode(', ', $processed);
 			}
 			else if (is_null($fields) || (is_array($fields) && count($fields) == 0))
@@ -125,20 +122,18 @@
 		 * @see Database::CreateStatementDelete
 		 * @access private
 		 */
-		private static function ProcessWhere(/*mixed*/ $where)
+		private static function ProcessWhere(/*mixed*/ $where, /*array*/ &$parameters)
 		{
-			//HACK
 			if (is_array($where) && count($where) > 0)
 			{
-				$processed = Database_Utility::ProcessFragment($where, 'Database_Utility::ProcessExpression');
+				$processed = Database_Utility::ProcessFragment($where, 'Database_Utility::ProcessExpression', $parameters);
 				if (count($processed) == 1)
 				{
-					return 'WHERE '.$processed[0];
+					return ' WHERE '.$processed[0];
 				}
 				else
 				{
-					//ONLY UTF-8
-					return 'WHERE ('.implode(') '.((string)DB::_AND()).' (', $processed).')';
+					return ' WHERE ('.implode(') '.((string)DB::_AND()).' (', $processed).')';
 				}
 			}
 			else if (is_null($where) || (is_array($where) && count($where) == 0))
@@ -147,7 +142,8 @@
 			}
 			else
 			{
-				return Database::ProcessWhere(null, array($where));
+				$result = Database::ProcessWhere(array($where), $parameters);
+				return $result;
 			}
 		}
 
@@ -273,7 +269,6 @@
 		 */
 		public static function CountRecords(/*string*/ $table, /*mixed*/ $where = null, /*Database*/ $database = null)
 		{
-			//HACK
 			if (Database::Query(Database::CreateQueryCountRecords($table, $where), $result, $database))
 			{
 				$result->rewind();
@@ -303,7 +298,6 @@
 		 */
 		public static function CreateQueryCountRecords(/*string*/ $table, /*mixed*/ $where = null)
 		{
-			//HACK
 			return Database::CreateQueryRead($table, array('_amount' => DB::_COUNT()), $where);
 		}
 
@@ -323,8 +317,9 @@
 		 */
 		public static function CreateQueryRead(/*string*/ $table, /*mixed*/ $fields = null, /*mixed*/ $where = null)
 		{
-			//HACK
-			return 'SELECT '.Database::ProcessFields($fields).' FROM '.Utility::Sanitize($table, 'html').' '.Database::ProcessWhere($where);
+			$parameters = array();
+			$statement = 'SELECT '.Database::ProcessFields($fields, $parameters).' FROM '.DB::QuoteIdentifier($table).Database::ProcessWhere($where, $parameters);
+			return array('statement' => $statement, 'parameters' => $parameters);
 		}
 
 		/**
@@ -342,8 +337,9 @@
 		 */
 		public static function CreateStatementDelete(/*string*/ $table, /*mixed*/ $where = null)
 		{
-			//HACK
-			return 'DELETE FROM '.Utility::Sanitize($table, 'html').' '.Database::ProcessWhere($where);
+			$parameters = array();
+			$statement = 'DELETE FROM '.DB::QuoteIdentifier($table).Database::ProcessWhere($where);
+			return array('statement' => $statement, 'parameters' => $parameters);
 		}
 
 		/**
@@ -361,24 +357,22 @@
 		 */
 		public static function CreateStatementInsert(/*array*/ $record, /*string*/ $table)
 		{
-			//HACK
 			if (!is_array($record))
 			{
 				$record = array($record);
 			}
 			$record = Utility::ArrayCompact($record);
 			$fields = array_keys($record);
-			//ONLY UTF-8
+			$parameters = array();
 			$statement = 'INSERT INTO '.$table.' ('.implode(', ', $fields).') VALUES (';
 			$array = array();
 			foreach ($fields as $field)
 			{
 				$value = $record[$field];
-				$array[] = Database_Utility::ProcessValue($value);
+				$array[] = Database_Utility::ProcessValue($value, $parameters);
 			}
-			//ONLY UTF-8
 			$statement .= implode(', ', $array).')';
-			return $statement;
+			return array('statement' => $statement, 'parameters' => $parameters);
 		}
 
 		/**
@@ -397,8 +391,9 @@
 		 */
 		public static function CreateStatementUpdate(/*array*/ $record, /*string*/ $table, /*mixed*/ $where = null)
 		{
-			//HACK
-			return 'UPDATE '.Utility::Sanitize($table, 'html').' '.Database::CreateAssignment($record).' '.Database::ProcessWhere($where);
+			$parameters = array();
+			$statement = 'UPDATE '.DB::QuoteIdentifier($table).' '.Database::CreateAssignment($record, $parameters).Database::ProcessWhere($where, $parameters);
+			return array('statement' => $statement, 'parameters' => $parameters);
 		}
 
 		/**
@@ -418,7 +413,6 @@
 		 */
 		public static function Delete(/*string*/ $table, /*mixed*/ $where = null, /*Database*/ $database = null)
 		{
-			//HACK
 			return Database::Execute(Database::CreateStatementDelete($table, $where), $database);
 		}
 
@@ -522,7 +516,6 @@
 		 */
 		public static function Insert($record, $table, $database = null)
 		{
-			//HACK
 			return Database::Execute(Database::CreateStatementInsert($record, $table), $database);
 		}
 
@@ -596,7 +589,6 @@
 		 */
 		public static function Read(/*string*/ $table, /*mixed*/ $fields = null, /*mixed*/ $where = null, /*Database*/ $database = null)
 		{
-			//HACK
 			$query = Database::CreateQueryRead($table, $fields, $where);
 			if (Database::Query($query, $result, $database))
 			{
@@ -627,7 +619,6 @@
 		 */
 		public static function ReadOneRecord(/*string*/ $table, /*mixed*/ $fields = null, /*mixed*/ $where = null, /*Database*/ $database = null)
 		{
-			//HACK
 			$result = Database::Read($table, $fields, $where, $database);
 			if ($result === false)
 			{
@@ -697,7 +688,6 @@
 		 */
 		public static function TryReadOneRecord(/*array*/ &$record, /*string*/ $table, /*mixed*/ $fields = null, /*mixed*/ $where = null, /*Database*/ $database = null)
 		{
-			//HACK
 			$result = Database::Read($table, $fields, $where, $database);
 			if ($result === false)
 			{
@@ -737,7 +727,6 @@
 		 */
 		public static function Update(/*array*/ $record, /*string*/ $table, /*mixed*/ $where = null, /*Database*/ $database = null)
 		{
-			//HACK
 			return Database::Execute(Database::CreateStatementUpdate($record, $table, $where), $database);
 		}
 

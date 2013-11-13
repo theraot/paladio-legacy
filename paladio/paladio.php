@@ -573,7 +573,7 @@
 		 *
 		 * $document is the string to be procesed. $source is the uri that will be passed to any found PETs.
 		 *
-		 * Note 1: If the class Parses is not available $document is returned as is.
+		 * Note 1: If the class Parser is not available $document is returned as is.
 		 * Note 2: $document is expected to be string, no check is performed.
 		 *
 		 * @access public

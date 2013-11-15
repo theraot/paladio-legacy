@@ -111,7 +111,7 @@
 			}
 			else
 			{
-				return Database::ProcessFields(array($fields));
+				return Database::ProcessFields(array($fields), $parameters);
 			}
 		}
 

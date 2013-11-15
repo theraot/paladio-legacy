@@ -142,7 +142,7 @@
 		}
 
 		/**
-		 * Creates a new string with the dangerous characters escaped.
+		 * Creates a new string with the dangerous characters escaped. Use this function to present data to the user.
 		 *
 		 * Note 1: There are two supported escape encodings: html and url.
 		 * Note 2: The following charactes are cosidered dangerous:

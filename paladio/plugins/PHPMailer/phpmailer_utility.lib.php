@@ -68,10 +68,10 @@
 			$mailer->Body = $body;
 			if ($isHtml)
 			{
-				//ONLY UTF-8
+				//TODO
 				$mailer->AltBody = Utility::Sanitize(str_replace('<br />', '\n', $body));
 			}
-			$mailer->AddAddress($recipient, Utility::Sanitize($recipientName));
+			$mailer->AddAddress($recipient, Utility::Sanitize($recipientName, 'url'));
 			if (!is_null($files))
 			{
 				foreach ($files as $file)

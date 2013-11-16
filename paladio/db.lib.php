@@ -377,7 +377,7 @@
 		 * @access public
 		 * @return mixed
 		 */
-		public static function Connect(/*string*/ $server, /*int*/ $port, /*string*/ $user, /*string*/ $password, /*string*/ $database)
+		public static function Connect(/*string*/ $server, /*int*/ $port, /*string*/ $user, /*string*/ $password, /*string*/ $database, /*string*/ $charset)
 		{
 			$DSN = 'mysql:host='.Parser::StringConsumeUntil((string)$server, 0, array(':', ';'), $length).';';
 			if (!is_numeric($port))
@@ -400,6 +400,10 @@
 			try
 			{
 				$connection = new PDO($DSN, $user, $password);
+				if (!is_null($charset))
+				{
+					$connection->query('set charset '.DB::QuoteIdentifier($charset));
+				}
 			}
 			catch (PDOException $e)
 			{

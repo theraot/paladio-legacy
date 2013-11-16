@@ -25,6 +25,7 @@
 		private static $server;
 		private static $port;
 		private static $database;
+		private static $charset;
 		private static $queryUser;
 		private static $queryPassword;
 		private static $executeUser;
@@ -40,7 +41,7 @@
 		 */
 		private static function Connect(/*string*/ $user, /*string*/ $password)
 		{
-			$connection = DB::Connect(Database::$server, Database::$port, $user, $password, Database::$database);
+			$connection = DB::Connect(Database::$server, Database::$port, $user, $password, Database::$database, Database::$charset);
 			if ($connection === false)
 			{
 				return false;
@@ -183,6 +184,7 @@
 		 * @param $server: the ip or domain of the database server.
 		 * @param $port: the port of the database server.
 		 * @param $database: the name of the database.
+		 * @param $charset: the charset of the database.
 		 * @param $executeUser: the name of the user used to execute statements.
 		 * @param $executePassword: the password of the user used to execute statements.
 		 * @param $queryUser: the name of the user used to execute queries, if null $executeUser is used.
@@ -191,11 +193,12 @@
 		 * @access public
 		 * @return void
 		 */
-		public static function Configure(/*string*/ $server, /*string*/ $port, /*string*/ $database, /*string*/ $executeUser, /*string*/ $executePassword, /*string*/ $queryUser = null, /*string*/ $queryPassword = null)
+		public static function Configure(/*string*/ $server, /*string*/ $port, /*string*/ $database, /*string*/ $charset, /*string*/ $executeUser, /*string*/ $executePassword, /*string*/ $queryUser = null, /*string*/ $queryPassword = null)
 		{
 			Database::$server = $server;
 			Database::$port = $port;
 			Database::$database = $database;
+			Database::$charset = $charset;
 			if (is_null($queryUser))
 			{
 				Database::$queryUser = $executeUser;
@@ -851,6 +854,7 @@
 			Configuration::Get('paladio-database', 'server'),
 			Configuration::Get('paladio-database', 'port'),
 			Configuration::Get('paladio-database', 'database'),
+			Configuration::Get('paladio-database', 'charset'),
 			Configuration::Get('paladio-database', 'user'),
 			Configuration::Get('paladio-database', 'password'),
 			Configuration::Get('paladio-database', 'query_user'),

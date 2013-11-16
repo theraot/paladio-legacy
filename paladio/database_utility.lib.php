@@ -61,18 +61,18 @@
 		 * Internally used to process values.
 		 * @access private
 		 */
-		private static function TryProcessValue(/*mixed*/ $value, /*string*/ &$result, /*array*/ &$parameters)
+		private static function TryProcessValue(/*mixed*/ $value, /*string*/ &$result, /*array*/ &$_parameters)
 		{
 			if (is_string($value))
 			{
 				$result = '?';
-				$parameters[] = $value;
+				$_parameters[] = $value;
 				return true;
 			}
 			else if (is_numeric($value))
 			{
 				$result = '?';
-				$parameters[] = $value;
+				$_parameters[] = $value;
 				return true;
 			}
 			else if (is_null($value))
@@ -94,7 +94,7 @@
 			}
 			else if (is_array($value))
 			{
-				$result = Database_Utility::ProcessExpression(null, $value, $parameters);
+				$result = Database_Utility::ProcessExpression(null, $value, $_parameters);
 				return true;
 			}
 			else
@@ -107,16 +107,16 @@
 		 * Internally used to process unary expressions.
 		 * @access private
 		 */
-		private static function ProcessExpressionUnary($operator, $parameter, &$parameters)
+		private static function ProcessExpressionUnary($operator, $parameter, &$_parameters)
 		{
-			return $operator.'('.Database_Utility::ProcessValue($parameter, $parameters).')';
+			return $operator.'('.Database_Utility::ProcessValue($parameter, $_parameters).')';
 		}
 
 		/**
 		 * Internally used to process aggregation expressions.
 		 * @access private
 		 */
-		private static function ProcessExpressionAggregation($operator, $parameter, &$parameters)
+		private static function ProcessExpressionAggregation($operator, $parameter, &$_parameters)
 		{
 			if (is_null($parameter))
 			{
@@ -124,7 +124,7 @@
 			}
 			else
 			{
-				return $operator.'('.Database_Utility::ProcessValue($parameter, $parameters).')';
+				return $operator.'('.Database_Utility::ProcessValue($parameter, $_parameters).')';
 			}
 		}
 
@@ -132,21 +132,21 @@
 		 * Internally used to process binary expressions.
 		 * @access private
 		 */
-		private static function ProcessExpressionBinary($operator, $parameterA, $parameterB, &$parameters)
+		private static function ProcessExpressionBinary($operator, $parameterA, $parameterB, &$_parameters)
 		{
-			return '('.Database_Utility::ProcessValue($parameterA, $parameters).' '.$operator.' '.Database_Utility::ProcessValue($parameterB, $parameters).')';
+			return '('.Database_Utility::ProcessValue($parameterA, $_parameters).' '.$operator.' '.Database_Utility::ProcessValue($parameterB, $_parameters).')';
 		}
 
 		/**
 		 * Internally used to process function expressions.
 		 * @access private
 		 */
-		private static function ProcessExpressionFunction($operator, $parameters, &$parameters)
+		private static function ProcessExpressionFunction($operator, $parameters, &$_parameters)
 		{
 			$processed = array();
 			foreach($parameters as $parameter)
 			{
-				$processed[] = Database_Utility::ProcessValue($parameter, $parameters);
+				$processed[] = Database_Utility::ProcessValue($parameter, $_parameters);
 			}
 			return $operator.'('.implode(', ', $processed).')';
 		}
@@ -155,12 +155,12 @@
 		 * Internally used to process n-ary expressions.
 		 * @access private
 		 */
-		private static function ProcessExpressionNAry($operator, $parameters, &$parameters)
+		private static function ProcessExpressionNAry($operator, $parameters, &$_parameters)
 		{
 			$processed = array();
 			foreach($parameters as $parameter)
 			{
-				$processed[] = Database_Utility::ProcessValue($parameter, $parameters);
+				$processed[] = Database_Utility::ProcessValue($parameter, $_parameters);
 			}
 			return '('.implode(' '.$operator.' ', $processed).')';
 		}
@@ -174,14 +174,14 @@
 		 *
 		 * @param $alias: the alias to give to the field or value.
 		 * @param $value: the value to alias, use Database_Field to refer to a field inteads to a string.
-		 * @param $parameters: an array used to store the found values to be used in a prepared statement.
+		 * @param $_parameters: an array used to store the found values to be used in a prepared statement.
 		 *
 		 * @access public
 		 * @return string
 		 */
-		public static function CreateAlias(/*string*/ $alias, /*mixed*/ $value, /*array*/ &$parameters)
+		public static function CreateAlias(/*string*/ $alias, /*mixed*/ $value, /*array*/ &$_parameters)
 		{
-			$value = Database_Utility::ProcessValue($value, $parameters);
+			$value = Database_Utility::ProcessValue($value, $_parameters);
 			if (is_string($alias))
 			{
 				return $value.' '.DB::Alias().' '.DB::QuoteIdentifier($alias);
@@ -255,11 +255,11 @@
 		 * @access public
 		 * @return string
 		 */
-		public static function ProcessValue(/*mixed*/ $value, /*array*/ &$parameters)
+		public static function ProcessValue(/*mixed*/ $value, /*array*/ &$_parameters)
 		{
 			if ($value instanceof IDatabaseOperator)
 			{
-				$value = Database_Utility::ProcessExpression(null, $value, $parameters);
+				$value = Database_Utility::ProcessExpression(null, $value, $_parameters);
 			}
 			else if ($value instanceof Database_Field)
 			{
@@ -267,9 +267,9 @@
 			}
 			else
 			{
-				if(!Database_Utility::TryProcessValue($value, $value, $parameters))
+				if(!Database_Utility::TryProcessValue($value, $value, $_parameters))
 				{
-					$parameters[] = $value;
+					$_parameters[] = $value;
 					$value = '?';
 				}
 			}
@@ -281,12 +281,12 @@
 		 *
 		 * @param $field: the field over which the expression is applied.
 		 * @param $expression: the expression.
-		 * @param $parameters: an array used to store the found values to be used in a prepared statement.
+		 * @param $_parameters: an array used to store the found values to be used in a prepared statement.
 		 *
 		 * @access public
 		 * @return string
 		 */
-		public static function ProcessExpression(/*string*/ $field, /*mixed*/ $expression, /*array*/ &$parameters)
+		public static function ProcessExpression(/*string*/ $field, /*mixed*/ $expression, /*array*/ &$_parameters)
 		{
 			if ($expression instanceof IDatabaseOperator)
 			{
@@ -299,12 +299,12 @@
 					}
 					else
 					{
-						return Database_Utility::ProcessExpressionUnary($operator, new Database_Field($field), $parameters);
+						return Database_Utility::ProcessExpressionUnary($operator, new Database_Field($field), $_parameters);
 					}
 				}
 				else if ($expression->Type() == 'aggregation')
 				{
-					$result = Database_Utility::ProcessExpressionAggregation($operator, null, $parameters);
+					$result = Database_Utility::ProcessExpressionAggregation($operator, null, $_parameters);
 					if (is_null($field))
 					{
 						return $result;
@@ -316,7 +316,7 @@
 				}
 				else if ($expression->Type() == 'function')
 				{
-					$result = Database_Utility::ProcessExpressionFunction($operator, array(), $parameters);
+					$result = Database_Utility::ProcessExpressionFunction($operator, array(), $_parameters);
 					if (is_null($field))
 					{
 						return $result;
@@ -338,7 +338,7 @@
 					$operator = (string)$expression[0];
 					if ($expression[0]->Type() == 'unary')
 					{
-						$result = Database_Utility::ProcessExpressionUnary($operator, $expression[1], $parameters);
+						$result = Database_Utility::ProcessExpressionUnary($operator, $expression[1], $_parameters);
 						if (is_null($field))
 						{
 							return $result;
@@ -350,7 +350,7 @@
 					}
 					else if ($expression[0]->Type() == 'aggregation')
 					{
-						$result = Database_Utility::ProcessExpressionAggregation($operator, $expression[1], $parameters);
+						$result = Database_Utility::ProcessExpressionAggregation($operator, $expression[1], $_parameters);
 						if (is_null($field))
 						{
 							return $result;
@@ -362,7 +362,7 @@
 					}
 					else if ($expression[0]->Type() == 'binary')
 					{
-						$result = Database_Utility::ProcessExpressionBinary($operator, $expression[1], $expression[2], $parameters);
+						$result = Database_Utility::ProcessExpressionBinary($operator, $expression[1], $expression[2], $_parameters);
 						if (is_null($field))
 						{
 							return $result;
@@ -374,7 +374,7 @@
 					}
 					else if ($expression[0]->Type() == 'n-ary')
 					{
-						$result = Database_Utility::ProcessExpressionNAry($operator, array_splice($expression, 1), $parameters);
+						$result = Database_Utility::ProcessExpressionNAry($operator, array_splice($expression, 1), $_parameters);
 						if (is_null($field))
 						{
 							return $result;
@@ -386,7 +386,7 @@
 					}
 					else if ($expression[0]->Type() == 'function')
 					{
-						$result = Database_Utility::ProcessExpressionFunction($operator, array_splice($expression, 1), $parameters);
+						$result = Database_Utility::ProcessExpressionFunction($operator, array_splice($expression, 1), $_parameters);
 						if (is_null($field))
 						{
 							return $result;
@@ -405,7 +405,7 @@
 				{
 					if (is_null($field))
 					{
-						$processed = Database_Utility::ProcessFragment($expression, 'Database_Utility::ProcessExpression', $parameters);
+						$processed = Database_Utility::ProcessFragment($expression, 'Database_Utility::ProcessExpression', $_parameters);
 						if (count($processed) == 1)
 						{
 							return $processed[0];
@@ -419,14 +419,14 @@
 					{
 						if (count($expression) == 1)
 						{
-							return Database_Utility::ProcessExpression($field, $expression, $parameters);
+							return Database_Utility::ProcessExpression($field, $expression, $_parameters);
 						}
 						else
 						{
 							$processed = array();
 							foreach ($expression as $exp)
 							{
-								$processed[] = Database_Utility::ProcessExpression($field, $exp, $parameters);
+								$processed[] = Database_Utility::ProcessExpression($field, $exp, $_parameters);
 							}
 							return '('.implode(') '.((string)DB::_OR()).' (', $processed).')';
 						}
@@ -439,7 +439,7 @@
 			}
 			else
 			{
-				$expression = Database_Utility::ProcessValue($expression, $parameters);
+				$expression = Database_Utility::ProcessValue($expression, $_parameters);
 				if (is_null($field))
 				{
 					return $expression;
@@ -459,7 +459,7 @@
 		 * @access public
 		 * @return string
 		 */
-		public static function ProcessFragment($fragment, $callback, &$parameters)
+		public static function ProcessFragment($fragment, $callback, &$_parameters)
 		{
 			if (is_callable($callback))
 			{
@@ -470,7 +470,7 @@
 					if (is_string($key))
 					{
 						$value = $fragment[$key];
-						$processed[] = call_user_func_array($callback, array($key, $value, &$parameters));
+						$processed[] = call_user_func_array($callback, array($key, $value, &$_parameters));
 					}
 					else
 					{
@@ -483,7 +483,7 @@
 						{
 							$value = $key;
 						}
-						$processed[] = call_user_func_array($callback, array(null, $value, &$parameters));
+						$processed[] = call_user_func_array($callback, array(null, $value, &$_parameters));
 					}
 				}
 				return $processed;

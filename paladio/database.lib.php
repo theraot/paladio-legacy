@@ -57,7 +57,7 @@
 		 * @see Database::CreateStatementUpdate
 		 * @access private
 		 */
-		private static function CreateAssignment(/*array*/ $record, /*array*/ &$parameters)
+		private static function CreateAssignment(/*array*/ $record, /*array*/ &$_parameters)
 		{
 			$assignment = '';
 			if (is_array($record) && count($record) > 0)
@@ -68,7 +68,7 @@
 				foreach ($fields as $field)
 				{
 					$array[] = DB::QuoteIdentifier($field).' = ?';
-					$parameters[] = $record[$field];
+					$_parameters[] = $record[$field];
 				}
 				$assignment .= implode(', ', $array);
 			}
@@ -99,11 +99,11 @@
 		 * @see Database::CreateQueryRead
 		 * @access private
 		 */
-		private static function ProcessFields(/*mixed*/ $fields = null, /*array*/ &$parameters)
+		private static function ProcessFields(/*mixed*/ $fields = null, /*array*/ &$_parameters)
 		{
 			if (is_array($fields) && count($fields) > 0)
 			{
-				$processed = Database_Utility::ProcessFragment($fields, 'Database_Utility::CreateAlias', $parameters);
+				$processed = Database_Utility::ProcessFragment($fields, 'Database_Utility::CreateAlias', $_parameters);
 				return implode(', ', $processed);
 			}
 			else if (is_null($fields) || (is_array($fields) && count($fields) == 0))
@@ -112,7 +112,7 @@
 			}
 			else
 			{
-				return Database::ProcessFields(array($fields), $parameters);
+				return Database::ProcessFields(array($fields), $_parameters);
 			}
 		}
 
@@ -123,11 +123,11 @@
 		 * @see Database::CreateStatementDelete
 		 * @access private
 		 */
-		private static function ProcessWhere(/*mixed*/ $where, /*array*/ &$parameters)
+		private static function ProcessWhere(/*mixed*/ $where, /*array*/ &$_parameters)
 		{
 			if (is_array($where) && count($where) > 0)
 			{
-				$processed = Database_Utility::ProcessFragment($where, 'Database_Utility::ProcessExpression', $parameters);
+				$processed = Database_Utility::ProcessFragment($where, 'Database_Utility::ProcessExpression', $_parameters);
 				if (count($processed) == 1)
 				{
 					return ' WHERE '.$processed[0];
@@ -143,7 +143,7 @@
 			}
 			else
 			{
-				$result = Database::ProcessWhere(array($where), $parameters);
+				$result = Database::ProcessWhere(array($where), $_parameters);
 				return $result;
 			}
 		}
@@ -320,9 +320,9 @@
 		 */
 		public static function CreateQueryRead(/*string*/ $table, /*mixed*/ $fields = null, /*mixed*/ $where = null)
 		{
-			$parameters = array();
-			$statement = 'SELECT '.Database::ProcessFields($fields, $parameters).' FROM '.DB::QuoteIdentifier($table).Database::ProcessWhere($where, $parameters);
-			return array('statement' => $statement, 'parameters' => $parameters);
+			$_parameters = array();
+			$statement = 'SELECT '.Database::ProcessFields($fields, $_parameters).' FROM '.DB::QuoteIdentifier($table).Database::ProcessWhere($where, $_parameters);
+			return array('statement' => $statement, 'parameters' => $_parameters);
 		}
 
 		/**
@@ -340,9 +340,9 @@
 		 */
 		public static function CreateStatementDelete(/*string*/ $table, /*mixed*/ $where = null)
 		{
-			$parameters = array();
+			$_parameters = array();
 			$statement = 'DELETE FROM '.DB::QuoteIdentifier($table).Database::ProcessWhere($where);
-			return array('statement' => $statement, 'parameters' => $parameters);
+			return array('statement' => $statement, 'parameters' => $_parameters);
 		}
 
 		/**
@@ -366,16 +366,16 @@
 			}
 			$record = Utility::ArrayCompact($record);
 			$fields = array_keys($record);
-			$parameters = array();
+			$_parameters = array();
 			$statement = 'INSERT INTO '.$table.' ('.implode(', ', $fields).') VALUES (';
 			$array = array();
 			foreach ($fields as $field)
 			{
 				$value = $record[$field];
-				$array[] = Database_Utility::ProcessValue($value, $parameters);
+				$array[] = Database_Utility::ProcessValue($value, $_parameters);
 			}
 			$statement .= implode(', ', $array).')';
-			return array('statement' => $statement, 'parameters' => $parameters);
+			return array('statement' => $statement, 'parameters' => $_parameters);
 		}
 
 		/**
@@ -394,9 +394,9 @@
 		 */
 		public static function CreateStatementUpdate(/*array*/ $record, /*string*/ $table, /*mixed*/ $where = null)
 		{
-			$parameters = array();
-			$statement = 'UPDATE '.DB::QuoteIdentifier($table).' '.Database::CreateAssignment($record, $parameters).Database::ProcessWhere($where, $parameters);
-			return array('statement' => $statement, 'parameters' => $parameters);
+			$_parameters = array();
+			$statement = 'UPDATE '.DB::QuoteIdentifier($table).' '.Database::CreateAssignment($record, $_parameters).Database::ProcessWhere($where, $_parameters);
+			return array('statement' => $statement, 'parameters' => $_parameters);
 		}
 
 		/**

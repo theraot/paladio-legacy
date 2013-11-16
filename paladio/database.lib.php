@@ -341,7 +341,7 @@
 		public static function CreateStatementDelete(/*string*/ $table, /*mixed*/ $where = null)
 		{
 			$_parameters = array();
-			$statement = 'DELETE FROM '.DB::QuoteIdentifier($table).Database::ProcessWhere($where);
+			$statement = 'DELETE FROM '.DB::QuoteIdentifier($table).Database::ProcessWhere($where, $_parameters);
 			return array('statement' => $statement, 'parameters' => $_parameters);
 		}
 
@@ -462,8 +462,8 @@
 				}
 				else
 				{
+					$ok = $result->errorCode() === '00000';
 					$result->close();
-					$ok = false;
 				}
 				if (is_null($database))
 				{

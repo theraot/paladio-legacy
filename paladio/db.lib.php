@@ -159,6 +159,11 @@
 			$this->close();
 		}
 
+		function errorCode()
+		{
+			return $this->result->errorCode();
+		}
+
 		function rewind()
 		{
 			$this->next();
@@ -456,7 +461,10 @@
 				if (count($query['parameters']) > 0)
 				{
 					$result = $connection->prepare($query['statement']);
-					$result->execute($query['parameters']);
+					if (!$result->execute($query['parameters']))
+					{
+						$result = false;
+					}
 				}
 				else
 				{

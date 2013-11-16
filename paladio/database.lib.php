@@ -451,7 +451,7 @@
 			else
 			{
 				$ok = false;
-				$result = DB::Query($connection, (string)$statement);
+				$result = DB::Query($connection, $statement);
 				if ($result === true)
 				{
 					$ok = true;
@@ -813,6 +813,18 @@
 		//------------------------------------------------------------
 		// Public (Instance)
 		//------------------------------------------------------------
+
+		/**
+		 * Retrieves the last error message
+		 *
+		 * @access public
+		 * @return string
+		 */
+		public function ErrorMessage()
+		{
+			$info = $this->connection->errorInfo();
+			return $info[2];
+		}
 
 		/**
 		 * Closes this instance of Database

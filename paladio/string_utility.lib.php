@@ -504,7 +504,7 @@
 		 */
 		public static function NeglectStart(/*string*/ $string, /*string*/ $start)
 		{
-			String_Utility::TryNeglectStart($string, $ending, $result);
+			String_Utility::TryNeglectStart($string, $start, $result);
 			return $result;
 		}
 

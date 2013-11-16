@@ -36,9 +36,16 @@
 			{
 				$stylesheets = array_map('trim', explode(';', $_ELEMENT['attributes']['stylesheets']));
 				PaladioTheme::RequestStyleSheet($stylesheets);
-				PaladioTheme::EmitStyleSheets();
 			}
-	?></head>
+			PaladioTheme::EmitStyleSheets();
+			if(isset($_ELEMENT['attributes']['scripts']))
+			{
+				$scripts = array_map('trim', explode(';', $_ELEMENT['attributes']['scripts']));
+				PaladioTheme::RequestScript($scripts);
+			}
+			PaladioTheme::EmitScripts();
+		?>
+	</head>
 	<body>
 		<div id="__wrap">
 			<@header><?php
@@ -73,11 +80,5 @@
 				}
 			?></@footer>
 		</div>
-	</body><?php
-		if(isset($_ELEMENT['attributes']['scripts']))
-		{
-			$scripts = array_map('trim', explode(';', $_ELEMENT['attributes']['scripts']));
-			PaladioTheme::RequestStyleSheet($scripts);
-			PaladioTheme::EmitScripts();
-		}
-?></html>
+	</body>
+</html>

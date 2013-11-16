@@ -44,11 +44,11 @@
 			return false;
 		}
 		
-		private static function GetJson(/*string*/ $key, /*array*/ $parameters, /*mixed*/ $fallback)
+		private static function GetPEN(/*string*/ $key, /*array*/ $parameters, /*mixed*/ $fallback)
 		{
 			if (array_key_exists($key, $parameters))
 			{
-				return json_decode($parameters[$key], true);
+				return PEN::Decode((string)$parameters[$key], false);
 			}
 			else
 			{
@@ -60,7 +60,7 @@
 		{
 			if (array_key_exists($key, $parameters))
 			{
-				return Utility::Sanitize($parameters[$key], 'html');
+				return (string)$parameters[$key];
 			}
 			else
 			{
@@ -79,8 +79,8 @@
 				$parameters = array();
 			}
 			$method = Data::GetString('_method', $parameters, $method);
-			$data = Data::GetJson('_data', $parameters, null);
-			$where = Data::GetJson('_where', $parameters, null);
+			$data = Data::GetPEN('_data', $parameters, null);
+			$where = Data::GetPEN('_where', $parameters, null);
 			if
 			(
 				(

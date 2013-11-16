@@ -245,6 +245,9 @@
 
 		private $_class;
 
+		//------------------------------------------------------------
+		// Single field, fully mapped
+
 		/**
 		 * Internally used to retrive the value of a field
 		 * @access private
@@ -277,13 +280,13 @@
 					return null;
 				}
 			}
-			else if (isset($this->_entity->$fieldName))
+			else if ($this->_entity->try_get($fieldName, $result))
 			{
-				return $this->_entity->$fieldName;
+				return $result;
 			}
-			else if (!is_null($entity = EntityBase::CreateBasesUntilField($fieldName)))
+			else if (EntityBase::CreateBasesUntilGet($fieldName, $result))
 			{
-				return $entity->$fieldName;
+				return $result;
 			}
 			else
 			{
@@ -331,7 +334,7 @@
 			{
 				return true;
 			}
-			else if (!is_null($entity = EntityBase::CreateBasesUntilField($fieldName)))
+			else if (EntityBase::CreateBasesUntilIsset($fieldName))
 			{
 				return true;
 			}
@@ -364,17 +367,16 @@
 			{
 				throw new Exception('Unable to write refence');
 			}
-			else if (isset($this->_entity->$fieldName))
+			else if ($this->_entity->_set($fieldName, $value))
 			{
-				$this->_entity->$fieldName = $value;
 				if ($this->_autoSave)
 				{
 					$this->Save();
 				}
 			}
-			else if (!is_null($entity = EntityBase::CreateBasesUntilField($fieldName)))
+			else if (EntityBase::CreateBasesUntilSet($fieldName, $value))
 			{
-				return $entity->$fieldName = $value;
+				return true;
 			}
 			else
 			{
@@ -405,19 +407,21 @@
 			{
 				throw new Exception('Unable to write refence');
 			}
-			else if (isset($this->entity->$fieldName))
+			else if ($this->entity->try_un_set($fieldName))
 			{
-				unset($this->entity->$fieldName);
+				//Empty
 			}
-			else if (!is_null($entity = EntityBase::CreateBasesUntilField($fieldName)))
+			else if (EntityBase::CreateBasesUntilUnset($fieldName))
 			{
-				unset($entity->$fieldName);
+				//Empty
 			}
 			else
 			{
 				return;
 			}
 		}
+
+		//------------------------------------------------------------
 
 		/**
 		 * Internally used to create inheritance hierarchy
@@ -437,22 +441,85 @@
 		}
 
 		/**
-		 * Internally used to create inheritance hierarchy until find a field
+		 * Internally used to create inheritance hierarchy until a field is set
 		 * @access private
 		 */
-		private function CreateBasesUntilField(/*string*/ $fieldName)
+		private function CreateBasesUntilIsset(/*string*/ $fieldName)
 		{
 			$current = $this;
 			while (true)
 			{
 				if (isset($current->_entity->$fieldName))
 				{
-					return $current->_entity;
+					return true;
 				}
 				$current = $current->ProcessInheritance(true);
 				if (is_null($current))
 				{
-					return null;
+					return false;
+				}
+			}
+		}
+
+		/**
+		 * Internally used to create inheritance hierarchy until can get a field
+		 * @access private
+		 */
+		private function CreateBasesUntilGet(/*string*/ $fieldName, /*mixed*/ &$result)
+		{
+			$current = $this;
+			while (true)
+			{
+				if ($current->_entity->try_get($fieldName, $result))
+				{
+					return true;
+				}
+				$current = $current->ProcessInheritance(true);
+				if (is_null($current))
+				{
+					return false;
+				}
+			}
+		}
+
+		/**
+		 * Internally used to create inheritance hierarchy until can set a field
+		 * @access private
+		 */
+		private function CreateBasesUntilSet(/*string*/ $fieldName, /*mixed*/ $value)
+		{
+			$current = $this;
+			while (true)
+			{
+				if ($current->_entity->set($fieldName, $value))
+				{
+					return true;
+				}
+				$current = $current->ProcessInheritance(true);
+				if (is_null($current))
+				{
+					return false;
+				}
+			}
+		}
+
+		/**
+		 * Internally used to create inheritance hierarchy until can unset a field
+		 * @access private
+		 */
+		private function CreateBasesUntilUnset(/*string*/ $fieldName)
+		{
+			$current = $this;
+			while (true)
+			{
+				if ($current->_entity->try_un_set($fieldName))
+				{
+					return true;
+				}
+				$current = $current->ProcessInheritance(true);
+				if (is_null($current))
+				{
+					return false;
 				}
 			}
 		}
@@ -543,6 +610,9 @@
 		// Public (Instace)
 		//------------------------------------------------------------
 
+		//------------------------------------------------------------
+		// Multiple fields, delegate to multiple fields fully mapped
+
 		public function __get(/*mixed*/ $fieldName)
 		{
 			return $this->get($fieldName);
@@ -564,6 +634,8 @@
 			$this->un_set($fieldName);
 			return $this;
 		}
+
+		//------------------------------------------------------------
 
 		/**
 		 * Sets AutoSave on or off.
@@ -686,6 +758,7 @@
 		}
 
 		//------------------------------------------------------------
+		// Multiple fields, delegated to single field fully mapped
 
 		/**
 		 * Retrives the value of the field $fieldName.
@@ -954,9 +1027,17 @@
 		private $_table;
 		private $_where;
 
+		private function tryGet(/*mixed*/ $fieldName)
+		{
+			return $this->get($fieldName);
+		}
+
 		//------------------------------------------------------------
 		// Public (Instance)
 		//------------------------------------------------------------
+
+		//------------------------------------------------------------
+		// Multiple fields, delegate to multiple fields database mapped
 
 		public function __get(/*mixed*/ $fieldName)
 		{
@@ -972,6 +1053,46 @@
 		{
 			$result = Database::HasFields($this->_table, array($fieldName));
 			return $result;
+		}
+
+		public function __unset(/*string*/ $fieldName)
+		{
+			unset($this->_registro[$fieldName]);
+		}
+		
+		//------------------------------------------------------------
+		// Single field, database mapped
+
+		public function try_get(/*string*/ $fieldName, /*mixed*/ &$result)
+		{
+			$fieldName = (string)$fieldName;
+			if (!array_key_exists($fieldName, $this->_record))
+			{
+				$record = array();
+				if (Database::TryReadOneRecord($record, $this->_table, array($fieldName), $this->_where))
+				{
+					$this->_record[$fieldName] = $record[$fieldName];
+				}
+				else
+				{
+					return false;
+				}
+			}
+			$result = $this->_record[$fieldName];
+			return true;
+		}
+
+		public function try_un_set(/*string*/ $fieldName)
+		{
+			if (array_key_exists($fieldName, $this->_registro))
+			{
+				unset($this->_registro[$fieldName]);
+				return true;
+			}
+			else
+			{
+				return false;
+			}
 		}
 
 		public function _get(/*string*/ $fieldName)
@@ -998,6 +1119,7 @@
 			if (array_key_exists($fieldName, $this->_record))
 			{
 				$this->_registro[$fieldName] = $value;
+				return true;
 			}
 			else
 			{
@@ -1005,18 +1127,16 @@
 				if (Database::HasFields($this->_table, array($fieldName)))
 				{
 					$this->_record[$fieldName] = $value;
+					return true;
 				}
 				else
 				{
-					return;
+					return false;
 				}
 			}
 		}
 
-		public function __unset(/*string*/ $fieldName)
-		{
-			unset($this->_registro[$fieldName]);
-		}
+		//------------------------------------------------------------
 
 		/**
 		 * Clears the values of this instance.
@@ -1102,6 +1222,7 @@
 		}
 
 		//------------------------------------------------------------
+		// Multiple fields, delegated to single field database mapped
 
 		public function get(/*mixed*/ $fieldName)
 		{

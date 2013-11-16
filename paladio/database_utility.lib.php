@@ -419,7 +419,7 @@
 					{
 						if (count($expression) == 1)
 						{
-							return Database_Utility::ProcessExpression($field, $expression, $_parameters);
+							return Database_Utility::ProcessExpression($field, $expression[0], $_parameters);
 						}
 						else
 						{

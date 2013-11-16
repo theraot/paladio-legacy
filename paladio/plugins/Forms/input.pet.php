@@ -58,9 +58,9 @@
 			}
 			echo '</textarea>';
 		}
-		else if ($type = 'select')
+		else if ($type == 'select')
 		{
-			echo '<@select'.PET_Utility::BuildAttributeString(Utility::ArraySkip($_ELEMENT['attributes'], array('type')).'/>';
+			echo '<@select'.PET_Utility::BuildAttributesString(Utility::ArraySkip($_ELEMENT['attributes'], array('type'))).'/>';
 		}
 		else if ($type == 'entity-select')
 		{

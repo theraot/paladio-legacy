@@ -6,7 +6,6 @@
 	}
 	else
 	{
-		ini_set('default_charset', 'UTF-8');
 		mb_internal_encoding('UTF-8');
 		error_reporting(E_ALL | E_STRICT);
 		require_once('filesystem.lib.php');
@@ -611,8 +610,12 @@
 	$document = ob_get_contents();
 	ob_end_clean();
 
-	$result = Paladio::ProcessDocument($document, FileSystem::ScriptPath(), $_SERVER['QUERY_STRING']);
-	echo $result;
+	if ($document !== '')
+	{
+		$result = Paladio::ProcessDocument($document, FileSystem::ScriptPath(), $_SERVER['QUERY_STRING']);
+		ini_set('default_charset', 'UTF-8');
+		echo $result;
+	}
 
 	exit();
 ?>

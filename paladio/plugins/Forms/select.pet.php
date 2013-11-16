@@ -4,42 +4,51 @@
 		header('HTTP/1.0 404 Not Found');
 		exit();
 	}
-	echo '<select'.PET_Utility::BuildAttributesString(Utility::ArrayTake($_ELEMENT['attributes'], array('id', 'class', 'name'))).'>';
+	echo '<select'.PET_Utility::BuildAttributesString(Utility::ArraySkip($_ELEMENT['attributes'], array('value', 'options'))).'>';
 	if (array_key_exists('options', $_ELEMENT['attributes']))
 	{
-		if (array_key_exists('selected', $_ELEMENT['attributes']))
+		if (array_key_exists('multiple', $_ELEMENT['attributes']) && array_key_exists('name', $_ELEMENT['attributes']))
 		{
-			$selected = $_ELEMENT['attributes']['selected'];
+			$_ELEMENT['attributes']['name'] = String_Utility::EnsureEnd($_ELEMENT['attributes']['name'], '[]');
+		}
+		if (array_key_exists('value', $_ELEMENT['attributes']))
+		{
+			$value = PEN::Decode($_ELEMENT['attributes']['value']);
 		}
 		else
 		{
-			$selected = null;
+			$value = null;
 		}
 		$data = PEN::Decode($_ELEMENT['attributes']['options']);
 		if (!function_exists("__EmitPaladioSelect"))
 		{
 			function __EmitPaladioSelect($data, $selected)
 			{
-				foreach ($data as $option => $value)
+				foreach ($data as $option => $currentValue)
 				{
-					if (is_array($value))
+					if (is_array($currentValue))
 					{
 						echo '<optgroup label="'.$option.'">';
-						__EmitPaladioSelect($value, $selected);
+						__EmitPaladioSelect($currentValue, $selected);
 						echo '</optgroup>';
 					}
 					else
 					{
 						if (!is_string($option))
 						{
-							$option = $value;
+							$option = $currentValue;
 						}
-						echo '<option value="'.$value.'"'.($value === $selected ? ' selected="selected"' : '').'>'.$option.'</option>';
+						echo '<option value="'.$currentValue.'"';
+						if ((is_array($value) && in_array($currentValue, $value)) || $value == $currentValue)
+						{
+							echo ' selected="selected"';
+						}
+						echo '>'.$option.'</option>';
 					}
 				}
 			}
 		}
-		__EmitPaladioSelect($data, $selected);
+		__EmitPaladioSelect($data, $value);
 	}
 	echo '</select>';
 ?>

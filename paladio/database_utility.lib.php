@@ -401,20 +401,35 @@
 						throw new Exception ('Invalid operation');
 					}
 				}
-				if (array_key_exists(0, $expression))
-				{
-					return '('.implode(', ', $expression).')';
-				}
 				else if (count($expression) > 0)
 				{
-					$processed = Database_Utility::ProcessFragment($expression, 'Database_Utility::ProcessExpression', $parameters);
-					if (count($processed) == 1)
+					if (is_null($field))
 					{
-						return $processed[0];
+						$processed = Database_Utility::ProcessFragment($expression, 'Database_Utility::ProcessExpression', $parameters);
+						if (count($processed) == 1)
+						{
+							return $processed[0];
+						}
+						else
+						{
+							return '('.implode(') '.((string)DB::_OR()).' (', $processed).')';
+						}
 					}
 					else
 					{
-						return '('.implode(') '.((string)DB::_AND()).' (', $processed).')';
+						if (count($expression) == 1)
+						{
+							return Database_Utility::ProcessExpression($field, $expression, $parameters);
+						}
+						else
+						{
+							$processed = array();
+							foreach ($expression as $exp)
+							{
+								$processed[] = Database_Utility::ProcessExpression($field, $exp, $parameters);
+							}
+							return '('.implode(') '.((string)DB::_OR()).' (', $processed).')';
+						}
 					}
 				}
 				else

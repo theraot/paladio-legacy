@@ -69,7 +69,7 @@
 				$entity = $_ELEMENT['attributes']['entity'];
 				if (array_key_exists('value', $_ELEMENT['attributes']))
 				{
-					$value = $_ELEMENT['attributes']['value'];
+					$value = PEN::Decode($_ELEMENT['attributes']['value']);
 				}
 				$data = Entity::GetEntityData($entity);
 				if (is_string($data['primaryKey']))
@@ -82,21 +82,25 @@
 				}
 				if (isset($primaryKey))
 				{
-					echo '<select'.PET_Utility::BuildAttributesString(Utility::ArrayTake($_ELEMENT['attributes'], array('id', 'class', 'name'))).'>';
-					if (array_key_exists('entity-value', $_ELEMENT['attributes']))
+					if (array_key_exists('multiple', $_ELEMENT['attributes']) && array_key_exists('name', $_ELEMENT['attributes']))
 					{
-						$value = $_ELEMENT['attributes']['entity-value'];
-						$entries = Database::Read($data['table'], array($primaryKey, $value));
+						$_ELEMENT['attributes']['name'] = String_Utility::EnsureEnd($_ELEMENT['attributes']['name'], '[]');
+					}
+					echo '<select'.PET_Utility::BuildAttributesString(Utility::ArraySkip($_ELEMENT['attributes'], array('type', 'entity', 'value', 'entity-field'))).'>';
+					if (array_key_exists('entity-field', $_ELEMENT['attributes']))
+					{
+						$entity_field = $_ELEMENT['attributes']['entity-field'];
+						$entries = Database::Read($data['table'], array($primaryKey, $entity_field));
 						foreach ($entries as $entry)
 						{
 							$primaryKeyValue = $entry[$primaryKey];
 							echo '<option value="'.$primaryKeyValue.'"';
-							if (isset($value) && $value == $primaryKeyValue)
+							if ((is_array($value) && in_array($primaryKeyValue, $value)) || ($value == $primaryKeyValue))
 							{
 								echo ' selected="selected"';
 							}
-							echo '">';
-							echo $entry[$value];
+							echo '>';
+							echo $entry[$entity_field];
 							echo '</option>';
 						}
 						echo '</select>';
@@ -109,11 +113,11 @@
 							$entry = $entity::Existing($id);
 							$primaryKeyValue = $entry->$primaryKey;
 							echo '<option value="'.$primaryKeyValue.'"';
-							if (isset($value) && $value == $primaryKeyValue)
+							if (isset($value) && ((is_array($value) && in_array($primaryKeyValue, $value)) || ($value == $primaryKeyValue)))
 							{
 								echo ' selected="selected"';
 							}
-							echo '">';
+							echo '>';
 							echo $entry;
 							echo '</option>';
 						}

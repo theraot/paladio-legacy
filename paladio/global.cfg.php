@@ -4,6 +4,7 @@
 # server = localhost
 # port =
 # database =
+# charset = UTF8
 # user =
 # password =
 # query_user =

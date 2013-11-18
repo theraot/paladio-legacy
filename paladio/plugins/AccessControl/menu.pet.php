@@ -15,7 +15,7 @@
 	{
 		$source .= '?'.$_ELEMENT['query'];
 	}
-	$tree = array();
+	$entries = array();
 	$data = array();
 	foreach ($keys as $key)
 	{
@@ -75,12 +75,26 @@
 					}
 					if ($virtual == 2)
 					{
-						$tree[] = &$data[$parentId];
+						if (array_key_exists('menu-key', $data[$parentId]))
+						{
+							$entries[$data[$parentId]['menu-key']] = &$data[$parentId];
+						}
+						else
+						{
+							$entries[] = &$data[$parentId];
+						}
 					}
 				}
 				else
 				{
-					$tree[] = &$entry;
+					if (array_key_exists('menu-key', $entry))
+					{
+						$entries[$entry['menu-key']] = &$entry;
+					}
+					else
+					{
+						$entries[] = &$entry;
+					}
 					if (array_key_exists('menu-id', $entry))
 					{
 						$data[$entry['menu-id']] = &$entry;
@@ -93,9 +107,47 @@
 	{
 		function __EmitPaladioNavMenu($attributes, $itemClass, $selectedClass, $activeClass, $entries, &$index)
 		{
-			echo '<ul'.PET_Utility::BuildAttributesString($attributes).'>';
-			foreach ($entries as $entry)
+			if (!function_exists("cmp"))
 			{
+				function cmp($a, $b)
+				{
+					if ($a === $b)
+					{
+						return 0;
+					}
+					else
+					{
+						if (is_string($a))
+						{
+							if (is_string($b))
+							{
+								return ($a < $b) ? -1 : 1;
+							}
+							else
+							{
+								return 1;
+							}
+						}
+						else
+						{
+							if (is_string($b))
+							{
+								return -1;
+							}
+							else
+							{
+								return ($a < $b) ? -1 : 1;
+							}
+						}
+					}
+				}
+			}
+			echo '<ul'.PET_Utility::BuildAttributesString($attributes).'>';
+			$keys = array_keys($entries);
+			usort($keys, "cmp");
+			foreach ($keys as $key)
+			{
+				$entry = $entries[$key];
 				echo '<li tabindex="'.$index.'"';
 				echo PET_Utility::BuildClassesString
 				(
@@ -133,7 +185,7 @@
 			$itemClass,
 			$selectedClass,
 			$activeClass,
-			$tree,
+			$entries,
 			$index
 		);
 	echo '</nav>';

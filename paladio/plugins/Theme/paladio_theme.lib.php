@@ -191,7 +191,10 @@
 					$entry = array('uri' => $uri, 'attributes' => $attributes);
 					if (is_array(PaladioTheme::$scripts))
 					{
-						PaladioTheme::$scripts[] = $entry;
+						if (!in_array($entry, PaladioTheme::$scripts))
+						{
+							PaladioTheme::$scripts[] = $entry;
+						}
 					}
 					else
 					{
@@ -224,7 +227,10 @@
 					$entry = array('uri' => $uri, 'attributes' => $attributes);
 					if (is_array(PaladioTheme::$styleSheets))
 					{
-						PaladioTheme::$styleSheets[] = $entry;
+						if (!in_array($entry, PaladioTheme::$styleSheets))
+						{
+							PaladioTheme::$styleSheets[] = $entry;
+						}
 					}
 					else
 					{

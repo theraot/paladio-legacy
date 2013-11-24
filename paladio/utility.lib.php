@@ -26,19 +26,21 @@
 		public static function ArrayCompact(/*array*/ $array)
 		{
 			$result = array();
-			$keys = array_keys($array);
+			$keys = Utility::ArraySort(array_keys($array));
+			$index = 0;
 			foreach ($keys as $key)
 			{
 				$value = $array[$key];
 				if (!is_null($value))
 				{
-					if (is_string($key))
+					if ($index === $key)
 					{
-						$result[$key] = $value;
+						$result[] = $value;
+						$index++;
 					}
 					else
 					{
-						$result[] = $value;
+						$result[$key] = $value;
 					}
 				}
 			}
@@ -110,6 +112,47 @@
 			}
 			return $result;
 		}
+		
+		public static function ArraySort(/*array*/ $array)
+		{
+			if (!function_exists("__cmp"))
+			{
+				function __cmp($a, $b)
+				{
+					if ($a === $b)
+					{
+						return 0;
+					}
+					else
+					{
+						if (is_string($a))
+						{
+							if (is_string($b))
+							{
+								return ($a < $b) ? -1 : 1;
+							}
+							else
+							{
+								return 1;
+							}
+						}
+						else
+						{
+							if (is_string($b))
+							{
+								return -1;
+							}
+							else
+							{
+								return ($a < $b) ? -1 : 1;
+							}
+						}
+					}
+				}
+			}
+			usort($array, "__cmp");
+			return $array;
+		}
 
 		/**
 		 * Creates a new array containing only the items that belong to the given keys.
@@ -123,11 +166,15 @@
 		public static function ArrayTake(/*array*/ $array, /*array*/ $keys)
 		{
 			$result = array();
-			foreach ($keys as $key => $alias)
+			$_keys = Utility::ArraySort(array_keys($keys));
+			$index = 0;
+			foreach ($_keys as $key)
 			{
-				if (!is_string($key))
+				$alias = $keys[$key];
+				if ($index === $key)
 				{
 					$key = $alias;
+					$index++;
 				}
 				if (array_key_exists($key, $array))
 				{

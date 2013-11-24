@@ -198,7 +198,7 @@
 		 * @access public
 		 * @return string
 		 */
-		public static function CreateRelativePath(/*string*/ $referencePath, /*string*/ $absolutePath)
+		public static function CreateRelativePath(/*string*/ $referencePath, /*string*/ $absolutePath, $directory_separator = null)
 		{
 			$reference = FileSystem::ProcessAbsolutePath($referencePath);
 			$absolute = FileSystem::ProcessAbsolutePath($absolutePath);
@@ -231,7 +231,11 @@
 			{
 				$result[] = '.';
 			}
-			return implode(DIRECTORY_SEPARATOR, $result);
+			if (is_null($directory_separator))
+			{
+				$directory_separator = DIRECTORY_SEPARATOR;
+			}
+			return implode($directory_separator, $result);
 		}
 
 		/**
@@ -515,13 +519,13 @@
 		 * @access public
 		 * @return string
 		 */
-		public static function ScriptUri(/*string*/ $referencePath = null)
+		public static function ScriptUri(/*string*/ $referencePath = null, $directory_separator = '/')
 		{
 			if (is_null($referencePath))
 			{
 				$referencePath = FileSystem::DocumentRoot();
 			}
-			return DIRECTORY_SEPARATOR.FileSystem::CreateRelativePath($referencePath, FileSystem::ScriptPath());
+			return $directory_separator.FileSystem::CreateRelativePath($referencePath, FileSystem::ScriptPath(), $directory_separator);
 		}
 
 		/**

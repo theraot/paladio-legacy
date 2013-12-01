@@ -243,7 +243,7 @@
 				{
 					if (!in_array($file, Configuration::$loadedFiles))
 					{
-						Configuration::$INI->Load($file, 1);
+						Configuration::$INI->Load($file);
 						Configuration::$loadedFiles[] = $file;
 					}
 				}

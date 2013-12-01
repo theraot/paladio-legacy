@@ -370,7 +370,7 @@
 			{
 				if (!in_array($file, AccessControl::$loadedFiles))
 				{
-					AccessControl::$INI->Load($file, 1);
+					AccessControl::$INI->Load($file);
 					AccessControl::$loadedFiles[] = $file;
 				}
 			}

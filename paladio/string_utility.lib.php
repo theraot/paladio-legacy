@@ -203,7 +203,7 @@
 					$hex = dechex($ord);
 					if (strlen($hex) == 0)
 					{
-						echo 'here';
+						//Empty
 					}
 					else if (strlen($hex) == 1)
 					{

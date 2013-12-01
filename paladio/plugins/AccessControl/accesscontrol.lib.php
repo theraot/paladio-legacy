@@ -29,7 +29,7 @@
 
 		private static function CheckCanAccess(/*mixed*/ $result)
 		{
-			if (is_null($result))
+			if ($result === null)
 			{
 				return true;
 			}
@@ -119,7 +119,7 @@
 					}
 					else if ($solved == $file)
 					{
-						if (is_null($bestKey) || $bestCount == -1)
+						if ($bestKey === null || $bestCount == -1)
 						{
 							$bestKey = $key;
 							$bestCount = -1;
@@ -130,7 +130,7 @@
 						if (AccessControl::Match($solved, $key))
 						{
 							$count = String_Utility::CountCharacters($solved, '*');
-							if (is_null($bestKey) || $bestCount == -1 || $count < $bestCount)
+							if ($bestKey === null || $bestCount == -1 || $count < $bestCount)
 							{
 								$bestKey = $key;
 								$bestCount = $count;
@@ -139,7 +139,7 @@
 					}
 				}
 			}
-			if (is_null($bestKey))
+			if ($bestKey === null)
 			{
 				return false;
 			}
@@ -161,7 +161,7 @@
 			{
 				Session::Start();
 				$current = AccessControl::$current;
-				if (is_null($current))
+				if ($current === null)
 				{
 					Session::unset_Status('user_id');
 					Session::unset_Status('user_password');
@@ -178,14 +178,21 @@
 
 		private static function ReadCategory(/*string*/ $categoryName)
 		{
-			$category = AccessControl::$INI->get_Category($categoryName);
-			if (is_array($category))
+			if (AccessControl::$INI === null)
 			{
-				return $category;
+				return array();
 			}
 			else
 			{
-				return array();
+				$category = AccessControl::$INI->get_Category($categoryName);
+				if (is_array($category))
+				{
+					return $category;
+				}
+				else
+				{
+					return array();
+				}
 			}
 		}
 
@@ -284,7 +291,7 @@
 				{
 					return true;
 				}
-				if (is_null(AccessControl::$table) || is_null(AccessControl::$passwordField) || is_null(AccessControl::$idField))
+				if (AccessControl::$table === null || AccessControl::$passwordField === null || AccessControl::$idField === null)
 				{
 					$test = AccessControl::ReadCategory('__unconfigured');
 					if (AccessControl::TryGetListedData($file, $query, $test, $path, $result))
@@ -307,7 +314,7 @@
 					{
 						return true;
 					}
-					if (is_null($current))
+					if ($current === null)
 					{
 						$test = AccessControl::ReadCategory('__anonymous');
 						if (AccessControl::TryGetListedData($file, $query, $test, $path, $result))
@@ -330,7 +337,7 @@
 						{
 							return true;
 						}
-						if (!is_null($current['role']))
+						if ($current['role'] !== null)
 						{
 							$test = AccessControl::ReadCategory('rol:'.$current['role']);
 							if (AccessControl::TryGetListedData($file, $query, $test, $path, $result))
@@ -354,7 +361,7 @@
 			{
 				AccessControl::$loadedFiles = array();
 			}
-			if (is_null(AccessControl::$INI))
+			if (AccessControl::$INI === null)
 			{
 				AccessControl::$INI = new INI();
 			}
@@ -382,14 +389,14 @@
 
 		public static function Open(/*string*/ $id, /*string*/ $password)
 		{
-			if (!is_null(AccessControl::$table) && !is_null(AccessControl::$passwordField) && !is_null(AccessControl::$idField))
+			if (AccessControl::$table !== null && AccessControl::$passwordField !== null && AccessControl::$idField !== null)
 			{
 				$fields = array(AccessControl::$passwordField);
-				if (!is_null(AccessControl::$roleField))
+				if (AccessControl::$roleField !== null)
 				{
 					$fields[] = AccessControl::$roleField;
 				}
-				if (!is_null(AccessControl::$saltField))
+				if (AccessControl::$saltField !== null)
 				{
 					$fields[] = AccessControl::$saltField;
 				}
@@ -401,7 +408,7 @@
 					array(AccessControl::$idField => $id)
 				))
 				{
-					if (is_null(AccessControl::$saltField))
+					if (AccessControl::$saltField === null)
 					{
 						$salt = '';
 					}
@@ -412,7 +419,7 @@
 					$pass = AccessControl::Hash($password, $salt);
 					if ($pass == $record[AccessControl::$passwordField])
 					{
-						if (is_null(AccessControl::$roleField))
+						if (AccessControl::$roleField === null)
 						{
 							AccessControl::$current = array('id' => $id, 'password' => $password, 'role' => null);
 						}
@@ -421,7 +428,7 @@
 							AccessControl::$current = array('id' => $id, 'password' => $password, 'role' => $record[AccessControl::$roleField]);
 						}
 						AccessControl::Preserve();
-						if (is_null(AccessControl::$roleField))
+						if (AccessControl::$roleField === null)
 						{
 							return true;
 						}
@@ -441,9 +448,9 @@
 		{
 			$current = AccessControl::$current;
 			$path = FileSystem::FolderInstallation();
-			if (is_null($current))
+			if ($current === null)
 			{
-				if (is_null(AccessControl::$table) || is_null(AccessControl::$passwordField) || is_null(AccessControl::$idField))
+				if (AccessControl::$table === null || AccessControl::$passwordField === null || AccessControl::$idField === null)
 				{
 					return array_merge
 					(
@@ -465,7 +472,7 @@
 			}
 			else
 			{
-				if (is_null($current['role']))
+				if ($current['role'] === null)
 				{
 					return array_merge
 					(

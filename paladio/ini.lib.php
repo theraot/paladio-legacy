@@ -114,7 +114,6 @@
 				$this->Clear();
 			}
 			$this->Process(new Parser(file_get_contents($file)));
-			echo 'Done reading file: '.$file."\n";
 		}
 
 		private function _SaveFile(/*hFile*/ $hFile, /*string*/ $header)
@@ -149,6 +148,7 @@
 			$unquotedStringEnd = array(' ', "\t", "\n", "\r", '=', ';', '#');
 			$newLine = array("\r", "\n");
 			$currentCategoryName = '';
+			$categoryCreated = true;
 			$continue = false;
 			while($parser->CanConsume())
 			{
@@ -163,8 +163,9 @@
 				{
 					if (!array_key_exists($currentCategoryName, $this->content))
 					{
-						$this->content[$currentCategoryName] = array();
+						$categoryCreated = false;
 					}
+					continue;
 				}
 				else
 				{
@@ -218,11 +219,27 @@
 						if ($parser->Consume('=') !== null)
 						{
 							$fieldValue = PEN::ConsumeValue($parser, null, true);
-							$this->content[$currentCategoryName][$fieldName] = $fieldValue;
+							if ($categoryCreated)
+							{
+								$this->content[$currentCategoryName][$fieldName] = $fieldValue;
+							}
+							else
+							{
+								$this->content[$currentCategoryName] = array($fieldName => $fieldValue);
+								$categoryCreated = true;
+							}
 						}
 						else
 						{
-							$this->content[$currentCategoryName][$fieldName] = null;
+							if ($categoryCreated)
+							{
+								$this->content[$currentCategoryName][$fieldName] = null;
+							}
+							else
+							{
+								$this->content[$currentCategoryName] = array($fieldName => null);
+								$categoryCreated = true;
+							}
 						}
 					}
 				}

@@ -13,10 +13,9 @@
 		FileSystem::RequireAll('*.lib.php', FileSystem::FolderCore());
 	}
 	//TODO: add ways to avoid looking for PETs in code
-	//TODO: paladio "modes" needs testing
 	//TODO: create forms.lib.php
 
-	if (!function_exists('stripslashes_utf8'))
+	if (!function_exists('utf8_stripslashes'))
 	{
 		/**
 		 * Un-quotes a quoted string, UTF-8 aware equivalent of stripslashes.
@@ -25,7 +24,7 @@
 		 *
 		 * @return string
 		 */
-		function stripslashes_utf8($str)
+		function utf8_stripslashes($str)
 		{
 			return preg_replace(array('@\x5C(?!\x5C)@u', '@\x5C\x5C@u'), array('','\\'), $str);
 		}
@@ -42,12 +41,12 @@
 				unset($process[$key][$k]);
 				if (is_array($v))
 				{
-					$process[$key][stripslashes_utf8($k)] = $v;
-					$process[] = &$process[$key][stripslashes_utf8($k)];
+					$process[$key][utf8_stripslashes($k)] = $v;
+					$process[] = &$process[$key][utf8_stripslashes($k)];
 				}
 				else
 				{
-					$process[$key][stripslashes_utf8($k)] = stripslashes_utf8($v);
+					$process[$key][utf8_stripslashes($k)] = utf8_stripslashes($v);
 				}
 			}
 		}
@@ -494,10 +493,12 @@
 			$tmpCategoryName = 'paladio-'.Paladio::$mode;
 			if (is_null(Paladio::$mode) || !Configuration::CategoryExists($tmpCategoryName))
 			{
+				Paladio::$categoryName = 'paladio';
 				$function = 'Paladio::TryGetConfigurationB';
 			}
 			else
 			{
+				Paladio::$categoryName = $tmpCategoryName;
 				$function = 'Paladio::TryGetConfigurationA';
 			}
 			if (call_user_func_array($function, array('time_limit', &$result)))
@@ -515,6 +516,22 @@
 			if (call_user_func_array($function, array('timezone', &$result)))
 			{
 				date_default_timezone_set($result);
+			}
+			if (call_user_func_array($function, array('locale', &$result)))
+			{
+				$codeset = "utf8";
+				$attempts = array($result.'.'.$codeset, $result);
+				$found = setlocale (LC_ALL, $attempts);
+				if ($found)
+				{
+					putenv('LANG='.$found);
+					putenv('LANGUAGE='.$found);
+					setlocale (LC_COLLATE, $found);
+					setlocale (LC_CTYPE, $found);
+					setlocale (LC_MONETARY, $found);
+					setlocale (LC_NUMERIC, $found);
+					setlocale (LC_TIME, $found);
+				}
 			}
 			Paladio::LoadPlugins();
 		}
@@ -583,7 +600,7 @@
 			if (class_exists('Parser'))
 			{
 				$parser = new Parser($document);
-				$path = FileSystem::CreateRelativePath(dirname($source), FileSystem::FolderInstallation());
+				$path = FileSystem::CreateRelativePath(dirname($source), FileSystem::FolderInstallation(), '/');
 				$documentResult = Paladio::ProcessDocumentFragment($parser, $path, $source, $query, null);
 				return $documentResult['contents'];
 			}

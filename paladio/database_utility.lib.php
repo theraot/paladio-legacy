@@ -265,7 +265,7 @@
 			}
 			else if ($value instanceof Database_Field)
 			{
-				$value = $adapter->QuoteIdentifier((string)$value);
+				$value = $adapter->QuoteIdentifier($value->__toString());
 			}
 			else
 			{
@@ -292,7 +292,7 @@
 		{
 			if ($expression instanceof IDatabaseOperator)
 			{
-				$operator = (string)$expression;
+				$operator = $expression->__toString();
 				if ($expression->Type() == 'unary')
 				{
 					if (is_null($field))
@@ -337,7 +337,7 @@
 			{
 				if (array_key_exists(0, $expression) && $expression[0] instanceof IDatabaseOperator)
 				{
-					$operator = (string)$expression[0];
+					$operator = $expression[0]->__toString();
 					if ($expression[0]->Type() == 'unary')
 					{
 						$result = Database_Utility::ProcessExpressionUnary($adapter, $operator, $expression[1], $_parameters);
@@ -347,7 +347,7 @@
 						}
 						else
 						{
-							return $adapter->QuoteIdentifier((string)$field, 'html').' = '.$result;
+							return $adapter->QuoteIdentifier((string)$field).' = '.$result;
 						}
 					}
 					else if ($expression[0]->Type() == 'aggregation')
@@ -414,7 +414,7 @@
 						}
 						else
 						{
-							return '('.implode(') '.((string)$adapter->OP('OR')).' (', $processed).')';
+							return '('.implode(') '.($adapter->OP('OR')->__toString()).' (', $processed).')';
 						}
 					}
 					else
@@ -430,7 +430,7 @@
 							{
 								$processed[] = Database_Utility::ProcessExpression($adapter, $field, $exp, $_parameters);
 							}
-							return '('.implode(') '.((string)$adapter->OP('OR')).' (', $processed).')';
+							return '('.implode(') '.($adapter->OP('OR')->__toString()).' (', $processed).')';
 						}
 					}
 				}

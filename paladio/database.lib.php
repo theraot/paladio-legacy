@@ -136,7 +136,7 @@
 				}
 				else
 				{
-					return ' WHERE ('.implode(') '.((string)Database::$adapter->OP('AND')).' (', $processed).')';
+					return ' WHERE ('.implode(') '.(Database::$adapter->OP('AND')->__toString()).' (', $processed).')';
 				}
 			}
 			else if (is_null($where) || (is_array($where) && count($where) == 0))

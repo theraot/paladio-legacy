@@ -207,16 +207,27 @@
 			if (is_array($value))
 			{
 				$result = array();
-				foreach ($value as $key => $val)
+				$keys = Utility::ArraySort(array_keys($value));
+				$index = 0;
+				foreach ($keys as $key)
 				{
+					$val = $value[$key];
 					$val = PEN::Encode($val, $alternativeQuotes);
-					if ($alternativeQuotes)
+					if ($key === $index)
 					{
-						$result[] = "'" . $key."':".$val;
+						$result[] = $val;
+						$index++;
 					}
 					else
 					{
-						$result[] = '"' . $key.'":'.$val;
+						if ($alternativeQuotes)
+						{
+							$result[] = "'" . $key."':".$val;
+						}
+						else
+						{
+							$result[] = '"' . $key.'":'.$val;
+						}
 					}
 				}
 				if ($alternativeBrackets)

@@ -6,13 +6,53 @@
 	}
 	if (array_key_exists('type', $_ELEMENT['attributes']))
 	{
-		$type = $_ELEMENT['attributes']['type'];
+		$type = strtolower($_ELEMENT['attributes']['type']);
+		unset ($_ELEMENT['attributes']['type']);
 	}
 	else
 	{
 		$type = 'text';
 	}
-	if
+	if ($type == 'file')
+	{
+		if (array_key_exists('readonly', $_ELEMENT['attributes']))
+		{
+			$_ELEMENT['attributes']['disabled'] = 'disabled';
+			unset ($_ELEMENT['attributes']['readonly']);
+		}
+	}
+	if ($type == 'checkbox' || $type == 'radio')
+	{
+		if (array_key_exists('value', $_ELEMENT['attributes']) && mb_strtolower($_ELEMENT['attributes']['value']) == 'true')
+		{
+			unset ($_ELEMENT['attributes']['value']);
+			if (array_key_exists('readonly', $_ELEMENT['attributes']))
+			{
+				unset ($_ELEMENT['attributes']['readonly']);
+				echo '<input type = "hidden" value = "on"'.PET_Utility::BuildAttributesString($_ELEMENT['attributes']).'>';
+				unset ($_ELEMENT['attributes']['name']);
+				echo '<input type = "'.$type.'" checked="checked" disabled="disabled"'.PET_Utility::BuildAttributesString($_ELEMENT['attributes']).'>';
+			}
+			else
+			{
+				echo '<input type = "'.$type.'" checked="checked"'.PET_Utility::BuildAttributesString($_ELEMENT['attributes']).'>';
+			}
+		}
+		else
+		{
+			if (array_key_exists('readonly', $_ELEMENT['attributes']))
+			{
+				unset ($_ELEMENT['attributes']['readonly']);
+				unset ($_ELEMENT['attributes']['name']);
+				echo '<input type = "'.$type.'" disabled="disabled"'.PET_Utility::BuildAttributesString($_ELEMENT['attributes']).'>';
+			}
+			else
+			{
+				echo '<input type = "'.$type.'"'.PET_Utility::BuildAttributesString($_ELEMENT['attributes']).'>';
+			}
+		}
+	}
+	else if
 	(
 		in_array
 		(
@@ -45,22 +85,32 @@
 		)
 	)
 	{
-		echo '<input type="'.$type.'" '.PET_Utility::BuildAttributesString(Utility::ArraySkip($_ELEMENT['attributes'], 'type')).'>';
+		echo '<input type = "'.$type.'"'.PET_Utility::BuildAttributesString($_ELEMENT['attributes']).'>';
 	}
 	else
 	{
 		if ($type == 'textarea')
 		{
-			echo '<textarea'.PET_Utility::BuildAttributesString(Utility::ArraySkip($_ELEMENT['attributes'], array('type', 'value'))).'>';
-			if (array_key_exists('value', $_ELEMENT['attributes']))
+			if (array_key_exists('readonly', $_ELEMENT['attributes']))
 			{
-				echo $_ELEMENT['attributes']['value'];
+				$value = $_ELEMENT['attributes']['value'];
+				unset($_ELEMENT['attributes']['value']);
+				echo '<textarea'.PET_Utility::BuildAttributesString($_ELEMENT['attributes']).'>'.$value.'</textarea>';
 			}
-			echo '</textarea>';
+			else
+			{
+				echo '<textarea'.PET_Utility::BuildAttributesString($_ELEMENT['attributes']).'></textarea>';
+			}
 		}
 		else if ($type == 'select')
 		{
-			echo '<@select'.PET_Utility::BuildAttributesString(Utility::ArraySkip($_ELEMENT['attributes'], array('type'))).'/>';
+			if (array_key_exists('readonly', $_ELEMENT['attributes']))
+			{
+				unset ($_ELEMENT['attributes']['readonly']);
+				echo '<input type = "hidden"'.PET_Utility::BuildAttributesString($_ELEMENT['attributes']).'>';
+				$_ELEMENT['attributes']['disabled'] = 'disabled';
+			}
+			echo '<@select'.PET_Utility::BuildAttributesString(Utility::ArraySkip($_ELEMENT['attributes'], 'readonly')).'/>';
 		}
 		else if ($type == 'entity-select')
 		{
@@ -86,7 +136,11 @@
 					{
 						$_ELEMENT['attributes']['name'] = String_Utility::EnsureEnd($_ELEMENT['attributes']['name'], '[]');
 					}
-					echo '<select'.PET_Utility::BuildAttributesString(Utility::ArraySkip($_ELEMENT['attributes'], array('type', 'entity', 'value', 'entity-field'))).'>';
+					if (array_key_exists('readonly', $_ELEMENT['attributes']) && $_ELEMENT['attributes']['readonly'])
+					{
+						$_ELEMENT['attributes']['disabled'] = 'disabled';
+					}
+					echo '<select'.PET_Utility::BuildAttributesString(Utility::ArraySkip($_ELEMENT['attributes'], array('entity', 'value', 'entity-field', 'readonly'))).'>';
 					if (array_key_exists('entity-field', $_ELEMENT['attributes']))
 					{
 						$entity_field = $_ELEMENT['attributes']['entity-field'];

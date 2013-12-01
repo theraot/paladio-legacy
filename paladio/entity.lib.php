@@ -151,96 +151,6 @@
 			}
 		}
 
-		/**
-		 * Loads ent files.
-		 *
-		 * If the ent describes a table that doens't exist, the table is created.
-		 * If a class with name equal to the name of table changed to initial capital letter doens't exist, the class is created as an entity class for the table.
-		 *
-		 * @param $path: the folder from which to load the ent files.
-		 *
-		 * @access public
-		 * @return void
-		 */
-		public static function LoadEnts($path)
-		{
-			$classTemplate =
-			'class @class extends EntityBase
-			{
-				public static function Mapping(){return array(\'table\' => \'@table\', \'primaryKey\' => @primarykey);}
-				public static function Create(/*mixed*/ $primaryKeyValue, /*bool*/ $write = true, /*string*/ $class = null){return EntityBase::Create($primaryKeyValue, $write, \'@class\');}
-				public static function Exists(/*mixed*/ $primaryKeyValue, /*string*/ $class = null){return EntityBase::Exists($primaryKeyValue, \'@class\');}
-				public static function Existing(/*mixed*/ $primaryKeyValue, /*string*/ $class = null){return EntityBase::Existing($primaryKeyValue, \'@class\');}
-			}';
-			$constraints = array('primary key', 'unique', 'not null');
-			//------------------------------------------------------------
-			$ending = '.ent.php';
-			$entityFiles = FileSystem::GetFolderFiles('*'.$ending, FileSystem::FolderCore().$path);
-			foreach ($entityFiles as $entityFile)
-			{
-				$filename = basename($entityFile);
-				$table = substr(basename($entityFile), 0, strlen($filename) - strlen($ending));
-
-				$INI = new INI();
-				$INI->Load($entityFile, 1);
-				$category = $INI->get_Category('fields');
-				if (!Database::TableExists($table))
-				{
-					$keys = array_keys($category);
-					$pieces = array();
-					foreach ($keys as $key)
-					{
-						if (preg_match('@([a-z ]+)(.*)@u', trim(mb_strtolower($category[$key]['type'])), $matches))
-						{
-							$type = DB::MapType($matches[1]);
-							if ($type === false)
-							{
-								$type = $matches[1];
-							}
-							$piece = $key.' '.$type;
-							if (preg_match('@\(([0-9, ]*)\)@', $matches[2], $matches))
-							{
-								$typeModifier = array_map('trim', explode(',', $matches[1]));
-								$piece .= '('.implode(', ', $typeModifier).')';
-							}
-							if (isset($category[$key]['constraint']))
-							{
-								$constraint = trim(mb_strtolower($category[$key]['constraint']));
-								if (in_array($constraint, $constraints))
-								{
-									$piece .= ' '.$category[$key]['constraint'];
-								}
-							}
-							if (isset($category[$key]['default']))
-							{
-								$piece .= ' default '.$category[$key]['default'];
-							}
-							$pieces[] = $piece;
-						}
-					}
-					$statement = 'CREATE TABLE '.$table.' ('.implode(', ', $pieces).')';
-					echo $statement;
-					Database::Execute($statement);
-				}
-				$className = mb_convert_case($table, MB_CASE_TITLE);
-				if (!class_exists($className))
-				{
-					$pieces = array();
-					$keys = array_keys($category);
-					foreach ($keys as $key)
-					{
-						if ($category[$key]['constraint'] == 'primary key')
-						{
-							$pieces[] = '\''.$key.'\'';
-						}
-					}
-					$primaryKey = 'array('.implode($pieces).')';
-					$classCode = str_replace(array('@class', '@table', '@primarykey'), array($className, $table, $primaryKey), $classTemplate);
-					eval($classCode);
-				}
-			}
-		}
-
 		//------------------------------------------------------------
 		// Private (Instance)
 		//------------------------------------------------------------
@@ -1308,7 +1218,6 @@
 				$entitiesFolder = \'entities\';
 				Configuration::TryGet(\'paladio-paths\', \'entities\', $entitiesFolder);
 				FileSystem::RequireAll(\'*.lib.php\', FileSystem::FolderCore().$entitiesFolder);
-				EntityBase::LoadEnts($entitiesFolder);
 			'
 		)
 	);

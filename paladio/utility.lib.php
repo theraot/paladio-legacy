@@ -4,6 +4,10 @@
 		header('HTTP/1.0 404 Not Found');
 		exit();
 	}
+	else
+	{
+		require_once('string_utility.lib.php');
+	}
 
 	/**
 	 * Utility
@@ -11,6 +15,84 @@
 	 */
 	final class Utility
 	{
+		//------------------------------------------------------------
+		// Private (Class)
+		//------------------------------------------------------------
+
+		/**
+		 * Used internally to sort arrays
+		 */
+		private static function Cmp($a, $b)
+		{
+			if ($a === $b)
+			{
+				return 0;
+			}
+			else
+			{
+				if (is_string($a))
+				{
+					if (is_string($b))
+					{
+						return strcoll($a, $b);
+					}
+					else
+					{
+						return 1;
+					}
+				}
+				else
+				{
+					if (is_string($b))
+					{
+						return -1;
+					}
+					else
+					{
+						return ($a < $b) ? -1 : 1;
+					}
+				}
+			}
+		}
+
+		/**
+		 * Used internally to sort arrays
+		 */
+		private static function CmpIconv($a, $b)
+		{
+			if ($a === $b)
+			{
+				return 0;
+			}
+			else
+			{
+				if (is_string($a))
+				{
+					if (is_string($b))
+					{
+						$charset = $charset = String_Utility::DiscoverIconvCharset();
+						return strcoll(iconv('utf-8', $charset, $a), iconv('utf-8', $charset, $b));
+					}
+					else
+					{
+						return 1;
+					}
+				}
+				else
+				{
+					if (is_string($b))
+					{
+						return -1;
+					}
+					else
+					{
+						return ($a < $b) ? -1 : 1;
+					}
+				}
+			}
+		}
+
+
 		//------------------------------------------------------------
 		// Public (Class)
 		//------------------------------------------------------------
@@ -113,44 +195,36 @@
 			return $result;
 		}
 		
-		public static function ArraySort(/*array*/ $array)
+		/**
+		 * Creates a new array containing items sorted by value.
+		 *
+		 * Note 1: Keys are not preserved.
+		 * Note 2: Default sorting will put numbers in ascending value first and then strings in lexicological order.
+		 *
+		 * @param $array: the array to process.
+		 * @param $compare: the comparison method to sort the items.
+		 *
+		 * @access public
+		 * @return array
+		 */
+		public static function ArraySort(/*array*/ $array, /*function*/ $compare = null)
 		{
-			if (!function_exists("__cmp"))
+			if (is_null($compare))
 			{
-				function __cmp($a, $b)
+				$charset = String_Utility::DiscoverIconvCharset();
+				if ($charset === 'UTF-8')
 				{
-					if ($a === $b)
-					{
-						return 0;
-					}
-					else
-					{
-						if (is_string($a))
-						{
-							if (is_string($b))
-							{
-								return ($a < $b) ? -1 : 1;
-							}
-							else
-							{
-								return 1;
-							}
-						}
-						else
-						{
-							if (is_string($b))
-							{
-								return -1;
-							}
-							else
-							{
-								return ($a < $b) ? -1 : 1;
-							}
-						}
-					}
+					usort($array, "Utility::Cmp");
+				}
+				else
+				{
+					usort($array, "Utility::CmpIconv");
 				}
 			}
-			usort($array, "__cmp");
+			else
+			{
+				usort($array, $compare);
+			}
 			return $array;
 		}
 

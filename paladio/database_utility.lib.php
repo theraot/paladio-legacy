@@ -61,7 +61,7 @@
 		 * Internally used to process values.
 		 * @access private
 		 */
-		private static function TryProcessValue(/*mixed*/ $value, /*string*/ &$result, /*array*/ &$_parameters)
+		private static function TryProcessValue($adapter, /*mixed*/ $value, /*string*/ &$result, /*array*/ &$_parameters)
 		{
 			if (is_string($value))
 			{
@@ -94,7 +94,7 @@
 			}
 			else if (is_array($value))
 			{
-				$result = Database_Utility::ProcessExpression(null, $value, $_parameters);
+				$result = Database_Utility::ProcessExpression($adapter, null, $value, $_parameters);
 				return true;
 			}
 			else
@@ -107,16 +107,16 @@
 		 * Internally used to process unary expressions.
 		 * @access private
 		 */
-		private static function ProcessExpressionUnary($operator, $parameter, &$_parameters)
+		private static function ProcessExpressionUnary($adapter, $operator, $parameter, &$_parameters)
 		{
-			return $operator.'('.Database_Utility::ProcessValue($parameter, $_parameters).')';
+			return $operator.'('.Database_Utility::ProcessValue($adapter, $parameter, $_parameters).')';
 		}
 
 		/**
 		 * Internally used to process aggregation expressions.
 		 * @access private
 		 */
-		private static function ProcessExpressionAggregation($operator, $parameter, &$_parameters)
+		private static function ProcessExpressionAggregation($adapter, $operator, $parameter, &$_parameters)
 		{
 			if (is_null($parameter))
 			{
@@ -124,7 +124,7 @@
 			}
 			else
 			{
-				return $operator.'('.Database_Utility::ProcessValue($parameter, $_parameters).')';
+				return $operator.'('.Database_Utility::ProcessValue($adapter, $parameter, $_parameters).')';
 			}
 		}
 
@@ -132,21 +132,21 @@
 		 * Internally used to process binary expressions.
 		 * @access private
 		 */
-		private static function ProcessExpressionBinary($operator, $parameterA, $parameterB, &$_parameters)
+		private static function ProcessExpressionBinary($adapter, $operator, $parameterA, $parameterB, &$_parameters)
 		{
-			return '('.Database_Utility::ProcessValue($parameterA, $_parameters).' '.$operator.' '.Database_Utility::ProcessValue($parameterB, $_parameters).')';
+			return '('.Database_Utility::ProcessValue($adapter, $parameterA, $_parameters).' '.$operator.' '.Database_Utility::ProcessValue($adapter, $parameterB, $_parameters).')';
 		}
 
 		/**
 		 * Internally used to process function expressions.
 		 * @access private
 		 */
-		private static function ProcessExpressionFunction($operator, $parameters, &$_parameters)
+		private static function ProcessExpressionFunction($adapter, $operator, $parameters, &$_parameters)
 		{
 			$processed = array();
 			foreach($parameters as $parameter)
 			{
-				$processed[] = Database_Utility::ProcessValue($parameter, $_parameters);
+				$processed[] = Database_Utility::ProcessValue($adapter, $parameter, $_parameters);
 			}
 			return $operator.'('.implode(', ', $processed).')';
 		}
@@ -155,12 +155,12 @@
 		 * Internally used to process n-ary expressions.
 		 * @access private
 		 */
-		private static function ProcessExpressionNAry($operator, $parameters, &$_parameters)
+		private static function ProcessExpressionNAry($adapter, $operator, $parameters, &$_parameters)
 		{
 			$processed = array();
 			foreach($parameters as $parameter)
 			{
-				$processed[] = Database_Utility::ProcessValue($parameter, $_parameters);
+				$processed[] = Database_Utility::ProcessValue($adapter, $parameter, $_parameters);
 			}
 			return '('.implode(' '.$operator.' ', $processed).')';
 		}
@@ -179,12 +179,12 @@
 		 * @access public
 		 * @return string
 		 */
-		public static function CreateAlias(/*string*/ $alias, /*mixed*/ $value, /*array*/ &$_parameters)
+		public static function CreateAlias($adapter, /*string*/ $alias, /*mixed*/ $value, /*array*/ &$_parameters)
 		{
-			$value = Database_Utility::ProcessValue($value, $_parameters);
+			$value = Database_Utility::ProcessValue($adapter, $value, $_parameters);
 			if (!is_null($alias))
 			{
-				return $value.' '.DB::Alias().' '.DB::QuoteIdentifier((string)$alias);
+				return $value.' '.$adapter->Alias().' '.$adapter->QuoteIdentifier((string)$alias);
 			}
 			else
 			{
@@ -201,7 +201,7 @@
 		 * @access public
 		 * @return mixed
 		 */
-		public static function MergeWheres(/*array*/ $whereA, /*array*/ $whereB)
+		public static function MergeWheres($adapter, /*array*/ $whereA, /*array*/ $whereB)
 		{
 			$result = array();
 			$whereAKeys = Utility::ArraySort(array_keys($whereA));
@@ -218,7 +218,7 @@
 				{
 					$result[] = array
 					(
-						DB::_AND(),
+						$adapter->OP('AND'),
 						array
 						(
 							$whereAKey => $whereA[$whereAKey]
@@ -257,19 +257,19 @@
 		 * @access public
 		 * @return string
 		 */
-		public static function ProcessValue(/*mixed*/ $value, /*array*/ &$_parameters)
+		public static function ProcessValue($adapter, /*mixed*/ $value, /*array*/ &$_parameters)
 		{
 			if ($value instanceof IDatabaseOperator)
 			{
-				$value = Database_Utility::ProcessExpression(null, $value, $_parameters);
+				$value = Database_Utility::ProcessExpression($adapter, null, $value, $_parameters);
 			}
 			else if ($value instanceof Database_Field)
 			{
-				$value = DB::QuoteIdentifier((string)$value);
+				$value = $adapter->QuoteIdentifier((string)$value);
 			}
 			else
 			{
-				if(!Database_Utility::TryProcessValue($value, $value, $_parameters))
+				if(!Database_Utility::TryProcessValue($adapter, $value, $value, $_parameters))
 				{
 					$_parameters[] = $value;
 					$value = '?';
@@ -288,7 +288,7 @@
 		 * @access public
 		 * @return string
 		 */
-		public static function ProcessExpression(/*string*/ $field, /*mixed*/ $expression, /*array*/ &$_parameters)
+		public static function ProcessExpression($adapter, /*string*/ $field, /*mixed*/ $expression, /*array*/ &$_parameters)
 		{
 			if ($expression instanceof IDatabaseOperator)
 			{
@@ -301,19 +301,19 @@
 					}
 					else
 					{
-						return Database_Utility::ProcessExpressionUnary($operator, new Database_Field($field), $_parameters);
+						return Database_Utility::ProcessExpressionUnary($adapter, $operator, new Database_Field($field), $_parameters);
 					}
 				}
 				else if ($expression->Type() == 'aggregation')
 				{
-					$result = Database_Utility::ProcessExpressionAggregation($operator, null, $_parameters);
+					$result = Database_Utility::ProcessExpressionAggregation($adapter, $operator, null, $_parameters);
 					if (is_null($field))
 					{
 						return $result;
 					}
 					else
 					{
-						return DB::QuoteIdentifier((string)$field).' = '.$result;
+						return $adapter->QuoteIdentifier((string)$field).' = '.$result;
 					}
 				}
 				else if ($expression->Type() == 'function')
@@ -325,7 +325,7 @@
 					}
 					else
 					{
-						return DB::QuoteIdentifier((string)$field).' = '.$result;
+						return $adapter->QuoteIdentifier((string)$field).' = '.$result;
 					}
 				}
 				else
@@ -340,26 +340,26 @@
 					$operator = (string)$expression[0];
 					if ($expression[0]->Type() == 'unary')
 					{
-						$result = Database_Utility::ProcessExpressionUnary($operator, $expression[1], $_parameters);
+						$result = Database_Utility::ProcessExpressionUnary($adapter, $operator, $expression[1], $_parameters);
 						if (is_null($field))
 						{
 							return $result;
 						}
 						else
 						{
-							return DB::QuoteIdentifier((string)$field, 'html').' = '.$result;
+							return $adapter->QuoteIdentifier((string)$field, 'html').' = '.$result;
 						}
 					}
 					else if ($expression[0]->Type() == 'aggregation')
 					{
-						$result = Database_Utility::ProcessExpressionAggregation($operator, $expression[1], $_parameters);
+						$result = Database_Utility::ProcessExpressionAggregation($adapter, $operator, $expression[1], $_parameters);
 						if (is_null($field))
 						{
 							return $result;
 						}
 						else
 						{
-							return DB::QuoteIdentifier((string)$field).' = '.$result;
+							return $adapter->QuoteIdentifier((string)$field).' = '.$result;
 						}
 					}
 					else if ($expression[0]->Type() == 'binary')
@@ -371,7 +371,7 @@
 						}
 						else
 						{
-							return DB::QuoteIdentifier((string)$field).' = '.$result;
+							return $adapter->QuoteIdentifier((string)$field).' = '.$result;
 						}
 					}
 					else if ($expression[0]->Type() == 'n-ary')
@@ -383,7 +383,7 @@
 						}
 						else
 						{
-							return DB::QuoteIdentifier((string)$field).' = '.$result;
+							return $adapter->QuoteIdentifier((string)$field).' = '.$result;
 						}
 					}
 					else if ($expression[0]->Type() == 'function')
@@ -395,7 +395,7 @@
 						}
 						else
 						{
-							return DB::QuoteIdentifier((string)$field).' = '.$result;
+							return $adapter->QuoteIdentifier((string)$field).' = '.$result;
 						}
 					}
 					else
@@ -407,30 +407,30 @@
 				{
 					if (is_null($field))
 					{
-						$processed = Database_Utility::ProcessFragment($expression, 'Database_Utility::ProcessExpression', $_parameters);
+						$processed = Database_Utility::ProcessFragment($adapter, $expression, 'Database_Utility::ProcessExpression', $_parameters);
 						if (count($processed) == 1)
 						{
 							return $processed[0];
 						}
 						else
 						{
-							return '('.implode(') '.((string)DB::_OR()).' (', $processed).')';
+							return '('.implode(') '.((string)$adapter->OP('OR')).' (', $processed).')';
 						}
 					}
 					else
 					{
 						if (count($expression) == 1)
 						{
-							return Database_Utility::ProcessExpression($field, $expression[0], $_parameters);
+							return Database_Utility::ProcessExpression($adapter, $field, $expression[0], $_parameters);
 						}
 						else
 						{
 							$processed = array();
 							foreach ($expression as $exp)
 							{
-								$processed[] = Database_Utility::ProcessExpression($field, $exp, $_parameters);
+								$processed[] = Database_Utility::ProcessExpression($adapter, $field, $exp, $_parameters);
 							}
-							return '('.implode(') '.((string)DB::_OR()).' (', $processed).')';
+							return '('.implode(') '.((string)$adapter->OP('OR')).' (', $processed).')';
 						}
 					}
 				}
@@ -441,14 +441,14 @@
 			}
 			else
 			{
-				$expression = Database_Utility::ProcessValue($expression, $_parameters);
+				$expression = Database_Utility::ProcessValue($adapter, $expression, $_parameters);
 				if (is_null($field))
 				{
 					return $expression;
 				}
 				else
 				{
-					return DB::QuoteIdentifier((string)$field).' = '.$expression;
+					return $adapter->QuoteIdentifier((string)$field).' = '.$expression;
 				}
 			}
 		}
@@ -461,7 +461,7 @@
 		 * @access public
 		 * @return string
 		 */
-		public static function ProcessFragment($fragment, $callback, &$_parameters)
+		public static function ProcessFragment($adapter, $fragment, $callback, &$_parameters)
 		{
 			if (is_callable($callback))
 			{
@@ -481,13 +481,13 @@
 						{
 							$value = $key;
 						}
-						$processed[] = call_user_func_array($callback, array(null, $value, &$_parameters));
+						$processed[] = call_user_func_array($callback, array($adapter, null, $value, &$_parameters));
 						$index++;
 					}
 					else
 					{
 						$value = $fragment[$key];
-						$processed[] = call_user_func_array($callback, array($key, $value, &$_parameters));
+						$processed[] = call_user_func_array($callback, array($adapter, $key, $value, &$_parameters));
 					}
 				}
 				return $processed;

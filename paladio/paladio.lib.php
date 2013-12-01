@@ -183,6 +183,7 @@
 					if (is_dir($item))
 					{
 						Configuration::Load(FileSystem::GetFolderFiles('*.cfg.php', $item));
+						FileSystem::RequireAll('*.db.php', $item);
 						FileSystem::RequireAll('*.lib.php', $item);
 						$petFiles[$item] = FileSystem::GetFolderFiles('*.pet.php', $item);
 					}

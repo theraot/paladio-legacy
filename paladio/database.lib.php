@@ -6,9 +6,10 @@
 	}
 	else
 	{
+		require_once('filesystem.lib.php');
 		require_once('utility.lib.php');
 		require_once('database_utility.lib.php');
-		require_once('db.lib.php');
+		require_once('dbbase.lib.php');
 	}
 
 	/**
@@ -22,7 +23,7 @@
 		// Private (Class)
 		//------------------------------------------------------------
 
-		private static $engine;
+		private static $adapter;
 		private static $server;
 		private static $port;
 		private static $database;
@@ -42,8 +43,7 @@
 		 */
 		private static function Connect(/*string*/ $user, /*string*/ $password)
 		{
-			$class = 'DB_'.Database::$engine;
-			$connection = call_user_func($class.'::Connect', Database::$server, Database::$port, $user, $password, Database::$database, Database::$charset);
+			$connection = call_user_func(array(&Database::$adapter, 'Connect'), Database::$server, Database::$port, $user, $password, Database::$database, Database::$charset);
 			if ($connection === false)
 			{
 				return false;
@@ -69,7 +69,7 @@
 				$array = array();
 				foreach ($fields as $field)
 				{
-					$array[] = DB::QuoteIdentifier($field).' = ?';
+					$array[] = Database::$adapter->QuoteIdentifier($field).' = ?';
 					$_parameters[] = $record[$field];
 				}
 				$assignment .= implode(', ', $array);
@@ -92,7 +92,7 @@
 			}
 			else
 			{
-				DB::Disconnect($connection);
+				Database::$adapter->Disconnect($connection);
 			}
 		}
 
@@ -105,7 +105,7 @@
 		{
 			if (is_array($fields) && count($fields) > 0)
 			{
-				$processed = Database_Utility::ProcessFragment($fields, 'Database_Utility::CreateAlias', $_parameters);
+				$processed = Database_Utility::ProcessFragment(Database::$adapter, $fields, 'Database_Utility::CreateAlias', $_parameters);
 				return implode(', ', $processed);
 			}
 			else if (is_null($fields) || (is_array($fields) && count($fields) == 0))
@@ -129,14 +129,14 @@
 		{
 			if (is_array($where) && count($where) > 0)
 			{
-				$processed = Database_Utility::ProcessFragment($where, 'Database_Utility::ProcessExpression', $_parameters);
+				$processed = Database_Utility::ProcessFragment(Database::$adapter, $where, 'Database_Utility::ProcessExpression', $_parameters);
 				if (count($processed) == 1)
 				{
 					return ' WHERE '.$processed[0];
 				}
 				else
 				{
-					return ' WHERE ('.implode(') '.((string)DB::_AND()).' (', $processed).')';
+					return ' WHERE ('.implode(') '.((string)Database::$adapter->OP('AND')).' (', $processed).')';
 				}
 			}
 			else if (is_null($where) || (is_array($where) && count($where) == 0))
@@ -198,7 +198,7 @@
 		 */
 		public static function Configure(/*string*/ $engine, /*string*/ $server, /*string*/ $port, /*string*/ $database, /*string*/ $charset, /*string*/ $executeUser, /*string*/ $executePassword, /*string*/ $queryUser = null, /*string*/ $queryPassword = null)
 		{
-			Database::$engine = $engine;
+			Database::$adapter = DBBase::Create($engine);
 			Database::$server = $server;
 			Database::$port = $port;
 			Database::$database = $database;
@@ -305,7 +305,7 @@
 		 */
 		public static function CreateQueryCountRecords(/*string*/ $table, /*mixed*/ $where = null)
 		{
-			return Database::CreateQueryRead($table, array('_amount' => DB::_COUNT()), $where);
+			return Database::CreateQueryRead($table, array('_amount' => Database::$adapter->OP('COUNT')), $where);
 		}
 
 		/**
@@ -325,7 +325,7 @@
 		public static function CreateQueryRead(/*string*/ $table, /*mixed*/ $fields = null, /*mixed*/ $where = null)
 		{
 			$_parameters = array();
-			$statement = 'SELECT '.Database::ProcessFields($fields, $_parameters).' FROM '.DB::QuoteIdentifier($table).Database::ProcessWhere($where, $_parameters);
+			$statement = 'SELECT '.Database::ProcessFields($fields, $_parameters).' FROM '.Database::$adapter->QuoteIdentifier($table).Database::ProcessWhere($where, $_parameters);
 			return array('statement' => $statement, 'parameters' => $_parameters);
 		}
 
@@ -345,7 +345,7 @@
 		public static function CreateStatementDelete(/*string*/ $table, /*mixed*/ $where = null)
 		{
 			$_parameters = array();
-			$statement = 'DELETE FROM '.DB::QuoteIdentifier($table).Database::ProcessWhere($where, $_parameters);
+			$statement = 'DELETE FROM '.Database::$adapter->QuoteIdentifier($table).Database::ProcessWhere($where, $_parameters);
 			return array('statement' => $statement, 'parameters' => $_parameters);
 		}
 
@@ -376,7 +376,7 @@
 			foreach ($fields as $field)
 			{
 				$value = $record[$field];
-				$array[] = Database_Utility::ProcessValue($value, $_parameters);
+				$array[] = Database_Utility::ProcessValue(Database::$adapter, $value, $_parameters);
 			}
 			$statement .= implode(', ', $array).')';
 			return array('statement' => $statement, 'parameters' => $_parameters);
@@ -399,7 +399,7 @@
 		public static function CreateStatementUpdate(/*array*/ $record, /*string*/ $table, /*mixed*/ $where = null)
 		{
 			$_parameters = array();
-			$statement = 'UPDATE '.DB::QuoteIdentifier($table).' '.Database::CreateAssignment($record, $_parameters).Database::ProcessWhere($where, $_parameters);
+			$statement = 'UPDATE '.Database::$adapter->QuoteIdentifier($table).' '.Database::CreateAssignment($record, $_parameters).Database::ProcessWhere($where, $_parameters);
 			return array('statement' => $statement, 'parameters' => $_parameters);
 		}
 
@@ -455,7 +455,7 @@
 			else
 			{
 				$ok = false;
-				$result = DB::Query($connection, $statement);
+				$result = Database::$adapter->Query($connection, $statement);
 				if ($result === true)
 				{
 					$ok = true;
@@ -556,7 +556,7 @@
 			}
 			else
 			{
-				$result = DB::Query($connection, $query);
+				$result = Database::$adapter->Query($connection, $query);
 				if ($result === true)
 				{
 					$ok = true;

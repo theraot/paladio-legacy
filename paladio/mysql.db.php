@@ -12,7 +12,7 @@
 	 *
 	 * @package Paladio
 	 */
-	final class DB_MySQL
+	final class DB_MySQL extends DBBase
 	{
 		/**
 		 * Connects to the database
@@ -28,7 +28,7 @@
 		 * @access public
 		 * @return mixed
 		 */
-		public static function Connect(/*string*/ $server, /*int*/ $port, /*string*/ $user, /*string*/ $password, /*string*/ $database, /*string*/ $charset)
+		public function Connect(/*string*/ $server, /*int*/ $port, /*string*/ $user, /*string*/ $password, /*string*/ $database, /*string*/ $charset)
 		{
 			$DSN = 'mysql:host='.Parser::StringConsumeUntil((string)$server, 0, array(':', ';'), $length).';';
 			if (!is_numeric($port))
@@ -53,7 +53,7 @@
 				$connection = new PDO($DSN, $user, $password);
 				if (!is_null($charset))
 				{
-					$connection->query('set charset '.DB::QuoteIdentifier($charset));
+					$connection->query('set charset '.$this->QuoteIdentifier($charset));
 				}
 			}
 			catch (PDOException $e)
@@ -73,7 +73,7 @@
 		 * @access public
 		 * @return bool
 		 */
-		public static function Disconnect(/*object*/ $connection)
+		public function Disconnect(/*object*/ $connection)
 		{
 			return true;
 		}
@@ -91,7 +91,7 @@
 		 * @access public
 		 * @return mixed
 		 */
-		public static function Query(/*object*/ $connection, /*mixed*/ $query)
+		public function Query(/*object*/ $connection, /*mixed*/ $query)
 		{
 			if (is_string($query))
 			{
@@ -137,21 +137,9 @@
 
 		//------------------------------------------------------------
 		
-		public static function QuoteIdentifier($identifier)
+		public function QuoteIdentifier($identifier)
 		{
 			return '`' . str_replace('`', '``', $identifier) . '`';
-		}
-
-		//------------------------------------------------------------
-		// Public (Constructors)
-		//------------------------------------------------------------
-
-		/**
-		 * Creating instances of this class is not allowed.
-		 */
-		public function __construct()
-		{
-			throw new Exception('Creating instances of '.__CLASS__.' is forbidden');
 		}
 	}
 ?>

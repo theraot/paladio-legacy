@@ -8,7 +8,6 @@
 	{
 		require_once('filesystem.lib.php');
 		require_once('ini.lib.php');
-		require_once('session.lib.php');
 	}
 
 	/**
@@ -67,13 +66,13 @@
 		 * If $callback is callable: it will be called to handle the notification.
 		 * Otherwise: throws an exception with the message "Invalid callback".
 		 *
-		 * @param $categoryName: The name of the requested category.
+		 * @param $categoryName: The name of the requested category. Or an array of names of the requested categories.
 		 * @param $callback: The function callback to be executed when the category is available. If null, the requested file will be included.
 		 *
 		 * @access public
 		 * @return bool
 		 */
-		public static function Callback(/*string*/ $categoryName, /*function*/ $callback = null)
+		public static function Callback(/*mixed*/ $categoryName, /*function*/ $callback = null)
 		{
 			if (Configuration::CategoryExists($categoryName))
 			{
@@ -280,37 +279,6 @@
 			}
 		}
 
-		public static function SyncSession()
-		{
-			//TODO: create sync in session for Configuration and AccessControl
-			Session::Start();
-			$appGUID = FileSystem::AppGUID();
-			$sessionStatusName = $appGUID.'__configuration';
-			if (is_null(Configuration::$INI))
-			{
-				Configuration::$INI = new INI();
-				if (Session::isset_Status($sessionStatusName))
-				{
-					Configuration::$INI->set_Content(Session::get_Status($sessionStatusName));
-					return true;
-				}
-			}
-			else
-			{
-				if (Session::isset_Status($sessionStatusName))
-				{
-					$content = Session::get_Status($sessionStatusName);
-					Configuration::$INI->merge_Content($content, false);
-					return true;
-				}
-				else
-				{
-					Session::set_Status($sessionStatusName, Configuration::$INI->get_Content());
-				}
-			}
-			return false;
-		}
-
 		/**
 		 * Attempts to reads the value of the configuration field identified by $fieldName in the category with the name $categoryName.
 		 *
@@ -351,17 +319,5 @@
 		}
 	}
 
-	if (class_exists('Session'))
-	{
-		if (!Configuration::SyncSession())
-		{
-			Configuration::Load(FileSystem::FolderCore());
-			Configuration::SyncSession();
-		}
-	}
-	else
-	{
-		Configuration::Load(FileSystem::FolderCore());
-		Paladio::Request('Session', 'Configuration::SyncSession');
-	}
+	Configuration::Load(FileSystem::FolderCore());
 ?>

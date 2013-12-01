@@ -35,10 +35,43 @@
 			}
 			return $result;
 		}
-
-		private static function _RequireOnce(/*string*/ $_REQUIRE)
+		
+		private static function _CreateRelativePath($absolute, $target, $directory_separator)
 		{
-			require_once($_REQUIRE);
+			$absoluteLength = count($absolute);
+			$targetLength = count($target);
+			$result = array();
+			$commonLength = min($absoluteLength, $targetLength);
+			for ($index = 0; $index < $commonLength; $index++)
+			{
+				if ($absolute[$index] != $target[$index])
+				{
+					break;
+				}
+			}
+			if ($index < $absoluteLength)
+			{
+				for ($index2 = $index; $index2 < $absoluteLength; $index2++)
+				{
+					$result[] = '..';
+				}
+			}
+			if ($index < $targetLength)
+			{
+				for ($index2 = $index; $index2 < $targetLength; $index2++)
+				{
+					$result[] = $target[$index2];
+				}
+			}
+			if (count($result) === 0)
+			{
+				$result[] = '.';
+			}
+			if (is_null($directory_separator))
+			{
+				$directory_separator = DIRECTORY_SEPARATOR;
+			}
+			return implode($directory_separator, $result);
 		}
 
 		private static function GetFolderItemsRelative(/*mixed*/ $pattern, /*string*/ $path, /*bool*/ $folders)
@@ -77,8 +110,8 @@
 				//---
 				if (is_string($path))
 				{
-					$folder = FileSystem::ResolveRelativePath($path, $folder);
-					$_file = FileSystem::ResolveRelativePath($folder, $pattern);
+					$folder = FileSystem::ResolveRelativePath($path, $folder, DIRECTORY_SEPARATOR);
+					$_file = FileSystem::ResolveRelativePath($folder, $pattern, DIRECTORY_SEPARATOR);
 				}
 				if (strpos($pattern, '*') === FALSE && strpos($pattern, '?') === FALSE)
 				{
@@ -163,6 +196,13 @@
 				return false;
 			}
 		}
+		
+		//------------------------------------------------------------
+
+		private static function __RequireOnce(/*string*/ $_REQUIRE)
+		{
+			require_once($_REQUIRE);
+		}
 
 		//------------------------------------------------------------
 		// Public (Class)
@@ -186,54 +226,21 @@
 		}
 
 		/**
-		 * Creates the relative path thats needed to go from $referencePath to $absolutePath.
+		 * Creates the relative path thats needed to go from $absolutePath to $targetPath.
 		 *
-		 * Note 1: both $referencePath and $absolutePath are expected to be string, no check is performed.
-		 * Note 2: On Windows, if $referencePath and $absolutePath are on diferent volumes the resulting path is invalid.
+		 * Note 1: both $absolutePath and $targetPath are expected to be string, no check is performed.
+		 * Note 2: On Windows, if $absolutePath and $targetPath are on diferent volumes the resulting path is invalid.
 		 *
-		 * Returns a path that can be used to go from $referencePath to $absolutePath, the path uses DIRECTORY_SEPARATOR as separator and does not include the ending DIRECTORY_SEPARATOR.
+		 * Returns a path that can be used to go from $absolutePath to $targetPath, the path uses DIRECTORY_SEPARATOR as separator and does not include the ending DIRECTORY_SEPARATOR.
 		 *
 		 * @access public
 		 * @return string
 		 */
-		public static function CreateRelativePath(/*string*/ $referencePath, /*string*/ $absolutePath, $directory_separator = null)
+		public static function CreateRelativePath(/*string*/ $absolutePath, /*string*/ $targetPath, /*string*/ $directory_separator = null)
 		{
-			$reference = FileSystem::ProcessAbsolutePath($referencePath);
 			$absolute = FileSystem::ProcessAbsolutePath($absolutePath);
-			$referenceLength = count($reference);
-			$absoluteLength = count($absolute);
-			$result = array();
-			$commonLength = min($referenceLength, $absoluteLength);
-			for ($index = 0; $index < $commonLength; $index++)
-			{
-				if ($reference[$index] != $absolute[$index])
-				{
-					break;
-				}
-			}
-			if ($index < $referenceLength)
-			{
-				for ($index2 = $index; $index2 < $referenceLength; $index2++)
-				{
-					$result[] = '..';
-				}
-			}
-			if ($index < $absoluteLength)
-			{
-				for ($index2 = $index; $index2 < $absoluteLength; $index2++)
-				{
-					$result[] = $absolute[$index2];
-				}
-			}
-			if (count($result) === 0)
-			{
-				$result[] = '.';
-			}
-			if (is_null($directory_separator))
-			{
-				$directory_separator = DIRECTORY_SEPARATOR;
-			}
-			return implode($directory_separator, $result);
+			$target = FileSystem::ProcessAbsolutePath($targetPath);
+			return FileSystem::_CreateRelativePath($absolute, $target, $directory_separator);
 		}
 
 		/**
@@ -473,8 +480,15 @@
 			{
 				$relativePath = substr($relativePath, $separatorLen);
 			}
-			$folders = explode(DIRECTORY_SEPARATOR, $relativePath);
-			return FileSystem::_ProcessPath($folders);
+			if ($relativePath === '')
+			{
+				return array('.');
+			}
+			else
+			{
+				$folders = explode(DIRECTORY_SEPARATOR, $relativePath);
+				return FileSystem::_ProcessPath($folders);
+			}
 		}
 
 		/**
@@ -490,7 +504,7 @@
 			$__REQUIRE = FileSystem::GetFolderItemsRelative($pattern, $path, false);
 			foreach ($__REQUIRE as $_REQUIRE)
 			{
-				FileSystem::_RequireOnce($_REQUIRE);
+				FileSystem::__RequireOnce($_REQUIRE);
 			}
 		}
 
@@ -502,32 +516,34 @@
 		 * @access public
 		 * @return string
 		 */
-		public static function ResolveRelativePath(/*string*/ $absolutePath, /*string*/ $relativePath)
+		public static function ResolveRelativePath(/*string*/ $absolutePath, /*string*/ $relativePath, /*string*/ $directory_separator = null)
 		{
-			$reference = FileSystem::ProcessAbsolutePath($absolutePath);
+			$absolute = FileSystem::ProcessAbsolutePath($absolutePath);
 			$relative = FileSystem::ProcessRelativePath($relativePath);
-			$result = implode(DIRECTORY_SEPARATOR, FileSystem::_ProcessPath(array_merge($reference, $relative)));
+			if (is_null($directory_separator))
+			{
+				$directory_separator = DIRECTORY_SEPARATOR;
+			}
+			$result = implode($directory_separator, FileSystem::_ProcessPath(array_merge($absolute, $relative)));
 			return $result;
 		}
 
 		/**
-		 * Creates the relative path needed to go from $referencePath to the absolute path of the requested script as given by FileSystem::ScriptPath().
+		 * Creates the relative path thats needed to go from $newAbsolutePath to the location of following $relativePath starting in $oldAbsolutePath
 		 *
-		 * If $referencePath is null: Creates the relative path needed to go from FileSystem::DocumentRoot() to FileSystem::ScriptPath().
-		 * Otehrwise: Assumes $referencePath is string and creates the relative path needed to go from $referencePath to FileSystem::ScriptPath().
-		 *
-		 * Note: $referencePath is expected to be null or string, no check is performed.
+		 * Note: $oldAbsolutePath, $newAbsolutePath and $relativePath are expected to be string, no check is performed.
 		 *
 		 * @access public
 		 * @return string
 		 */
-		public static function ScriptUri(/*string*/ $referencePath = null, $directory_separator = '/')
+		public static function RebaseRelativePath(/*string*/ $newAbsolutePath, /*string*/ $oldAbsolutePath, /*string*/ $relativePath, /*string*/ $directory_separator = null)
 		{
-			if (is_null($referencePath))
-			{
-				$referencePath = FileSystem::DocumentRoot();
-			}
-			return $directory_separator.FileSystem::CreateRelativePath($referencePath, FileSystem::ScriptPath(), $directory_separator);
+			$newAbsolute = FileSystem::ProcessAbsolutePath($newAbsolutePath);
+			$oldAbsolute = FileSystem::ProcessAbsolutePath($oldAbsolutePath);
+			$relative = FileSystem::ProcessRelativePath($relativePath);
+			$target = FileSystem::_ProcessPath(array_merge($oldAbsolute, $relative));
+			$result = FileSystem::_CreateRelativePath($newAbsolute, $target, $directory_separator);
+			return $result;
 		}
 
 		/**
@@ -541,6 +557,26 @@
 		public static function ScriptPath()
 		{
 			return str_replace(array('/', '\\'), DIRECTORY_SEPARATOR, $_SERVER['SCRIPT_FILENAME']);
+		}
+
+		/**
+		 * Creates the relative path needed to go from $absolutePath to the absolute path of the requested script as given by FileSystem::ScriptPath().
+		 *
+		 * If $absolutePath is null: Creates the relative path needed to go from FileSystem::DocumentRoot() to FileSystem::ScriptPath().
+		 * Otehrwise: Assumes $absolutePath is string and creates the relative path needed to go from $absolutePath to FileSystem::ScriptPath().
+		 *
+		 * Note: $absolutePath is expected to be null or string, no check is performed.
+		 *
+		 * @access public
+		 * @return string
+		 */
+		public static function ScriptPathRelative(/*string*/ $absolutePath = null, $directory_separator = '/')
+		{
+			if (is_null($absolutePath))
+			{
+				$absolutePath = FileSystem::DocumentRoot();
+			}
+			return $directory_separator.FileSystem::CreateRelativePath($absolutePath, FileSystem::ScriptPath(), $directory_separator);
 		}
 
 		/**

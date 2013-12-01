@@ -24,26 +24,30 @@
 		{
 			function __EmitPaladioSelect($data, $selected)
 			{
-				foreach ($data as $option => $currentValue)
+				$keys = Utility::ArraySort(array_keys($data));
+				$index = 0;
+				foreach ($keys as $key)
 				{
+					$currentValue = $data[$key];
 					if (is_array($currentValue))
 					{
-						echo '<optgroup label="'.$option.'">';
+						echo '<optgroup label="'.$key.'">';
 						__EmitPaladioSelect($currentValue, $selected);
 						echo '</optgroup>';
 					}
 					else
 					{
-						if (!is_string($option))
+						if ($index === $key)
 						{
-							$option = $currentValue;
+							$key = $currentValue;
+							$index++;
 						}
 						echo '<option value="'.$currentValue.'"';
 						if ((is_array($value) && in_array($currentValue, $value)) || $value == $currentValue)
 						{
 							echo ' selected="selected"';
 						}
-						echo '>'.$option.'</option>';
+						echo '>'.$key.'</option>';
 					}
 				}
 			}

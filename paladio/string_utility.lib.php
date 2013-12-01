@@ -125,6 +125,26 @@
 			return mb_convert_encoding('&#'.intval($codepoint).';', 'UTF-8', 'HTML-ENTITIES');
 		}
 	}
+	
+	if (!function_exists('mb_str_split'))
+	{
+		function mb_str_split(/*string*/ $string, /*int*/ $length = 1)
+		{
+			if (intval($length) != $length || $length < 1)
+			{
+				return false;
+			}
+			else
+			{
+				$result = array();
+				for ($index = 0; $index < mb_strlen($string); $index += $length)
+				{
+					$result[] = mb_substr($string, $index, $length);
+				}
+				return $result;
+			}
+		}
+	}
 
 	/**
 	 * String_Utility
@@ -136,6 +156,7 @@
 		// Private (Class)
 		//------------------------------------------------------------
 
+		private static $charset;
 		private static $weekdays;
 		private static $months;
 
@@ -703,6 +724,42 @@
 			String_Utility::$weekdays = $weekdays;
 			String_Utility::$months = $months;
 		}
+		
+		/**
+		 * Gets the correct charset to use in Iconv to convert from based on the current locale
+		 *
+		 * @access public
+		 * @return string
+		 */
+		public static function DiscoverIconvCharset()
+		{
+			if (!isset(String_Utility::$charset))
+			{
+				$charset = explode('.', setlocale(LC_COLLATE, 0));
+				if (count($charset) > 1)
+				{
+					$charset = $charset[1];
+					if ($charset == '1250' || $charset == '1252')
+					{
+						$charset = 'Windows-'.$charset;
+					}
+					else if (String_Utility::TryNeglectStart($charset, 'utf', $result)) //test in linux
+					{
+						$charset = 'UTF-'.$result;
+					}
+					else if (String_Utility::TryNeglectStart($charset, 'iso8859', $result)) //test in linux
+					{
+						$charset = 'ISO-8859-'.$result;
+					}
+					String_Utility::$charset = $charset;
+				}
+				else
+				{
+					String_Utility::$charset = 'UTF-8';
+				}
+			}
+			return String_Utility::$charset;
+		}
 
 		//------------------------------------------------------------
 		// Public (Constructor)
@@ -718,16 +775,19 @@
 	}
 
 	require_once('configuration.lib.php');
-	/**
-	 * Intended for internal use only
-	 */
-	function String_Utility_Configure()
-	{
-		String_Utility::Configure
+	Configuration::Callback
+	(
+		'paladio-strings',
+		create_function
 		(
-			Configuration::Get('paladio-strings', 'weekdays'),
-			Configuration::Get('paladio-strings', 'months')
-		);
-	}
-	Configuration::Callback('paladio-strings', 'String_Utility_Configure');
+			'',
+			<<<'EOT'
+				String_Utility::Configure
+				(
+					Configuration::Get('paladio-strings', 'weekdays'),
+					Configuration::Get('paladio-strings', 'months')
+				);
+EOT
+		)
+	);
 ?>

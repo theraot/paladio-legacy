@@ -503,49 +503,49 @@
 		create_function
 		(
 			'',
-			<<<'EOT'
+			'
 				AccessControl::Configure
 				(
-					Configuration::Get('paladio-accesscontrol', 'table'),
-					Configuration::Get('paladio-accesscontrol', 'id_field'),
-					Configuration::Get('paladio-accesscontrol', 'password_field'),
-					Configuration::Get('paladio-accesscontrol', 'salt_field'),
-					Configuration::Get('paladio-accesscontrol', 'role_field'),
-					Configuration::Get('paladio-accesscontrol', 'hash_algorithm')
+					Configuration::Get(\'paladio-accesscontrol\', \'table\'),
+					Configuration::Get(\'paladio-accesscontrol\', \'id_field\'),
+					Configuration::Get(\'paladio-accesscontrol\', \'password_field\'),
+					Configuration::Get(\'paladio-accesscontrol\', \'salt_field\'),
+					Configuration::Get(\'paladio-accesscontrol\', \'role_field\'),
+					Configuration::Get(\'paladio-accesscontrol\', \'hash_algorithm\')
 				);
 				AccessControl::Load(FileSystem::FolderCore());
 				AccessControl::Load(dirname(__FILE__));
 				Paladio::Request
 				(
-					'Session',
+					\'Session\',
 					create_function
 					(
-						'',
-						'
+						\'\',
+						\'
 							Session::Start();
-							if (Session::isset_Status(\'user_id\') && Session::isset_Status(\'user_password\'))
+							if (Session::isset_Status(\\\'user_id\\\') && Session::isset_Status(\\\'user_password\\\'))
 							{
-								$id = Session::get_Status(\'user_id\');
-								$password = Session::get_Status(\'user_password\');
+								$id = Session::get_Status(\\\'user_id\\\');
+								$password = Session::get_Status(\\\'user_password\\\');
 								AccessControl::Open($id, $password);
 							}
-							if (!AccessControl::CanAccess(FileSystem::ScriptPath(), $_SERVER[\'QUERY_STRING\']))
+							if (!AccessControl::CanAccess(FileSystem::ScriptPath(), $_SERVER[\\\'QUERY_STRING\\\']))
 							{
 								$fallback = AccessControl::Fallback();
 								if ($fallback === false)
 								{
-									header(\'HTTP/1.0 403 Forbidden\');
+									header(\\\'HTTP/1.0 403 Forbidden\\\');
 								}
 								else
 								{
-									header(\'Location: \'.$fallback, true, 307);
+									header(\\\'Location: \\\'.$fallback, true, 307);
 								}
 								exit();
 							}
-						'
+						\'
 					)
 				);
-EOT
+			'
 		)
 	);
 ?>

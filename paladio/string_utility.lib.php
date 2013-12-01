@@ -781,13 +781,11 @@
 		create_function
 		(
 			'',
-			<<<'EOT'
-				String_Utility::Configure
-				(
-					Configuration::Get('paladio-strings', 'weekdays'),
-					Configuration::Get('paladio-strings', 'months')
-				);
-EOT
+			'String_Utility::Configure
+			(
+				Configuration::Get(\'paladio-strings\', \'weekdays\'),
+				Configuration::Get(\'paladio-strings\', \'months\')
+			);'
 		)
 	);
 ?>

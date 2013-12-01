@@ -862,19 +862,19 @@
 		create_function
 		(
 			'',
-			<<<'EOT'
+			'
 				Database::Configure
 				(
-					Configuration::Get('paladio-database', 'server'),
-					Configuration::Get('paladio-database', 'port'),
-					Configuration::Get('paladio-database', 'database'),
-					Configuration::Get('paladio-database', 'charset'),
-					Configuration::Get('paladio-database', 'user'),
-					Configuration::Get('paladio-database', 'password'),
-					Configuration::Get('paladio-database', 'query_user'),
-					Configuration::Get('paladio-database', 'query_password')
+					Configuration::Get(\'paladio-database\', \'server\'),
+					Configuration::Get(\'paladio-database\', \'port\'),
+					Configuration::Get(\'paladio-database\', \'database\'),
+					Configuration::Get(\'paladio-database\', \'charset\'),
+					Configuration::Get(\'paladio-database\', \'user\'),
+					Configuration::Get(\'paladio-database\', \'password\'),
+					Configuration::Get(\'paladio-database\', \'query_user\'),
+					Configuration::Get(\'paladio-database\', \'query_password\')
 				);
-EOT
+			'
 		)
 	);
 ?>

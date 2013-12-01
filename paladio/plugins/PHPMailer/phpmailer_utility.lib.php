@@ -102,19 +102,19 @@
 		create_function
 		(
 			'',
-			<<<'EOT'
+			'
 				PHPMailer_Utility::Configure
 				(
-					Configuration::Get('paladio-mail', 'secure', 'ssl'),
-					Configuration::Get('paladio-mail', 'secure', 'ssl'),
-					Configuration::Get('paladio-mail', 'server'),
-					Configuration::Get('paladio-mail', 'port'),
-					Configuration::Get('paladio-mail', 'user'),
-					Configuration::Get('paladio-mail', 'password'),
-					Configuration::Get('paladio-mail', 'sender'),
-					Configuration::Get('paladio-mail', 'sender_name')
+					Configuration::Get(\'paladio-mail\', \'secure\', \'ssl\'),
+					Configuration::Get(\'paladio-mail\', \'secure\', \'ssl\'),
+					Configuration::Get(\'paladio-mail\', \'server\'),
+					Configuration::Get(\'paladio-mail\', \'port\'),
+					Configuration::Get(\'paladio-mail\', \'user\'),
+					Configuration::Get(\'paladio-mail\', \'password\'),
+					Configuration::Get(\'paladio-mail\', \'sender\'),
+					Configuration::Get(\'paladio-mail\', \'sender_name\')
 				);
-EOT
+			'
 		)
 	);
 ?>

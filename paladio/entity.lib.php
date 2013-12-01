@@ -21,7 +21,7 @@
 		create_function
 		(
 			'',
-			<<<'EOT'
+			'
 				/**
 				 * Mapping
 				 * @package Paladio
@@ -32,7 +32,7 @@
 				 * @package Paladio
 				*/
 				class Reference extends Annotation {public $alias, $reference, $method;}
-EOT
+			'
 		)
 	);
 
@@ -1304,12 +1304,12 @@ EOT
 		create_function
 		(
 			'',
-			<<<'EOT'
-				$entitiesFolder = 'entities';
-				Configuration::TryGet('paladio-paths', 'entities', $entitiesFolder);
-				FileSystem::RequireAll('*.lib.php', FileSystem::FolderCore().$entitiesFolder);
+			'
+				$entitiesFolder = \'entities\';
+				Configuration::TryGet(\'paladio-paths\', \'entities\', $entitiesFolder);
+				FileSystem::RequireAll(\'*.lib.php\', FileSystem::FolderCore().$entitiesFolder);
 				EntityBase::LoadEnts($entitiesFolder);
-EOT
+			'
 		)
 	);
 ?>

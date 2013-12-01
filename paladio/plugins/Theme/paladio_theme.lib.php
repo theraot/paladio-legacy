@@ -264,13 +264,13 @@
 		create_function
 		(
 			'',
-			<<<'EOT'
+			'
 				PaladioTheme::Configure
 				(
 					null,
-					FileSystem::FolderCore().Configuration::Get('paladio-paths', 'themes', 'themes')
+					FileSystem::FolderCore().Configuration::Get(\'paladio-paths\', \'themes\', \'themes\')
 				);
-EOT
+			'
 		)
 	);
 	Configuration::Callback
@@ -279,13 +279,13 @@ EOT
 		create_function
 		(
 			'',
-			<<<'EOT'
+			'
 				PaladioTheme::Configure
 				(
-					Configuration::Get('paladio-theme', 'current', 'default'),
+					Configuration::Get(\'paladio-theme\', \'current\', \'default\'),
 					null
 				);
-EOT
+			'
 		)
 	);
 ?>

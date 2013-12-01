@@ -43,7 +43,7 @@
 		 */
 		private static function Connect(/*string*/ $user, /*string*/ $password)
 		{
-			$connection = call_user_func(array(&Database::$adapter, 'Connect'), Database::$server, Database::$port, $user, $password, Database::$database, Database::$charset);
+			$connection = Database::$adapter->Connect(Database::$server, Database::$port, $user, $password, Database::$database, Database::$charset);
 			if ($connection === false)
 			{
 				return false;
@@ -105,7 +105,7 @@
 		{
 			if (is_array($fields) && count($fields) > 0)
 			{
-				$processed = Database_Utility::ProcessFragment(Database::$adapter, $fields, 'Database_Utility::CreateAlias', $_parameters);
+				$processed = Database_Utility::ProcessFragment(Database::$adapter, $fields, array('Database_Utility', 'CreateAlias'), $_parameters);
 				return implode(', ', $processed);
 			}
 			else if (is_null($fields) || (is_array($fields) && count($fields) == 0))
@@ -129,7 +129,7 @@
 		{
 			if (is_array($where) && count($where) > 0)
 			{
-				$processed = Database_Utility::ProcessFragment(Database::$adapter, $where, 'Database_Utility::ProcessExpression', $_parameters);
+				$processed = Database_Utility::ProcessFragment(Database::$adapter, $where, array('Database_Utility', 'ProcessExpression'), $_parameters);
 				if (count($processed) == 1)
 				{
 					return ' WHERE '.$processed[0];
@@ -636,14 +636,7 @@
 				$result->rewind();
 				$record = $result->current();
 				$result->close();
-				if (!is_null($record))
-				{
-					return $record;
-				}
-				else
-				{
-					return null;
-				}
+				return $record;
 			}
 		}
 

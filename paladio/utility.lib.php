@@ -91,8 +91,7 @@
 				}
 			}
 		}
-
-
+		
 		//------------------------------------------------------------
 		// Public (Class)
 		//------------------------------------------------------------
@@ -170,7 +169,7 @@
 		 * Creates a new array containing items except those that belong to the given keys.
 		 *
 		 * @param $array: the array to process.
-		 * @param $keys: the keys to take.
+		 * @param $keys: the keys to skip.
 		 *
 		 * @access public
 		 * @return array
@@ -214,11 +213,11 @@
 				$charset = String_Utility::DiscoverIconvCharset();
 				if ($charset === 'UTF-8')
 				{
-					usort($array, "Utility::Cmp");
+					usort($array, array('Utility', 'Cmp'));
 				}
 				else
 				{
-					usort($array, "Utility::CmpIconv");
+					usort($array, array('Utility', 'CmpIconv'));
 				}
 			}
 			else

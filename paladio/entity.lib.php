@@ -899,7 +899,7 @@
 		{
 			if (is_callable($class.'::Mapping'))
 			{
-				return call_user_func($class.'::Mapping');
+				return call_user_func(array($class, 'Mapping'));
 			}
 			else
 			{
@@ -916,7 +916,7 @@
 			$result = array();
 			if (is_callable($class.'::References'))
 			{
-				$references = call_user_func($class.'::References');
+				$references = call_user_func(array($class, 'References'));
 			}
 			else
 			{

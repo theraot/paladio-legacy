@@ -164,7 +164,7 @@
 						$ids = Database::Read($data['table'], $primaryKey);
 						foreach ($ids as $id)
 						{
-							$entry = call_user_func('EntityBase::Existing', $id, $entity);
+							$entry = call_user_func(array('EntityBase', 'Existing'), $id, $entity);
 							$primaryKeyValue = $entry->$primaryKey;
 							echo '<option value="'.$primaryKeyValue.'"';
 							if (isset($value) && ((is_array($value) && in_array($primaryKeyValue, $value)) || ($value == $primaryKeyValue)))

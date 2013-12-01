@@ -407,7 +407,7 @@
 				{
 					if (is_null($field))
 					{
-						$processed = Database_Utility::ProcessFragment($adapter, $expression, 'Database_Utility::ProcessExpression', $_parameters);
+						$processed = Database_Utility::ProcessFragment($adapter, $expression, array('Database_Utility', 'ProcessExpression'), $_parameters);
 						if (count($processed) == 1)
 						{
 							return $processed[0];

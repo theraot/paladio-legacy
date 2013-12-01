@@ -22,6 +22,7 @@
 		// Private (Class)
 		//------------------------------------------------------------
 
+		private static $engine;
 		private static $server;
 		private static $port;
 		private static $database;
@@ -41,7 +42,8 @@
 		 */
 		private static function Connect(/*string*/ $user, /*string*/ $password)
 		{
-			$connection = DB::Connect(Database::$server, Database::$port, $user, $password, Database::$database, Database::$charset);
+			$class = 'DB_'.Database::$engine;
+			$connection = call_user_func($class.'::Connect', Database::$server, Database::$port, $user, $password, Database::$database, Database::$charset);
 			if ($connection === false)
 			{
 				return false;
@@ -181,6 +183,7 @@
 		/**
 		 * Sets the configuration of Database.
 		 *
+		 * @param $engine: the name of the database engine to use.
 		 * @param $server: the ip or domain of the database server.
 		 * @param $port: the port of the database server.
 		 * @param $database: the name of the database.
@@ -193,8 +196,9 @@
 		 * @access public
 		 * @return void
 		 */
-		public static function Configure(/*string*/ $server, /*string*/ $port, /*string*/ $database, /*string*/ $charset, /*string*/ $executeUser, /*string*/ $executePassword, /*string*/ $queryUser = null, /*string*/ $queryPassword = null)
+		public static function Configure(/*string*/ $engine, /*string*/ $server, /*string*/ $port, /*string*/ $database, /*string*/ $charset, /*string*/ $executeUser, /*string*/ $executePassword, /*string*/ $queryUser = null, /*string*/ $queryPassword = null)
 		{
+			Database::$engine = $engine;
 			Database::$server = $server;
 			Database::$port = $port;
 			Database::$database = $database;
@@ -865,6 +869,7 @@
 			'
 				Database::Configure
 				(
+					Configuration::Get(\'paladio-database\', \'engine\'),
 					Configuration::Get(\'paladio-database\', \'server\'),
 					Configuration::Get(\'paladio-database\', \'port\'),
 					Configuration::Get(\'paladio-database\', \'database\'),

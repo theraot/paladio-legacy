@@ -1,6 +1,7 @@
 <?php header('HTTP/1.0 404 Not Found'); exit(); //Not to be seen ?>
 
 [paladio-database] # Configuración para acceder a la base de datos
+# engine = MySQL
 # server = localhost
 # port =
 # database =

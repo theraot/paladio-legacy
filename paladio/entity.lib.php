@@ -12,7 +12,6 @@
 			require_once('addendum_utility.lib.php');
 		}
 	}
-	//TODO: parse real SQL create Table and View statements, export schema object (possibly need a new class)
 	//TODO: support mapping entities to multiple databases [low priority]
 
 	Paladio::Request

@@ -444,32 +444,21 @@
 				}
 			}
 		}
-
-		private static function TryGetConfigurationA($fieldName, &$result)
+		
+		private static function SetLocale($locale)
 		{
-			if (Configuration::TryGet(Paladio::$categoryName, $fieldName, $result))
+			$codeset = "utf8";
+			$attempts = array($locale.'.'.$codeset, $locale);
+			$found = setlocale (LC_ALL, $attempts);
+			if ($found)
 			{
-				return true;
-			}
-			else if (Configuration::TryGet('paladio', $fieldName, $result))
-			{
-				return true;
-			}
-			else
-			{
-				return false;
-			}
-		}
-
-		private static function TryGetConfigurationB($fieldName, &$result)
-		{
-			if (Configuration::TryGet('paladio', $fieldName, $result))
-			{
-				return true;
-			}
-			else
-			{
-				return false;
+				putenv('LANG='.$found);
+				putenv('LANGUAGE='.$found);
+				setlocale (LC_COLLATE, $found);
+				setlocale (LC_CTYPE, $found);
+				setlocale (LC_MONETARY, $found);
+				setlocale (LC_NUMERIC, $found);
+				setlocale (LC_TIME, $found);
 			}
 		}
 
@@ -494,43 +483,49 @@
 			if (is_null(Paladio::$mode) || !Configuration::CategoryExists($tmpCategoryName))
 			{
 				Paladio::$categoryName = 'paladio';
-				$function = 'Paladio::TryGetConfigurationB';
+				if (Configuration::TryGet('paladio', 'time_limit', $result))
+				{
+					set_time_limit($result);
+				}
+				if (Configuration::TryGet('paladio', 'error_reporting', $result))
+				{
+					error_reporting($result);
+				}
+				if (Configuration::TryGet('paladio', 'display_errors', $result))
+				{
+					ini_set('display_errors', $result);
+				}
+				if (Configuration::TryGet('paladio', 'timezone', $result))
+				{
+					date_default_timezone_set($result);
+				}
+				if (Configuration::TryGet('paladio', 'locale', $result))
+				{
+					Paladio::SetLocale($result);
+				}
 			}
 			else
 			{
 				Paladio::$categoryName = $tmpCategoryName;
-				$function = 'Paladio::TryGetConfigurationA';
-			}
-			if (call_user_func_array($function, array('time_limit', &$result)))
-			{
-				set_time_limit($result);
-			}
-			if (call_user_func_array($function, array('error_reporting', &$result)))
-			{
-				error_reporting($result);
-			}
-			if (call_user_func_array($function, array('display_errors', &$result)))
-			{
-				ini_set('display_errors', $result);
-			}
-			if (call_user_func_array($function, array('timezone', &$result)))
-			{
-				date_default_timezone_set($result);
-			}
-			if (call_user_func_array($function, array('locale', &$result)))
-			{
-				$codeset = "utf8";
-				$attempts = array($result.'.'.$codeset, $result);
-				$found = setlocale (LC_ALL, $attempts);
-				if ($found)
+				if (Configuration::TryGet(Paladio::$categoryName, 'time_limit', $result) || Configuration::TryGet('paladio', 'time_limit', $result))
 				{
-					putenv('LANG='.$found);
-					putenv('LANGUAGE='.$found);
-					setlocale (LC_COLLATE, $found);
-					setlocale (LC_CTYPE, $found);
-					setlocale (LC_MONETARY, $found);
-					setlocale (LC_NUMERIC, $found);
-					setlocale (LC_TIME, $found);
+					set_time_limit($result);
+				}
+				if (Configuration::TryGet(Paladio::$categoryName, 'time_limit', $result) || Configuration::TryGet('paladio', 'error_reporting', $result))
+				{
+					error_reporting($result);
+				}
+				if (Configuration::TryGet(Paladio::$categoryName, 'time_limit', $result) || Configuration::TryGet('paladio', 'display_errors', $result))
+				{
+					ini_set('display_errors', $result);
+				}
+				if (Configuration::TryGet(Paladio::$categoryName, 'time_limit', $result) || Configuration::TryGet('paladio', 'timezone', $result))
+				{
+					date_default_timezone_set($result);
+				}
+				if (Configuration::TryGet(Paladio::$categoryName, 'time_limit', $result) || Configuration::TryGet('paladio', 'locale', $result))
+				{
+					Paladio::SetLocale($result);
 				}
 			}
 			Paladio::LoadPlugins();

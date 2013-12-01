@@ -52,68 +52,66 @@
 				}
 				return $result;
 			}
-			else if (is_string($pattern))
+			else
 			{
 				if (is_string($pattern))
 				{
 					$pattern = str_replace(array('/', '\\'), DIRECTORY_SEPARATOR, $pattern);
-					if (is_string($path))
+					$separatorLen = strlen(DIRECTORY_SEPARATOR);
+					$position = strpos($pattern, DIRECTORY_SEPARATOR);
+					if ($position > 0)
 					{
-						$_file = FileSystem::ResolveRelativePath($path, $pattern);
+						$folder = substr($pattern, 0, $position + $separatorLen);
+						$pattern = substr($pattern, $position + $separatorLen);
 					}
 					else
 					{
-						$_file = $pattern;
-					}
-					if (is_file($_file))
-					{
-						return array($_file);
-					}
-					else
-					{
-						$separatorLen = strlen(DIRECTORY_SEPARATOR);
-						$position = strpos($pattern, DIRECTORY_SEPARATOR);
-						if ($position > 0)
-						{
-							$folder = substr($pattern, 0, $position + $separatorLen);
-							$pattern = substr($pattern, $position + $separatorLen);
-						}
-						else
-						{
-							$folder = '.'.DIRECTORY_SEPARATOR;
-						}
+						$folder = '.'.DIRECTORY_SEPARATOR;
 					}
 				}
 				else
 				{
 					$pattern = '*';
+					$folder = '.'.DIRECTORY_SEPARATOR;
 				}
-				$result = array();
+				//---
 				if (is_string($path))
 				{
 					$folder = FileSystem::ResolveRelativePath($path, $folder);
+					$_file = FileSystem::ResolveRelativePath($folder, $pattern);
 				}
-				if (is_dir($folder) && ($handle = opendir($folder)) !== false)
+				if (strpos($pattern, '*') === FALSE && strpos($pattern, '?') === FALSE)
 				{
-					$regexPattern = '@^'.str_replace(array('\*', '\?'), array('.*', '.'), preg_quote($pattern)).'$@u';
-					while (($item = readdir($handle)) !== false)
+					if (file_exists($_file))
 					{
-						if (!FileSystem::StartsWith($item, '.'))
+						return array($_file);
+					}
+				}
+				else
+				{
+					$result = array();
+					if (($handle = opendir($folder)) !== false)
+					{
+						$regexPattern = '@^'.str_replace(array('\*', '\?'), array('.*', '.'), preg_quote($pattern)).'$@u';
+						while (($item = readdir($handle)) !== false)
 						{
-							$item = $folder.$item;
-							$isDir = is_dir($item);
-							if (is_null($folders) || ($folders && $isDir) || (!$folders && !$isDir))
+							if (!FileSystem::StartsWith($item, '.'))
 							{
-								if (preg_match($regexPattern, $item))
+								$item = $folder.$item;
+								$isDir = is_dir($item);
+								if ($folders === null || $folders === $isDir)
 								{
-									$result[] = $item;
+									if (preg_match($regexPattern, $item))
+									{
+										$result[] = $item;
+									}
 								}
 							}
 						}
+						closedir($handle);
 					}
-					closedir($handle);
+					return $result;
 				}
-				return $result;
 			}
 		}
 
@@ -489,7 +487,11 @@
 		 */
 		public static function RequireAll(/*mixed*/ $pattern, /*string*/ $path)
 		{
-			array_map('FileSystem::_RequireOnce', FileSystem::GetFolderItemsRelative($pattern, $path, false));
+			$__REQUIRE = FileSystem::GetFolderItemsRelative($pattern, $path, false);
+			foreach ($__REQUIRE as $_REQUIRE)
+			{
+				FileSystem::_RequireOnce($_REQUIRE);
+			}
 		}
 
 		/**

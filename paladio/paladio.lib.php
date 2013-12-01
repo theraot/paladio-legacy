@@ -12,7 +12,7 @@
 		require_once('configuration.lib.php');
 		FileSystem::RequireAll('*.lib.php', FileSystem::FolderCore());
 	}
-	//TODO: add ways to avoid looking for PETs in code
+
 	//TODO: create forms.lib.php
 
 	if (!function_exists('utf8_stripslashes'))
@@ -619,20 +619,4 @@
 			throw new Exception('Creating instances of '.__CLASS__.' is forbidden');
 		}
 	}
-
-	Paladio::__Init();
-
-	ob_start();
-	include(FileSystem::ScriptPath());
-	$document = ob_get_contents();
-	ob_end_clean();
-
-	if ($document !== '')
-	{
-		$result = Paladio::ProcessDocument($document, FileSystem::ScriptPath(), $_SERVER['QUERY_STRING']);
-		ini_set('default_charset', 'UTF-8');
-		echo $result;
-	}
-
-	exit();
 ?>

@@ -117,6 +117,10 @@
 								}
 								$parser->ConsumeUntil($newLine);
 							}
+							else if ($parser->Consume('option') !== null)
+							{
+								
+							}
 							else
 							{
 								//Ignore

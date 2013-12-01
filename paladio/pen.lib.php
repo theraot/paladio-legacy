@@ -17,25 +17,36 @@
 	 */
 	final class PEN
 	{
-		private static $whitespace = array(' ', "\t", "\n", "\r");
+		private static $whitespace = array(' ', "\t");
+		private static $whitespaceOrNewLine = array(' ', "\t", "\n", "\r");
 		private static $newLine = array("\n", "\r");
 		private static $unquotedStringEnd = array(' ', "\t", ':', ',', "\n", "\r", '#', ';');
 
-		public static function ConsumeWhitespace($parser)
+		public static function ConsumeWhitespace($parser, $allowComments)
 		{
+			$didNewLine = false;
 			$parser->ConsumeWhile(PEN::$whitespace);
 			do
 			{
-				if (($parser->Consume(';') !== null) || ($parser->Consume('#') !== null))
-				{
-					$parser->ConsumeUntil(PEN::$newLine);
-					$parser->Consume(PEN::$newLine);
-				}
 				if (!$parser->CanConsume())
 				{
 					break;
 				}
-			}while ($parser->ConsumeWhile(PEN::$whitespace) !== '');
+				if ($parser->Consume(PEN::$newLine))
+				{
+					$didNewLine = true;
+				}
+				else
+				{
+					if ($allowComments && ($parser->Consume(';') !== null || $parser->Consume('#') !== null))
+					{
+						$parser->ConsumeUntil(PEN::$newLine);
+						$parser->Consume(PEN::$newLine);
+						$didNewLine = true;
+					}
+				}
+			}while ($parser->ConsumeWhile(PEN::$whitespaceOrNewLine) !== '');
+			return $didNewLine;
 		}
 
 		private static function ConsumeArray($parser, $eval = false)
@@ -56,7 +67,7 @@
 			$result = array();
 			while ($parser->CanConsume())
 			{
-				PEN::ConsumeWhitespace($parser);
+				PEN::ConsumeWhitespace($parser, true);
 				if ($parser->Consume($expecting) !== null)
 				{
 					return $result;
@@ -69,7 +80,7 @@
 				{
 					$key = $parser->ConsumeUntil(array_merge(PEN::$unquotedStringEnd, array($expecting)));
 				}
-				PEN::ConsumeWhitespace($parser);
+				PEN::ConsumeWhitespace($parser, true);
 				if ($parser->Consume(':') !== null)
 				{
 					$value = PEN::ConsumeValue($parser, $expecting);
@@ -79,7 +90,7 @@
 				{
 					$result[] = $key;
 				}
-				PEN::ConsumeWhitespace($parser);
+				PEN::ConsumeWhitespace($parser, true);
 				if ($parser->Consume(',') === null)
 				{
 					//Ignore
@@ -168,7 +179,7 @@
 
 		public static function ConsumeValue($parser, $expecting, $eval = false)
 		{
-			PEN::ConsumeWhitespace($parser);
+			PEN::ConsumeWhitespace($parser, true);
 			if ($parser->Consume('null') !== null)
 			{
 				return null;

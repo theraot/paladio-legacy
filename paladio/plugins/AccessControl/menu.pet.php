@@ -11,10 +11,10 @@
 	$activeClass = array_key_exists('active-class', $_ELEMENT['attributes']) ? $_ELEMENT['attributes']['active-class'] : false;
 	$source = $_ELEMENT['source'];
 	$path = $_ELEMENT['path']; 
-	if ($_ELEMENT['query'] !== '')
+	/*if ($_ELEMENT['query'] !== '')
 	{
 		$source .= '?'.$_ELEMENT['query'];
-	}
+	}*/
 	$entries = array();
 	$data = array();
 	foreach ($keys as $key)
@@ -107,44 +107,8 @@
 	{
 		function __EmitPaladioNavMenu($attributes, $itemClass, $selectedClass, $activeClass, $entries, &$index)
 		{
-			if (!function_exists("cmp"))
-			{
-				function cmp($a, $b)
-				{
-					if ($a === $b)
-					{
-						return 0;
-					}
-					else
-					{
-						if (is_string($a))
-						{
-							if (is_string($b))
-							{
-								return ($a < $b) ? -1 : 1;
-							}
-							else
-							{
-								return 1;
-							}
-						}
-						else
-						{
-							if (is_string($b))
-							{
-								return -1;
-							}
-							else
-							{
-								return ($a < $b) ? -1 : 1;
-							}
-						}
-					}
-				}
-			}
 			echo '<ul'.PET_Utility::BuildAttributesString($attributes).'>';
-			$keys = array_keys($entries);
-			usort($keys, "cmp");
+			$keys = Utility::ArraySort(array_keys($entries));
 			foreach ($keys as $key)
 			{
 				$entry = $entries[$key];
@@ -188,5 +152,6 @@
 			$entries,
 			$index
 		);
+	echo '<br clear="both">';
 	echo '</nav>';
 ?>

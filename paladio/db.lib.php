@@ -496,66 +496,6 @@
 			return '`' . str_replace('`', '``', $identifier) . '`';
 		}
 
-		/**
-		 * Gets the database specific name of a common datatype.
-		 *
-		 * Returns an string with the name of the datatype if the operation is successful, false otherwise.
-		 *
-		 * @param $result: the query result to release.
-		 *
-		 * @access public
-		 * @return bool
-		 */
-		public static function MapType($type)
-		{
-			$types = array
-			(
-				//SQL standard types
-				'character' => 'char',
-				'character varying' => 'varchar',
-				'bit' => 'bit',
-				'bit varying' => null,
-				'numeric' => 'decimal',
-				'decimal' => 'decimal',
-				'integer' => 'int',
-				'smallint' => 'smallint',
-				'float' => 'float',
-				'double precision' => 'double',
-				'date' => 'date',
-				'time' => 'time',
-				'timestamp' => 'timestamp',
-				//.NET / Java
-				'byte' => 'tinyint',
-				'int' => 'int',
-				'short' => 'smallint',
-				'long' => 'bigint',
-				'float' => 'float',
-				'double' => 'double',
-				'char' => 'char',
-				'bool' => 'tinyint',
-				'string' => 'varchar',
-				//ECMAScript
-				'number' => 'decimal',
-				'boolean' => 'tinyint',
-				//C++
-				'short int' => 'smallint',
-				'long int' => 'bigint',
-				//others
-				'real' => 'double',
-				'varchar' => 'varchar',
-				'tinyint' => 'tinyint',
-				'bigint' => 'bigint'
-			);
-			if (array_key_exists($type, $types))
-			{
-				return $types[$type];
-			}
-			else
-			{
-				return false;
-			}
-		}
-
 		//------------------------------------------------------------
 		// Public (Constructors)
 		//------------------------------------------------------------

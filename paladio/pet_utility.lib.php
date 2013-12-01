@@ -4,6 +4,10 @@
 		header('HTTP/1.0 404 Not Found');
 		exit();
 	}
+	else
+	{
+		require_once('utility.lib.php');
+	}
 	
 	/**
 	 * Pet_Utility
@@ -28,17 +32,21 @@
 			else
 			{
 				$result = array();
-				foreach($attributes as $attributeName => $attributeValue)
+				$keys = Utility::ArraySort(array_keys($attributes));
+				$index = 0;
+				foreach($keys as $attributeName)
 				{
+					$attributeValue = $attributes[$attributeName];
 					if (!is_null($attributeValue))
 					{
-						if (is_string($attributeName))
+						if ($index === $attributeName)
 						{
-							$result[] = $attributeName.' = "'.$attributeValue.'"';
+							$result[] = $attributeValue;
+							$index++;
 						}
 						else
 						{
-							$result[] = $attributeValue;
+							$result[] = $attributeName.' = "'.$attributeValue.'"';
 						}
 					}
 				}

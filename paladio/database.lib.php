@@ -856,22 +856,25 @@
 
 	require_once('configuration.lib.php');
 
-	/**
-	 * Intended for internal use only
-	 */
-	function Database_Configure()
-	{
-		Database::Configure
+	Configuration::Callback
+	(
+		'paladio-database',
+		create_function
 		(
-			Configuration::Get('paladio-database', 'server'),
-			Configuration::Get('paladio-database', 'port'),
-			Configuration::Get('paladio-database', 'database'),
-			Configuration::Get('paladio-database', 'charset'),
-			Configuration::Get('paladio-database', 'user'),
-			Configuration::Get('paladio-database', 'password'),
-			Configuration::Get('paladio-database', 'query_user'),
-			Configuration::Get('paladio-database', 'query_password')
-		);
-	}
-	Configuration::Callback('paladio-database', 'Database_Configure');
+			'',
+			<<<'EOT'
+				Database::Configure
+				(
+					Configuration::Get('paladio-database', 'server'),
+					Configuration::Get('paladio-database', 'port'),
+					Configuration::Get('paladio-database', 'database'),
+					Configuration::Get('paladio-database', 'charset'),
+					Configuration::Get('paladio-database', 'user'),
+					Configuration::Get('paladio-database', 'password'),
+					Configuration::Get('paladio-database', 'query_user'),
+					Configuration::Get('paladio-database', 'query_password')
+				);
+EOT
+		)
+	);
 ?>

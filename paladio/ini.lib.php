@@ -23,6 +23,69 @@
 		// Private (Class)
 		//------------------------------------------------------------
 
+		private static function _Merge_Category($category, $newCategory, $overwrite)
+		{
+			if (!is_array($category))
+			{
+				$category = array();
+			}
+			if (is_array($newCategory))
+			{
+				$keys = array_keys($newCategory);
+				foreach ($keys as $key)
+				{
+					$val = $newContent[$key];
+					if (is_array($val))
+					{
+						if ($overwrite || !array_key_exists($key, $category))
+						{
+							$content[$key] = $val;
+						}
+					}
+				}
+			}
+			return $category;
+		}
+
+		private static function _Merge_Content($content, $newContent, $overwrite)
+		{
+			if (!is_array($content))
+			{
+				$content = array();
+			}
+			if (is_array($newContent))
+			{
+				$keys = array_keys($newContent);
+				foreach ($keys as $key)
+				{
+					$val = $newContent[$key];
+					if (is_array($val))
+					{
+						if ($overwrite || !array_key_exists($key, $content))
+						{
+							$content[$key] = $val;
+						}
+						else
+						{
+							$content[$key] = _Merge_Category($content[$key], $val, $overwrite);
+						}
+					}
+					else
+					{
+						if (!array_key_exists('', $content) || !is_array($content['']))
+						{
+							$content[''] = array();
+						}
+						if ($overwrite || !array_key_exists($key, $content['']))
+						{
+							$content[''][$key] = $val;
+						}
+					}
+				}
+			}
+			return $content;
+		}
+
 		private static function ProcessCategory(/*string*/ $parser, /*string*/ &$categoryName)
 		{
 			if ($parser->Consume('[') !== null)
@@ -42,6 +105,17 @@
 		//------------------------------------------------------------
 
 		private $content;
+		private $sync;
+		
+		public function _LoadFile(/*string*/ $file)
+		{
+			if (!is_array($this->content))
+			{
+				$this->Clear();
+			}
+			$this->Process(new Parser(file_get_contents($file)));
+			echo 'Done reading file: '.$file."\n";
+		}
 
 		private function _SaveFile(/*hFile*/ $hFile, /*string*/ $header)
 		{
@@ -67,19 +141,18 @@
 			}
 		}
 
-		private function Process(/*Parser*/ $parser, /*array*/ $validCategories, /*bool*/ $keepCategories)
+		private function Process(/*Parser*/ $parser)
 		{
+			$this->sync = false;
 			$whitespace = array(' ', "\t");
-			//$whitespaceOrNewLine = array(' ', "\t", "\n", "\r");
+			$whitespaceOrNewLine = array(' ', "\t", "\r", "\n");
 			$unquotedStringEnd = array(' ', "\t", "\n", "\r", '=', ';', '#');
 			$newLine = array("\r", "\n");
 			$currentCategoryName = '';
-			$useValidCategories = ($validCategories !== null) && is_array($validCategories);
 			$continue = false;
 			while($parser->CanConsume())
 			{
-				PEN::ConsumeWhitespace($parser);
-				$parser->Flush();
+				PEN::ConsumeWhitespace($parser, true); $parser->Flush();
 				if ($parser->Consume('<?php') !== null)
 				{
 					$parser->ConsumeUntil('?>');
@@ -88,75 +161,68 @@
 				}
 				if (INI::ProcessCategory($parser, $currentCategoryName))
 				{
-					if (!$useValidCategories || in_array($currentCategoryName, $validCategories))
+					if (!array_key_exists($currentCategoryName, $this->content))
 					{
-						if (!array_key_exists($currentCategoryName, $this->content))
-						{
-							$this->content[$currentCategoryName] = array();
-						}
+						$this->content[$currentCategoryName] = array();
 					}
 				}
 				else
 				{
-					if (!$useValidCategories || in_array($currentCategoryName, $validCategories))
+					if ($parser->Consume('@') !== null)
 					{
-						if ($parser->Consume('@') !== null)
+						if ($parser->Consume('import') !== null)
 						{
-							if ($parser->Consume('import') !== null)
+							PEN::ConsumeWhitespace($parser, false);  $parser->Flush();
+							if ($parser->Consume('<?php') !== null)
 							{
-								PEN::ConsumeWhitespace($parser);
-								if ($parser->Consume('<?php') !== null)
-								{
-									$data = $parser->ConsumeUntil('?>');
-									$parser->Consume('?>');
-									$this->merge_Category($currentCategoryName, eval($data), true);
-								}
-								else
-								{
-									//??
-								}
-								$parser->ConsumeUntil($newLine);
-							}
-							else if ($parser->Consume('option') !== null)
-							{
-								
+								$data = $parser->ConsumeUntil('?>');
+								$parser->Consume('?>');
+								$this->merge_Category($currentCategoryName, eval($data), true);
 							}
 							else
 							{
-								//Ignore
+								trigger_error('INI: Unknown directive: '.$parser->ConsumeUntil($newLine), E_USER_WARNING);
 							}
-							continue;
 						}
-						else if (($fieldName = PEN::ConsumeQuotedString($parser, false)) === null)
+						else if ($parser->Consume('option') !== null)
 						{
-							$fieldName = $parser->ConsumeUntil($unquotedStringEnd);
-						}
-						$parser->ConsumeWhile($whitespace);
-						if ($fieldName !== '')
-						{
-							if ($parser->Consume('=') !== null)
+							if ($currentCategoryName === '')
 							{
-								$fieldValue = PEN::ConsumeValue($parser, null, true);
-								if ($keepCategories)
-								{
-									$this->content[$currentCategoryName][$fieldName] = $fieldValue;
-								}
-								else
-								{
-									$this->content[''][$fieldName] = $fieldValue;
-								}
+								PEN::ConsumeWhitespace($parser, false);  $parser->Flush();
+								trigger_error('INI: Ignored option directive: '.$parser->ConsumeUntil($newLine), E_USER_NOTICE);
 							}
 							else
 							{
-								if ($keepCategories)
-								{
-									$this->content[$currentCategoryName][$fieldName] = null;
-								}
-								else
-								{
-									$this->content[''][$fieldName] = null;
-								}
+								trigger_error('INI: option directives must be at the begginin of the file');
 							}
+						}
+						else
+						{
+							trigger_error('INI: Ignored directive: '.$parser->ConsumeUntil($newLine), E_USER_NOTICE);
+						}
+						$didNewLine = PEN::ConsumeWhitespace($parser, true); $parser->Flush();
+						if (!$didNewLine)
+						{
+							$unexpected = $parser->ConsumeUntil($newLine);
+							trigger_error('INI: Unexpected: '.$unexpected, E_USER_WARNING);
+						}
+						continue;
+					}
+					else if (($fieldName = PEN::ConsumeQuotedString($parser, false)) === null)
+					{
+						$fieldName = $parser->ConsumeUntil($unquotedStringEnd);
+					}
+					$parser->ConsumeWhile($whitespace);
+					if ($fieldName !== '')
+					{
+						if ($parser->Consume('=') !== null)
+						{
+							$fieldValue = PEN::ConsumeValue($parser, null, true);
+							$this->content[$currentCategoryName][$fieldName] = $fieldValue;
+						}
+						else
+						{
+							$this->content[$currentCategoryName][$fieldName] = null;
 						}
 					}
 				}
@@ -228,9 +294,6 @@
 		/**
 		 * Loads the contents of the file $file.
 		 *
-		 * Note 1: if $validCategories is an array of string, only the categories with a name that's in $validCategories are loaded.
-		 * Note 2: if $keepCategories is false, all the fields are loaded to the category with name "".
-		 *
 		 * If $file is a file: Loads the contents of the file.
 		 * Otherwise: does nothing.
 		 *
@@ -239,21 +302,10 @@
 		 * @access public
 		 * @return true
 		 */
-		public function Load(/*string*/ $file, /*array*/ $validCategories = null, /*bool*/ $keepCategories = true)
+		public function Load(/*string*/ $file)
 		{
-			if (!is_string($file) || strlen($file) == 0 || !is_file($file))
-			{
-				return false;
-			}
-			else
-			{
-				if (!is_array($this->content))
-				{
-					$this->Clear();
-				}
-				$this->Process(new Parser(file_get_contents($file)), $validCategories, $keepCategories);
-				return true;
-			}
+			$ini = new INI($file);
+			$this->merge_Content($ini->get_Content(), true);
 		}
 
 		/**
@@ -316,15 +368,11 @@
 			}
 			if (is_array($value))
 			{
-				$keys = array_keys($value);
-				foreach ($keys as $key)
+				if (!array_key_exists($categoryName, $this->content) || !is_array($this->content[$categoryName]))
 				{
-					$val = $value[$key];
-					if ($overwrite || !$this->isset_Field($categoryName, $key))
-					{
-						$this->set_Field($categoryName, $key, $val);
-					}
+					$this->content[$categoryName] = array();
 				}
+				$this->content[$categoryName] = INI::_Merge_Category($this->content[$categoryName], $value, $overwrite);
 				return true;
 			}
 			else
@@ -390,29 +438,7 @@
 			}
 			if (is_array($value))
 			{
-				$keys = array_keys($value);
-				foreach ($keys as $key)
-				{
-					$val = $value[$key];
-					if (is_array($val))
-					{
-						if ($overwrite || !$this->isset_Category($key))
-						{
-							$this->set_Category($key, $val);
-						}
-						else
-						{
-							$this->merge_Category($key, $val, $overwrite);
-						}
-					}
-					else
-					{
-						if ($overwrite || !$this->isset_Field('', $key))
-						{
-							$this->set_Field('', $key, $val);
-						}
-					}
-				}
+				$this->content = INI::_Merge_Content($this->content, $value, $overwrite);
 				return true;
 			}
 			else
@@ -489,9 +515,13 @@
 		// Public (Constructor)
 		//------------------------------------------------------------
 
-		public function __construct(/*string*/ $file = null, /*array*/ $validCategories = null, /*bool*/ $keepCategories = true)
+		public function __construct(/*string*/ $file = null, /*bool*/ $skipCache = false)
 		{
-			$this->Load($file, $validCategories, $keepCategories);
+			if ($file !== null)
+			{
+				$file = realpath($file);
+				$this->_LoadFile($file);
+			}
 		}
 	}
 ?>

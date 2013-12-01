@@ -12,6 +12,7 @@
 
 [paladio] #Configuración global
 timezone = America/Bogota
+locale = 'Spanish_Colombia'
 sitename = Paladio
 
 [paladio-paths] #Configuración de rutas de acceso

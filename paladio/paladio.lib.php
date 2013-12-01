@@ -10,6 +10,7 @@
 		error_reporting(E_ALL | E_STRICT);
 		require_once('filesystem.lib.php');
 		require_once('configuration.lib.php');
+		require_once('parser.lib.php');
 		FileSystem::RequireAll('*.lib.php', FileSystem::FolderCore());
 	}
 
@@ -170,7 +171,7 @@
 		{
 			if (Configuration::TryGet('paladio-paths', 'plugins', $pluginsFolder))
 			{
-				$path = String_Utility::EnsureEnd(FileSystem::FolderCore().$pluginsFolder, DIRECTORY_SEPARATOR);
+				$path = String_Utility::EnsureEnd(FileSystem::ResolveRelativePath(FileSystem::FolderCore(), $pluginsFolder, DIRECTORY_SEPARATOR) , DIRECTORY_SEPARATOR);
 				$items = FileSystem::GetFolderItems('*', $path);
 				$currentPath = getcwd();
 				chdir(FileSystem::FolderCore());
@@ -592,17 +593,10 @@
 		 */
 		public static function ProcessDocument($document, $source, $query)
 		{
-			if (class_exists('Parser'))
-			{
-				$parser = new Parser($document);
-				$path = FileSystem::CreateRelativePath(dirname($source), FileSystem::FolderInstallation(), '/');
-				$documentResult = Paladio::ProcessDocumentFragment($parser, $path, $source, $query, null);
-				return $documentResult['contents'];
-			}
-			else
-			{
-				return $document;
-			}
+			$parser = new Parser($document);
+			$path = FileSystem::CreateRelativePath(dirname($source), FileSystem::FolderInstallation(), '/');
+			$documentResult = Paladio::ProcessDocumentFragment($parser, $path, $source, $query, null);
+			return $documentResult['contents'];
 		}
 
 		//------------------------------------------------------------

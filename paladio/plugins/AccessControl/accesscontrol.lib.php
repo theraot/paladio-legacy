@@ -225,6 +225,26 @@
 		{
 			return AccessControl::$current;
 		}
+		
+		public static function Hash($data, $salt)
+		{
+			if (AccessControl::$hashAlgorithm === null || AccessControl::$hashAlgorithm === 'none')
+			{
+				return $salt.$data;
+			}
+			else if (AccessControl::$hashAlgorithm == 'md5')
+			{
+				return md5($salt.$data);
+			}
+			else if (AccessControl::$hashAlgorithm == 'sha1')
+			{
+				return sha1($salt.$data);
+			}
+			else
+			{
+				return hash(AccessControl::$hashAlgorithm, $salt.$data);
+			}
+		}
 
 		public static function Fallback()
 		{
@@ -389,22 +409,7 @@
 					{
 						$salt = $record[AccessControl::$saltField];
 					}
-					if (is_null(AccessControl::$hashAlgorithm) || AccessControl::$hashAlgorithm == 'none')
-					{
-						$pass = $salt.$password;
-					}
-					else if (AccessControl::$hashAlgorithm == 'md5')
-					{
-						$pass = md5($salt.$password);
-					}
-					else if (AccessControl::$hashAlgorithm == 'sha1')
-					{
-						$pass = sha1($salt.$password);
-					}
-					else
-					{
-						$pass = hash(AccessControl::$hashAlgorithm, $salt.$password);
-					}
+					$pass = AccessControl::Hash($password, $salt);
 					if ($pass == $record[AccessControl::$passwordField])
 					{
 						if (is_null(AccessControl::$roleField))
@@ -429,36 +434,6 @@
 			}
 			AccessControl::$current = null;
 			AccessControl::Preserve();
-			return false;
-		}
-
-		public static function SyncSession()
-		{
-			Session::Start();
-			$appGUID = FileSystem::AppGUID();
-			$sessionStatusName = $appGUID.'__accesscontrol';
-			if (is_null(AccessControl::$INI))
-			{
-				AccessControl::$INI = new INI();
-				if (Session::isset_Status($sessionStatusName))
-				{
-					AccessControl::$INI->set_Content(Session::get_Status($sessionStatusName));
-					return true;
-				}
-			}
-			else
-			{
-				if (Session::isset_Status($sessionStatusName))
-				{
-					$content = Session::get_Status($sessionStatusName);
-					AccessControl::$INI->merge_Content($content, false);
-					return true;
-				}
-				else
-				{
-					Session::set_Status($sessionStatusName, AccessControl::$INI->get_Content());
-				}
-			}
 			return false;
 		}
 
@@ -522,65 +497,55 @@
 		}
 	}
 
-	function AccessControl_Session()
-	{
-		Session::Start();
-		if (Session::isset_Status('user_id') && Session::isset_Status('user_password'))
-		{
-			$id = Session::get_Status('user_id');
-			$password = Session::get_Status('user_password');
-			AccessControl::Open($id, $password);
-		}
-		if (!AccessControl::CanAccess(FileSystem::ScriptPath(), $_SERVER['QUERY_STRING']))
-		{
-			$fallback = AccessControl::Fallback();
-			if ($fallback === false)
-			{
-				header('HTTP/1.0 403 Forbidden');
-			}
-			else
-			{
-				header('Location: '.$fallback, true, 307);
-			}
-			exit();
-		}
-	}
-	
-	function AccessControl_Configure()
-	{
-		AccessControl::Configure
+	Configuration::Callback
+	(
+		'paladio-accesscontrol',
+		create_function
 		(
-			Configuration::Get('paladio-accesscontrol', 'table'),
-			Configuration::Get('paladio-accesscontrol', 'id_field'),
-			Configuration::Get('paladio-accesscontrol', 'password_field'),
-			Configuration::Get('paladio-accesscontrol', 'salt_field'),
-			Configuration::Get('paladio-accesscontrol', 'role_field'),
-			Configuration::Get('paladio-accesscontrol', 'hash_algorithm')
-		);
-		if (Configuration::FieldExists('paladio-accesscontrol', 'disable_session_cache'))
-		{
-			AccessControl::Load(FileSystem::FolderCore());
-			AccessControl::Load(dirname(__FILE__));
-		}
-		else
-		{
-			if (class_exists('Session'))
-			{
-				if (!AccessControl::SyncSession())
-				{
-					AccessControl::Load(FileSystem::FolderCore());
-					AccessControl::Load(dirname(__FILE__));
-					AccessControl::SyncSession();
-				}
-			}
-			else
-			{
+			'',
+			<<<'EOT'
+				AccessControl::Configure
+				(
+					Configuration::Get('paladio-accesscontrol', 'table'),
+					Configuration::Get('paladio-accesscontrol', 'id_field'),
+					Configuration::Get('paladio-accesscontrol', 'password_field'),
+					Configuration::Get('paladio-accesscontrol', 'salt_field'),
+					Configuration::Get('paladio-accesscontrol', 'role_field'),
+					Configuration::Get('paladio-accesscontrol', 'hash_algorithm')
+				);
 				AccessControl::Load(FileSystem::FolderCore());
 				AccessControl::Load(dirname(__FILE__));
-				Paladio::Request('Session', 'AccessControl::SyncSession');
-			}
-		}
-		Paladio::Request('Session', 'AccessControl_Session');
-	}
-	Configuration::Callback('paladio-accesscontrol', 'AccessControl_Configure');
+				Paladio::Request
+				(
+					'Session',
+					create_function
+					(
+						'',
+						'
+							Session::Start();
+							if (Session::isset_Status(\'user_id\') && Session::isset_Status(\'user_password\'))
+							{
+								$id = Session::get_Status(\'user_id\');
+								$password = Session::get_Status(\'user_password\');
+								AccessControl::Open($id, $password);
+							}
+							if (!AccessControl::CanAccess(FileSystem::ScriptPath(), $_SERVER[\'QUERY_STRING\']))
+							{
+								$fallback = AccessControl::Fallback();
+								if ($fallback === false)
+								{
+									header(\'HTTP/1.0 403 Forbidden\');
+								}
+								else
+								{
+									header(\'Location: \'.$fallback, true, 307);
+								}
+								exit();
+							}
+						'
+					)
+				);
+EOT
+		)
+	);
 ?>

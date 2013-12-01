@@ -182,9 +182,9 @@
 		public static function CreateAlias(/*string*/ $alias, /*mixed*/ $value, /*array*/ &$_parameters)
 		{
 			$value = Database_Utility::ProcessValue($value, $_parameters);
-			if (is_string($alias))
+			if (!is_null($alias))
 			{
-				return $value.' '.DB::Alias().' '.DB::QuoteIdentifier($alias);
+				return $value.' '.DB::Alias().' '.DB::QuoteIdentifier((string)$alias);
 			}
 			else
 			{
@@ -204,13 +204,15 @@
 		public static function MergeWheres(/*array*/ $whereA, /*array*/ $whereB)
 		{
 			$result = array();
-			$whereAKeys = array_keys($whereA);
+			$whereAKeys = Utility::ArraySort(array_keys($whereA));
+			$index = 0;
 			$whereBKeys = array_keys($whereB);
 			foreach ($whereAKeys as $whereAKey)
 			{
-				if (is_numeric($whereAKey))
+				if ($whereAKey === $index)
 				{
 					$result[] = $whereA[$whereAKey];
+					$index++;
 				}
 				else if (in_array($whereAKey, $whereBKeys))
 				{
@@ -463,16 +465,12 @@
 		{
 			if (is_callable($callback))
 			{
-				$keys = array_keys($fragment);
+				$keys = Utility::ArraySort(array_keys($fragment));
+				$index = 0;
 				$processed = array();
 				foreach ($keys as $key)
 				{
-					if (is_string($key))
-					{
-						$value = $fragment[$key];
-						$processed[] = call_user_func_array($callback, array($key, $value, &$_parameters));
-					}
-					else
+					if ($index === $key)
 					{
 						$key = $fragment[$key];
 						if (is_string($key))
@@ -484,6 +482,12 @@
 							$value = $key;
 						}
 						$processed[] = call_user_func_array($callback, array(null, $value, &$_parameters));
+						$index++;
+					}
+					else
+					{
+						$value = $fragment[$key];
+						$processed[] = call_user_func_array($callback, array($key, $value, &$_parameters));
 					}
 				}
 				return $processed;

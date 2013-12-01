@@ -15,24 +15,26 @@
 	//TODO: parse real SQL create Table and View statements, export schema object (possibly need a new class)
 	//TODO: support mapping entities to multiple databases [low priority]
 
-	/**
-	 * Intended for internal use only
-	 */
-	function declare_entity_annotations()
-	{
-		/**
-		 * Mapping
-		 * @package Paladio
-		*/
-		class Mapping extends Annotation {public $table, $primaryKey;}
-		/**
-		 * Reference
-		 * @package Paladio
-		*/
-		class Reference extends Annotation {public $alias, $reference, $method;}
-	}
-
-	Paladio::Request('Addendum_Utility', 'declare_entity_annotations');
+	Paladio::Request
+	(
+		'Addendum_Utility',
+		create_function
+		(
+			'',
+			<<<'EOT'
+				/**
+				 * Mapping
+				 * @package Paladio
+				*/
+				class Mapping extends Annotation {public $table, $primaryKey;}
+				/**
+				 * Reference
+				 * @package Paladio
+				*/
+				class Reference extends Annotation {public $alias, $reference, $method;}
+EOT
+		)
+	);
 
 	/**
 	 * EntityBase
@@ -1296,12 +1298,18 @@
 
 	require_once('filesystem.lib.php');
 	require_once('configuration.lib.php');
-	$entitiesFolder = 'entities';
-	function Entity_Configure()
-	{
-		Configuration::TryGet('paladio-paths', 'entities', $entitiesFolder);
-		FileSystem::RequireAll('*.lib.php', FileSystem::FolderCore().$entitiesFolder);
-		EntityBase::LoadEnts($entitiesFolder);
-	}
-	Configuration::Callback(array('paladio-database', 'paladio-paths'), 'Entity_Configure');
+	Configuration::Callback
+	(
+		array('paladio-database', 'paladio-paths'),
+		create_function
+		(
+			'',
+			<<<'EOT'
+				$entitiesFolder = 'entities';
+				Configuration::TryGet('paladio-paths', 'entities', $entitiesFolder);
+				FileSystem::RequireAll('*.lib.php', FileSystem::FolderCore().$entitiesFolder);
+				EntityBase::LoadEnts($entitiesFolder);
+EOT
+		)
+	);
 ?>

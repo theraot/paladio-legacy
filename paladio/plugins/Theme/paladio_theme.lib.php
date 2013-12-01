@@ -53,10 +53,16 @@
 		// Public (Class)
 		//------------------------------------------------------------
 
-		public static function Configure(/*string*/ $currentTheme, /*string*/ $themesFolder)
+		public static function Configure(/*string*/ $currentTheme = null, /*string*/ $themesFolder = null)
 		{
-			PaladioTheme::$currentTheme = $currentTheme;
-			PaladioTheme::$themesFolder = FileSystem::PreparePath($themesFolder);
+			if ($currentTheme !== null)
+			{
+				PaladioTheme::$currentTheme = $currentTheme;
+			}
+			if ($themesFolder !== null)
+			{
+				PaladioTheme::$themesFolder = FileSystem::PreparePath($themesFolder);
+			}
 		}
 
 		public static function EmitImage(/*string*/ $path, /*mixed*/ $arguments = null, /*mixed*/ $attributes = null)
@@ -252,16 +258,34 @@
 
 	require_once('configuration.lib.php');
 	PaladioTheme::Configure('default', FileSystem::FolderCore().'themes');
-	$currentTheme = 'default';
-	$themesFolder = 'themes';
-	function Theme_Configure()
-	{
-		PaladioTheme::Configure
+	Configuration::Callback
+	(
+		'paladio-paths',
+		create_function
 		(
-			Configuration::Get('paladio-theme', 'current', 'default'),
-			FileSystem::FolderCore().Configuration::Get('paladio-paths', 'themes', 'themes')
-		);
-	}
-	Configuration::Callback('paladio-paths', 'Theme_Configure');
-	Configuration::Callback('paladio-theme', 'Theme_Configure');
+			'',
+			<<<'EOT'
+				PaladioTheme::Configure
+				(
+					null,
+					FileSystem::FolderCore().Configuration::Get('paladio-paths', 'themes', 'themes')
+				);
+EOT
+		)
+	);
+	Configuration::Callback
+	(
+		'paladio-theme',
+		create_function
+		(
+			'',
+			<<<'EOT'
+				PaladioTheme::Configure
+				(
+					Configuration::Get('paladio-theme', 'current', 'default'),
+					null
+				);
+EOT
+		)
+	);
 ?>

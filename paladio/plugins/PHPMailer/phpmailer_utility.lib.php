@@ -96,19 +96,25 @@
 	}
 	
 	require_once('configuration.lib.php');
-	function PHPMailer_Utility_Configure()
-	{
-		PHPMailer_Utility::Configure
+	Configuration::Callback
+	(
+		'paladio-mail',
+		create_function
 		(
-			Configuration::Get('paladio-mail', 'secure', 'ssl'),
-			Configuration::Get('paladio-mail', 'secure', 'ssl'),
-			Configuration::Get('paladio-mail', 'server'),
-			Configuration::Get('paladio-mail', 'port'),
-			Configuration::Get('paladio-mail', 'user'),
-			Configuration::Get('paladio-mail', 'password'),
-			Configuration::Get('paladio-mail', 'sender'),
-			Configuration::Get('paladio-mail', 'sender_name')
-		);
-	}
-	Configuration::Callback('paladio-mail', 'PHPMailer_Utility_Configure');
+			'',
+			<<<'EOT'
+				PHPMailer_Utility::Configure
+				(
+					Configuration::Get('paladio-mail', 'secure', 'ssl'),
+					Configuration::Get('paladio-mail', 'secure', 'ssl'),
+					Configuration::Get('paladio-mail', 'server'),
+					Configuration::Get('paladio-mail', 'port'),
+					Configuration::Get('paladio-mail', 'user'),
+					Configuration::Get('paladio-mail', 'password'),
+					Configuration::Get('paladio-mail', 'sender'),
+					Configuration::Get('paladio-mail', 'sender_name')
+				);
+EOT
+		)
+	);
 ?>

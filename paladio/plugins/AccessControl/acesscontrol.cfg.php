@@ -9,4 +9,3 @@
 # salt_field = 
 # role_field = 
 # hash_algorithm = sha1
-disable_session_cache

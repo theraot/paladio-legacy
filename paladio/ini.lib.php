@@ -194,7 +194,7 @@
 							}
 							else
 							{
-								trigger_error('INI: option directives must be at the begginin of the file');
+								trigger_error('INI: option directives must be at the beginning of the file');
 							}
 						}
 						else

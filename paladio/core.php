@@ -9,8 +9,6 @@
 		require_once('paladio.lib.php');
 	}
 
-	Paladio::__Init();
-	
 	ob_start();
 	include(FileSystem::ScriptPath());
 	$document = ob_get_contents();

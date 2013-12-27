@@ -609,4 +609,6 @@
 			throw new Exception('Creating instances of '.__CLASS__.' is forbidden');
 		}
 	}
+
+	Paladio::__Init();
 ?>

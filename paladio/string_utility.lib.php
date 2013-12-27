@@ -6,33 +6,6 @@
 		exit();
 	}
 
-	if (!function_exists('utf8_str_split'))
-	{
-		/**
-		 * UTF-8 aware replacement of str_split
-		 */
-		function utf8_str_split($string, $split_length = 1)
-		{
-			if (!is_numeric($split_length) || $split_length < 1)
-			{
-				return false;
-			}
-			else
-			{
-				$len = mb_strlen($string);
-				if ($len <= $split_length)
-				{
-					return array($string);
-				}
-				else
-				{
-					preg_match_all('@.{'.$split_length.'}|[^\x00]{1,'.$split_length.'}$@us', $string, $match);
-					return $match[0];
-				}
-			}
-		}
-	}
-
 	if (!function_exists('json_decode_array'))
 	{
 		/**
@@ -125,7 +98,7 @@
 			return mb_convert_encoding('&#'.intval($codepoint).';', 'UTF-8', 'HTML-ENTITIES');
 		}
 	}
-	
+
 	if (!function_exists('mb_str_split'))
 	{
 		function mb_str_split(/*string*/ $string, /*int*/ $length = 1)
@@ -136,12 +109,20 @@
 			}
 			else
 			{
-				$result = array();
-				for ($index = 0; $index < mb_strlen($string); $index += $length)
+				$len = mb_strlen($string);
+				if ($len <= $split_length)
 				{
-					$result[] = mb_substr($string, $index, $length);
+					return array($string);
 				}
-				return $result;
+				else
+				{
+					$result = array();
+					for ($index = 0; $index < $len; $index += $length)
+					{
+						$result[] = mb_substr($string, $index, $length);
+					}
+					return $result;
+				}
 			}
 		}
 	}
@@ -649,7 +630,7 @@
 			{
 				$_weekdays = array_map('trim', $weekdays);
 				$weekday = date('w', $date);
-				$weekday_string = implode('\\',utf8_str_split($_weekdays[$weekday], 1));
+				$weekday_string = implode('\\',mb_str_split($_weekdays[$weekday], 1));
 				if ($weekday_string != '')
 				{
 					$weekday_string = '\\'.$weekday_string;
@@ -665,7 +646,7 @@
 			{
 				$_months = array_map('trim', $months);
 				$month = date('n', $date);
-				$month_string = implode('\\',utf8_str_split($_months[$month - 1], 1));
+				$month_string = implode('\\',mb_str_split($_months[$month - 1], 1));
 				if ($month_string != '')
 				{
 					$month_string = '\\'.$month_string;

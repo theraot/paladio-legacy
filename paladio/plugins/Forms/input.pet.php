@@ -89,28 +89,42 @@
 	}
 	else
 	{
-		if ($type == 'textarea')
+		if ($type == 'html')
 		{
-			if (array_key_exists('readonly', $_ELEMENT['attributes']))
+			echo '<div'.PET_Utility::BuildAttributesString(Utility::ArraySkip($_ELEMENT['attributes'], array('type', 'value', 'readonly', 'name'))).'>';
+			if (array_key_exists('value', $_ELEMENT['attributes']))
 			{
-				$value = $_ELEMENT['attributes']['value'];
-				unset($_ELEMENT['attributes']['value']);
-				echo '<textarea'.PET_Utility::BuildAttributesString($_ELEMENT['attributes']).'>'.$value.'</textarea>';
+				echo $_ELEMENT['attributes']['value'];
 			}
-			else
+			echo '</div>';
+		}
+		else if ($type == 'literal')
+		{
+			echo '<span'.PET_Utility::BuildAttributesString(Utility::ArraySkip($_ELEMENT['attributes'], array('type', 'value', 'readonly', 'name'))).'>';
+			if (array_key_exists('value', $_ELEMENT['attributes']))
 			{
-				echo '<textarea'.PET_Utility::BuildAttributesString($_ELEMENT['attributes']).'></textarea>';
+				echo $_ELEMENT['attributes']['value'];
 			}
+			echo '</span>';
+		}
+		else if ($type == 'textarea')
+		{
+			echo '<textarea'.PET_Utility::BuildAttributesString(Utility::ArraySkip($_ELEMENT['attributes'], array('type', 'value'))).'>';
+			if (array_key_exists('value', $_ELEMENT['attributes']))
+			{
+				echo $_ELEMENT['attributes']['value'];
+			}
+			echo '</textarea>';
 		}
 		else if ($type == 'select')
 		{
-			if (array_key_exists('readonly', $_ELEMENT['attributes']))
+			if (array_key_exists('readonly', $_ELEMENT['attributes']) && $_ELEMENT['attributes']['readonly'])
 			{
 				unset ($_ELEMENT['attributes']['readonly']);
 				echo '<input type = "hidden"'.PET_Utility::BuildAttributesString($_ELEMENT['attributes']).'>';
 				$_ELEMENT['attributes']['disabled'] = 'disabled';
 			}
-			echo '<@select'.PET_Utility::BuildAttributesString(Utility::ArraySkip($_ELEMENT['attributes'], 'readonly')).'/>';
+			echo PET_Utility::InvokePET('select', Utility::ArraySkip($_ELEMENT['attributes'], 'readonly'));
 		}
 		else if ($type == 'entity-select')
 		{

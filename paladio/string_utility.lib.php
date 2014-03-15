@@ -622,11 +622,11 @@
 		{
 			$pattern = array();
 			$replace = array();
-			if (is_null($weekdays))
+			if ($weekdays === null)
 			{
 				$weekdays = String_Utility::$weekdays;
 			}
-			if (!is_null($weekdays))
+			if ($weekdays !== null)
 			{
 				$_weekdays = array_map('trim', $weekdays);
 				$weekday = date('w', $date);
@@ -638,11 +638,11 @@
 				$pattern[] = '@(?<!\x5C)l@u';
 				$replace[] = $weekday_string;
 			}
-			if (is_null($months))
+			if ($months === null)
 			{
 				$months = String_Utility::$months;
 			}
-			if (!is_null($months))
+			if ($months !== null)
 			{
 				$_months = array_map('trim', $months);
 				$month = date('n', $date);

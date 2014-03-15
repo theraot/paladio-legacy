@@ -75,7 +75,7 @@
 				$_parameters[] = $value;
 				return true;
 			}
-			else if (is_null($value))
+			else if ($value === null)
 			{
 				$result = 'NULL';
 				return true;
@@ -118,7 +118,7 @@
 		 */
 		private static function ProcessExpressionAggregation($adapter, $operator, $parameter, &$_parameters)
 		{
-			if (is_null($parameter))
+			if ($parameter === null)
 			{
 				return $operator.'(*)';
 			}
@@ -182,13 +182,13 @@
 		public static function CreateAlias($adapter, /*string*/ $alias, /*mixed*/ $value, /*array*/ &$_parameters)
 		{
 			$value = Database_Utility::ProcessValue($adapter, $value, $_parameters);
-			if (!is_null($alias))
+			if ($alias === null)
 			{
-				return $value.' '.$adapter->Alias().' '.$adapter->QuoteIdentifier((string)$alias);
+				return $value;
 			}
 			else
 			{
-				return $value;
+				return $value.' '.$adapter->Alias().' '.$adapter->QuoteIdentifier((string)$alias);
 			}
 		}
 
@@ -295,7 +295,7 @@
 				$operator = $expression->__toString();
 				if ($expression->Type() == 'unary')
 				{
-					if (is_null($field))
+					if ($field === null)
 					{
 						throw new Exception ('Invalid operation');
 					}
@@ -307,7 +307,7 @@
 				else if ($expression->Type() == 'aggregation')
 				{
 					$result = Database_Utility::ProcessExpressionAggregation($adapter, $operator, null, $_parameters);
-					if (is_null($field))
+					if ($field === null)
 					{
 						return $result;
 					}
@@ -319,7 +319,7 @@
 				else if ($expression->Type() == 'function')
 				{
 					$result = Database_Utility::ProcessExpressionFunction($operator, array(), $_parameters);
-					if (is_null($field))
+					if ($field === null)
 					{
 						return $result;
 					}
@@ -341,7 +341,7 @@
 					if ($expression[0]->Type() == 'unary')
 					{
 						$result = Database_Utility::ProcessExpressionUnary($adapter, $operator, $expression[1], $_parameters);
-						if (is_null($field))
+						if ($field === null)
 						{
 							return $result;
 						}
@@ -353,7 +353,7 @@
 					else if ($expression[0]->Type() == 'aggregation')
 					{
 						$result = Database_Utility::ProcessExpressionAggregation($adapter, $operator, $expression[1], $_parameters);
-						if (is_null($field))
+						if ($field === null)
 						{
 							return $result;
 						}
@@ -365,7 +365,7 @@
 					else if ($expression[0]->Type() == 'binary')
 					{
 						$result = Database_Utility::ProcessExpressionBinary($operator, $expression[1], $expression[2], $_parameters);
-						if (is_null($field))
+						if ($field === null)
 						{
 							return $result;
 						}
@@ -377,7 +377,7 @@
 					else if ($expression[0]->Type() == 'n-ary')
 					{
 						$result = Database_Utility::ProcessExpressionNAry($operator, array_splice($expression, 1), $_parameters);
-						if (is_null($field))
+						if ($field === null)
 						{
 							return $result;
 						}
@@ -389,7 +389,7 @@
 					else if ($expression[0]->Type() == 'function')
 					{
 						$result = Database_Utility::ProcessExpressionFunction($operator, array_splice($expression, 1), $_parameters);
-						if (is_null($field))
+						if ($field === null)
 						{
 							return $result;
 						}
@@ -405,7 +405,7 @@
 				}
 				else if (count($expression) > 0)
 				{
-					if (is_null($field))
+					if ($field === null)
 					{
 						$processed = Database_Utility::ProcessFragment($adapter, $expression, array('Database_Utility', 'ProcessExpression'), $_parameters);
 						if (count($processed) == 1)
@@ -442,7 +442,7 @@
 			else
 			{
 				$expression = Database_Utility::ProcessValue($adapter, $expression, $_parameters);
-				if (is_null($field))
+				if ($field === null)
 				{
 					return $expression;
 				}

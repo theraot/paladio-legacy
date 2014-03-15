@@ -202,7 +202,7 @@
 			}
 			else
 			{
-				if (is_null($expecting))
+				if ($expecting === null)
 				{
 					return $parser->ConsumeUntil(PEN::$unquotedStringEnd);
 				}
@@ -265,7 +265,7 @@
 			{
 				return (string)$value;
 			}
-			else if (is_null($value))
+			else if ($value === null)
 			{
 				return 'null';
 			}

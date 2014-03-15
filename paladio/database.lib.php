@@ -108,7 +108,7 @@
 				$processed = Database_Utility::ProcessFragment(Database::$adapter, $fields, array('Database_Utility', 'CreateAlias'), $_parameters);
 				return implode(', ', $processed);
 			}
-			else if (is_null($fields) || (is_array($fields) && count($fields) == 0))
+			else if ($fields === null || (is_array($fields) && count($fields) == 0))
 			{
 				return '*';
 			}
@@ -139,7 +139,7 @@
 					return ' WHERE ('.implode(') '.(Database::$adapter->OP('AND')->__toString()).' (', $processed).')';
 				}
 			}
-			else if (is_null($where) || (is_array($where) && count($where) == 0))
+			else if ($where === null || (is_array($where) && count($where) == 0))
 			{
 				return '';
 			}
@@ -203,7 +203,7 @@
 			Database::$port = $port;
 			Database::$database = $database;
 			Database::$charset = $charset;
-			if (is_null($queryUser))
+			if ($queryUser === null)
 			{
 				Database::$queryUser = $executeUser;
 			}
@@ -211,7 +211,7 @@
 			{
 				Database::$queryUser = $queryUser;
 			}
-			if (is_null($queryPassword))
+			if ($queryPassword === null)
 			{
 				Database::$queryPassword = $executePassword;
 			}
@@ -440,7 +440,7 @@
 		 */
 		public static function Execute(/*string*/ $statement, /*Database*/ $database = null)
 		{
-			if (is_null($database))
+			if ($database === null)
 			{
 				$connection = Database::ConnectExecute()->get_Connection();
 			}
@@ -469,7 +469,7 @@
 					$ok = $result->errorCode() === '00000';
 					$result->close();
 				}
-				if (is_null($database))
+				if ($database === null)
 				{
 					Database::Disconnect($connection);
 				}
@@ -542,7 +542,7 @@
 		 */
 		public static function Query(/*string*/ $query, /*object*/ &$result, /*Database*/ $database = null)
 		{
-			if (is_null($database))
+			if ($database === null)
 			{
 				$connection = Database::ConnectQuery()->get_Connection();
 			}
@@ -569,7 +569,7 @@
 				{
 					$ok = true;
 				}
-				if (is_null($database))
+				if ($database === null)
 				{
 					Database::Disconnect($connection);
 				}
@@ -698,7 +698,7 @@
 				$result->rewind();
 				$record = $result->current();
 				$result->close();
-				if (!is_null($record))
+				if ($record !== null)
 				{
 					return true;
 				}
@@ -751,7 +751,7 @@
 		 */
 		public static function Write(/*array*/ $record, /*string*/ $table, /*mixed*/ $where = null, /*Database*/ $database = null)
 		{
-			if (is_null($database))
+			if ($database === null)
 			{
 				$_database = Database::ConnectExecute();
 			}
@@ -784,7 +784,7 @@
 				}
 				$result = Database::Insert($record, $table, $_database);
 			}
-			if (is_null($database))
+			if ($database === null)
 			{
 				$_database->Close();
 			}

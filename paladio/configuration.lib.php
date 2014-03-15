@@ -76,7 +76,7 @@
 		{
 			if (Configuration::CategoryExists($categoryName))
 			{
-				if (is_null($callback))
+				if ($callback === null)
 				{
 					return false;
 				}
@@ -89,7 +89,7 @@
 			}
 			else
 			{
-				if (is_null($callback))
+				if ($callback  === null)
 				{
 					$callback = FileSystem::GetIncluderFile();
 				}
@@ -123,7 +123,7 @@
 		public static function CategoryExists(/*mixed*/ $categoryName)
 		{
 			//TODO: move multiple category checks to INI [low priority]
-			if (is_null(Configuration::$INI))
+			if (Configuration::$INI  === null)
 			{
 				return false;
 			}
@@ -166,7 +166,7 @@
 		public static function FieldExists(/*mixed*/ $categoryName, /*string*/ $fieldName)
 		{
 			//TODO: move multiple field check to INI [low priority]
-			if (is_null(Configuration::$INI))
+			if (Configuration::$INI === null)
 			{
 				return false;
 			}
@@ -218,7 +218,7 @@
 			{
 				Configuration::$loadedFiles = array();
 			}
-			if (is_null(Configuration::$INI))
+			if (Configuration::$INI === null)
 			{
 				Configuration::$INI = new INI();
 			}
@@ -269,7 +269,7 @@
 		 */
 		public static function Get(/*string*/ $categoryName, /*string*/ $fieldName, /*mixed*/ $default = null)
 		{
-			if (!is_null(Configuration::$INI) && Configuration::$INI->isset_Field($categoryName, $fieldName))
+			if (Configuration::$INI !== null && Configuration::$INI->isset_Field($categoryName, $fieldName))
 			{
 				return Configuration::$INI->get_Field($categoryName, $fieldName);
 			}
@@ -295,7 +295,7 @@
 		 */
 		public static function TryGet(/*string*/ $categoryName, /*string*/ $fieldName, /*mixed*/ &$result)
 		{
-			if (!is_null(Configuration::$INI) && Configuration::$INI->isset_Field($categoryName, $fieldName))
+			if (Configuration::$INI !== null && Configuration::$INI->isset_Field($categoryName, $fieldName))
 			{
 				$result = Configuration::$INI->get_Field($categoryName, $fieldName);
 				return true;

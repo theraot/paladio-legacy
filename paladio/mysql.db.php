@@ -51,7 +51,7 @@
 			try
 			{
 				$connection = new PDO($DSN, $user, $password);
-				if (!is_null($charset))
+				if ($charset !== null)
 				{
 					$connection->query('set charset '.$this->QuoteIdentifier($charset));
 				}

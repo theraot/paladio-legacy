@@ -67,7 +67,7 @@
 			{
 				$result[] = '.';
 			}
-			if (is_null($directory_separator))
+			if ($directory_separator === null)
 			{
 				$directory_separator = DIRECTORY_SEPARATOR;
 			}
@@ -123,7 +123,7 @@
 				else
 				{
 					$result = array();
-					if (($handle = opendir($folder)) !== false)
+					if (($handle = @opendir($folder)) !== false)
 					{
 						$regexPattern = '@^'.str_replace(array('\*', '\?'), array('.*', '.'), preg_quote($pattern)).'$@u';
 						while (($item = readdir($handle)) !== false)
@@ -520,7 +520,7 @@
 		{
 			$absolute = FileSystem::ProcessAbsolutePath($absolutePath);
 			$relative = FileSystem::ProcessRelativePath($relativePath);
-			if (is_null($directory_separator))
+			if ($directory_separator === null)
 			{
 				$directory_separator = DIRECTORY_SEPARATOR;
 			}
@@ -572,7 +572,7 @@
 		 */
 		public static function ScriptPathRelative(/*string*/ $absolutePath = null, $directory_separator = '/')
 		{
-			if (is_null($absolutePath))
+			if ($absolutePath === null)
 			{
 				$absolutePath = FileSystem::DocumentRoot();
 			}

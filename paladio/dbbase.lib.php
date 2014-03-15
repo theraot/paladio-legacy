@@ -51,7 +51,7 @@
 
 		public function __construct(/*object*/ $result)
 		{
-			if (is_null($result))
+			if ($result === null)
 			{
 				throw new Exception ('Invalid result');
 			}
@@ -103,7 +103,7 @@
 
 		function close()
 		{
-			if (!is_null($this->result))
+			if ($this->result !== null)
 			{
 				$this->result->closeCursor();
 				$this->current = null;

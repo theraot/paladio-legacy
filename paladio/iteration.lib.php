@@ -48,7 +48,7 @@
 					}
 					foreach($iterator as $record)
 					{
-						if (is_null($record))
+						if ($record === null)
 						{
 							break;
 						}
@@ -91,7 +91,7 @@
 				$result = array();
 				foreach($iterator as $record)
 				{
-					if (is_null($record))
+					if ($record === null)
 					{
 						break;
 					}
@@ -140,7 +140,7 @@
 				$result = array();
 				foreach($iterator as $record)
 				{
-					if (is_null($record))
+					if ($record === null)
 					{
 						break;
 					}
@@ -174,7 +174,7 @@
 				{
 					foreach($iterator as $record)
 					{
-						if (is_null($record))
+						if ($record === null)
 						{
 							break;
 						}
@@ -193,7 +193,7 @@
 				{
 					foreach($iterator as $record)
 					{
-						if (is_null($record))
+						if ($record === null)
 						{
 							break;
 						}
@@ -228,7 +228,7 @@
 				{
 					foreach ($iterator as $record)
 					{
-						if (is_null($record))
+						if ($record === null)
 						{
 							break;
 						}
@@ -247,7 +247,7 @@
 				{
 					foreach($iterator as $record)
 					{
-						if (is_null($record))
+						if ($record === null)
 						{
 							break;
 						}

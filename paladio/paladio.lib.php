@@ -240,7 +240,7 @@
 					$element['contents'] = $documentResult['contents'];
 					$new = Paladio::ProcessElement($element);
 					$contents .= $new;
-					if (!is_null($documentResult['close']))
+					if ($documentResult['close'] !== null)
 					{
 						if ($element['name'] != $documentResult['close'])
 						{
@@ -284,7 +284,7 @@
 			$file = Paladio::GetPetFile($_ELEMENT['name'], false);
 			if ($file === false)
 			{
-				if (is_null($_ELEMENT['contents']))
+				if ($_ELEMENT['contents'] === null)
 				{
 					return '';
 				}
@@ -317,8 +317,8 @@
 			$whitespaceOrClose = array("\t", "\n", "\r", "\f", ' ', '/', '>');
 			$attributeNameEnd = array("\t", "\n", "\r", "\f", ' ', '/', '=', '>');
 			$close = array('/', '>');
-			$isClose = !is_null($parser->Consume('</@')) /*|| !is_null($parser->Consume('<@/'))*/;
-			if (!$isClose && is_null($parser->Consume('<@')))
+			$isClose = $parser->Consume('</@') !== null;
+			if (!$isClose && $parser->Consume('<@') === null)
 			{
 				$result = $parser->ConsumeAll();
 				if ($result === false)
@@ -463,7 +463,7 @@
 				Configuration::TryGet('paladio', 'mode', Paladio::$mode);
 			}
 			$tmpCategoryName = 'paladio-'.Paladio::$mode;
-			if (is_null(Paladio::$mode) || !Configuration::CategoryExists($tmpCategoryName))
+			if (Paladio::$mode === null || !Configuration::CategoryExists($tmpCategoryName))
 			{
 				Paladio::$categoryName = 'paladio';
 				if (Configuration::TryGet('paladio', 'time_limit', $result))
@@ -528,7 +528,7 @@
 		{
 			if (Paladio::ClassExists($className))
 			{
-				if (is_null($callback))
+				if ($callback === null)
 				{
 					return false;
 				}
@@ -541,7 +541,7 @@
 			}
 			else
 			{
-				if (is_null($callback))
+				if ($callback === null)
 				{
 					$callback = FileSystem::GetIncludedFile();
 				}

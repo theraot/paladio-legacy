@@ -384,7 +384,7 @@
 			while (true)
 			{
 				$current = $current->ProcessInheritance(true);
-				if (is_null($current))
+				if ($current === null)
 				{
 					return;
 				}
@@ -405,7 +405,7 @@
 					return true;
 				}
 				$current = $current->ProcessInheritance(true);
-				if (is_null($current))
+				if ($current === null)
 				{
 					return false;
 				}
@@ -426,7 +426,7 @@
 					return true;
 				}
 				$current = $current->ProcessInheritance(true);
-				if (is_null($current))
+				if ($current === null)
 				{
 					return false;
 				}
@@ -447,7 +447,7 @@
 					return true;
 				}
 				$current = $current->ProcessInheritance(true);
-				if (is_null($current))
+				if ($current === null)
 				{
 					return false;
 				}
@@ -468,7 +468,7 @@
 					return true;
 				}
 				$current = $current->ProcessInheritance(true);
-				if (is_null($current))
+				if ($current === null)
 				{
 					return false;
 				}
@@ -480,7 +480,7 @@
 		 */
 		private function ProcessInheritance(/*bool*/ $create = false)
 		{
-			if (is_null($this->_baseEntityBase))
+			if ($this->_baseEntityBase === null)
 			{
 				$class = get_parent_class($this);
 				if ($class != __CLASS__)
@@ -529,7 +529,7 @@
 						}
 					}
 					$this->_baseEntityBase = EntityBase::Existing($primaryKeyValue, $class);
-					if ($create && is_null($this->_baseEntityBase))
+					if ($create && $this->_baseEntityBase === null)
 					{
 						$this->_baseEntityBase = EntityBase::Create($this->primaryKeyValue, true, $class);
 					}
@@ -619,7 +619,7 @@
 		public function Clear(/*bool*/ $recursive = true)
 		{
 			$this->_entity->Clear();
-			if (!is_null($this->_baseEntityBase) && $recursive)
+			if ($this->_baseEntityBase !== null && $recursive)
 			{
 				$this->_baseEntityBase->Clear($recursive);
 			}
@@ -638,7 +638,7 @@
 		{
 			if ($this->_entity->Load())
 			{
-				if (!is_null($this->_baseEntityBase) && $recursive)
+				if ($this->_baseEntityBase !== null && $recursive)
 				{
 					$this->_baseEntityBase->Load($recursive);
 				}
@@ -662,7 +662,7 @@
 		{
 			if ($this->_entity->Save())
 			{
-				if (!is_null($this->_baseEntityBase) && $recursive)
+				if ($this->_baseEntityBase !== null && $recursive)
 				{
 					$this->_baseEntityBase->Save($recursive);
 				}

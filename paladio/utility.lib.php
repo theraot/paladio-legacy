@@ -112,7 +112,7 @@
 			foreach ($keys as $key)
 			{
 				$value = $array[$key];
-				if (!is_null($value))
+				if ($value !== null)
 				{
 					if ($index === $key)
 					{
@@ -185,7 +185,7 @@
 			{
 				if (!in_array($key, $keys))
 				{
-					if (!is_null($value))
+					if ($value !== null)
 					{
 						$result[$key] = $value;
 					}
@@ -208,7 +208,7 @@
 		 */
 		public static function ArraySort(/*array*/ $array, /*function*/ $compare = null)
 		{
-			if (is_null($compare))
+			if ($compare === null)
 			{
 				$charset = String_Utility::DiscoverIconvCharset();
 				if ($charset === 'UTF-8')
@@ -252,7 +252,7 @@
 				if (array_key_exists($key, $array))
 				{
 					$value = $array[$key];
-					if (!is_null($value))
+					if ($value !== null)
 					{
 						$result[$alias] = $value;
 					}

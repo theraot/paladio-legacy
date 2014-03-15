@@ -35,7 +35,7 @@
 
 		private static function _Consume(/*string*/ $input, /*int*/ $offset, /*int*/ $length, /*mixed*/ $what = null, /*int*/ &$consumedLength)
 		{
-			if (is_null($what))
+			if ($what === null)
 			{
 				$chunk = substr($input, $offset, 6);
 				$result = mb_substr($chunk, 0, 1);
@@ -422,7 +422,7 @@
 			if (isset($this->document))
 			{
 				$result = Parser::_ConsumeToPosition($this->document, $this->documentPosition, $this->documentSize, $position, $consumedLength);
-				if (!is_null($result))
+				if ($result !== null)
 				{
 					$this->documentPosition += $consumedLength;
 				}
@@ -501,7 +501,7 @@
 			if (isset($this->document))
 			{
 				$result = Parser::_Consume($this->document, $this->documentPosition, $this->documentSize, $what, $consumedLength);
-				if (!is_null($result))
+				if ($result !== null)
 				{
 					$this->documentPosition += $consumedLength;
 				}
@@ -532,7 +532,7 @@
 			if (isset($this->document))
 			{
 				$result = Parser::_Consume($this->document, $this->documentPosition, $this->documentSize, $callback, $consumedLength);
-				if (!is_null($result))
+				if ($result !== null)
 				{
 					$this->documentPosition += $consumedLength;
 				}
@@ -549,7 +549,7 @@
 			if (isset($this->document))
 			{
 				$result = Parser::_ConsumeUntil($this->document, $this->documentPosition, $this->documentSize, $what, $consumedLength);
-				if (!is_null($result))
+				if ($result !== null)
 				{
 					$this->documentPosition += $consumedLength;
 				}
@@ -566,7 +566,7 @@
 			if (isset($this->document))
 			{
 				$result = Parser::_ConsumeUntilCallback($this->document, $this->documentPosition, $this->documentSize, $callback, $consumedLength);
-				if (!is_null($result))
+				if ($result !== null)
 				{
 					$this->documentPosition += $consumedLength;
 				}
@@ -583,7 +583,7 @@
 			if (isset($this->document))
 			{
 				$result = Parser::_ConsumeWhile($this->document, $this->documentPosition, $this->documentSize, $what, $consumedLength);
-				if (!is_null($result))
+				if ($result !== null)
 				{
 					$this->documentPosition += $consumedLength;
 				}
@@ -600,7 +600,7 @@
 			if (isset($this->document))
 			{
 				$result = Parser::_ConsumeUWhileCallback($this->document, $this->documentPosition, $this->documentSize, $callback, $consumedLength);
-				if (!is_null($result))
+				if ($result !== null)
 				{
 					$this->documentPosition += $consumedLength;
 				}

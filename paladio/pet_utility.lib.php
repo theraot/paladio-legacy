@@ -25,7 +25,7 @@
 		 */
 		public static function BuildAttributesString($attributes)
 		{
-			if (is_null($attributes))
+			if ($attributes === null)
 			{
 				return '';
 			}
@@ -37,7 +37,7 @@
 				foreach($keys as $attributeName)
 				{
 					$attributeValue = $attributes[$attributeName];
-					if (!is_null($attributeValue))
+					if ($attributeValue !== null)
 					{
 						if ($index === $attributeName)
 						{
@@ -71,7 +71,7 @@
 		 */
 		public static function BuildClassesString($classes)
 		{
-			if (is_null($classes))
+			if ($classes === null)
 			{
 				return '';
 			}
@@ -80,7 +80,7 @@
 				$result = array();
 				foreach($classes as $class)
 				{
-					if (!is_null($class))
+					if ($class !== null)
 					{
 						$result[] = $class;
 					}

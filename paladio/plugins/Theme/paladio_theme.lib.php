@@ -24,7 +24,7 @@
 		{
 			if (FileSystem::UriExists($path))
 			{
-				if (is_null($arguments))
+				if ($arguments === null)
 				{
 					return $path;
 				}

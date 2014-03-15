@@ -150,6 +150,46 @@
 			}
 		}
 
+		/**
+		 * Get a entity created in memory, it may use the values provided to query the database.
+		 *
+		 * Note: no check for existence is performed.
+		 *
+		 * @param $values: the values of for the entity, including the primary key.
+		 * @param $class: before PHP 5.3 $class is needed to tell the entity class to use.
+		 *
+		 * @access public
+		 * @return entity object
+		 */
+		public static function ExistingVirtual(/*mixed*/ $values, /*string*/ $class = null)
+		{
+			if (!is_string($class))
+			{
+				if (function_exists('get_called_class'))
+				{
+					$class = get_called_class();
+				}
+				else
+				{
+					throw new Exception('Unable to infer class');
+				}
+			}
+			$data = Entity::GetEntityData($class);
+			$table = $data['table'];
+			$primaryKey = $data['primaryKey'];
+			if (is_string($primaryKey))
+			{
+				$primaryKeyValue = $values[$primaryKey];
+			}
+			else
+			{
+				$primaryKeyValue = Utility::ArrayTake($values, $primaryKey);
+			}
+			$entity = new Entity($table, $primaryKey, $primaryKeyValue);
+			$result = new $class($entity);
+			return $result;
+		}
+
 		//------------------------------------------------------------
 		// Private (Instance)
 		//------------------------------------------------------------

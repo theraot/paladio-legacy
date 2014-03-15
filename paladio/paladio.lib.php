@@ -270,25 +270,6 @@
 			return array('close' => null, 'contents' => $contents);
 		}
 
-		private static function ProcessElement(/*array*/ $_ELEMENT)
-		{
-			if (array_key_exists('multiple', $_ELEMENT))
-			{
-				if ($_ELEMENT['multiple'])
-				{
-					return Paladio::ProcessMultipleElement($_ELEMENT);
-				}
-				else
-				{
-					return Paladio::ProcessSingleElement($_ELEMENT);
-				}
-			}
-			else
-			{
-				return '';
-			}
-		}
-
 		private static function ProcessFile(/*array*/ $_ELEMENT, /*string*/ $file)
 		{
 			ob_start();
@@ -578,6 +559,25 @@
 					Paladio::$entries = array($entry);
 				}
 				return true;
+			}
+		}
+
+		public static function ProcessElement(/*array*/ $_ELEMENT)
+		{
+			if (array_key_exists('multiple', $_ELEMENT))
+			{
+				if ($_ELEMENT['multiple'])
+				{
+					return Paladio::ProcessMultipleElement($_ELEMENT);
+				}
+				else
+				{
+					return Paladio::ProcessSingleElement($_ELEMENT);
+				}
+			}
+			else
+			{
+				return '';
 			}
 		}
 

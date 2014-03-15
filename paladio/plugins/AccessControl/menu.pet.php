@@ -152,6 +152,6 @@
 			$entries,
 			$index
 		);
-	echo '<br clear="both">';
+	echo '<br style="clear:both">';
 	echo '</nav>';
 ?>

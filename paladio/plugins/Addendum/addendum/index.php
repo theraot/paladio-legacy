@@ -1,7 +1,7 @@
 <?php
 	header('HTTP/1.0 404 Not Found');
 	exit();
-	/*addendum is distributed under the licence below*/
+	/*addendum is distributed under the license below*/
 ?>
 
 GNU L GENERAL PUBLIC LICENSE Version 2.1, February 1999 Copyright (C)

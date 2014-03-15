@@ -1,6 +1,6 @@
 <?php
-	header('HTTP/1.0 404 Not Found'); exit(); //Esta página no deve ser vista.
-	/*PHPMailer is distributed under the licence below*/
+	header('HTTP/1.0 404 Not Found'); exit(); //Not to be seen
+	/*PHPMailer is distributed under the license below*/
 ?>
 		  GNU LESSER GENERAL PUBLIC LICENSE
 		       Version 2.1, February 1999

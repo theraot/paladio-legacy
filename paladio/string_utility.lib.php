@@ -233,7 +233,7 @@
 			}
 			if ($class != '')
 			{
-				return preg_replace_callback('@['.$class.']@u', 'String_Utility::EscapeCharacter', $string);
+				return preg_replace_callback('@['.$class.']@u', array('String_Utility', 'EscapeCharacter'), $string);
 			}
 			else
 			{

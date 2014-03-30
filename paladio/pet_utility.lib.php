@@ -23,7 +23,7 @@
 		 * @access public
 		 * @return string
 		 */
-		public static function BuildAttributesString($attributes)
+		public static function BuildAttributesString(/*array*/ $attributes, /*mixed*/ $filter = null)
 		{
 			if ($attributes === null)
 			{
@@ -31,6 +31,10 @@
 			}
 			else
 			{
+				if ($filter !== null)
+				{
+					$attributes = Utility::ArrayTake($attributes, $filter);
+				}
 				$result = array();
 				$keys = Utility::ArraySort(array_keys($attributes));
 				$index = 0;

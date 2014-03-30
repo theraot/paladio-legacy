@@ -177,21 +177,39 @@
 		public static function ArraySkip(/*array*/ $array, /*mixed*/ $keys)
 		{
 			$result = array();
-			if (!is_array($keys))
+			if ($keys === null)
 			{
-				$keys = array($keys);
+				return $array;
 			}
-			foreach ($array as $key => $value)
+			else if (is_string($keys))
 			{
-				if (!in_array($key, $keys))
+				foreach ($array as $key => $value)
 				{
-					if ($value !== null)
+					if ($key === $keys)
 					{
-						$result[$key] = $value;
+						if ($value !== null)
+						{
+							$result[$key] = $value;
+						}
+						break;
 					}
 				}
+				return $result;
 			}
-			return $result;
+			else
+			{
+				foreach ($array as $key => $value)
+				{
+					if (!in_array($key, $keys))
+					{
+						if ($value !== null)
+						{
+							$result[$key] = $value;
+						}
+					}
+				}
+				return $result;
+			}
 		}
 		
 		/**
@@ -236,29 +254,40 @@
 		 * @access public
 		 * @return array
 		 */
-		public static function ArrayTake(/*array*/ $array, /*array*/ $keys)
+		public static function ArrayTake(/*array*/ $array, /*mixed*/ $keys = null)
 		{
-			$result = array();
-			$_keys = Utility::ArraySort(array_keys($keys));
-			$index = 0;
-			foreach ($_keys as $key)
+			if ($keys === null)
 			{
-				$alias = $keys[$key];
-				if ($index === $key)
+				return array();
+			}
+			else if (is_string($keys))
+			{
+				return array($keys => $array[$keys]);
+			}
+			else
+			{
+				$result = array();
+				$_keys = Utility::ArraySort(array_keys($keys));
+				$index = 0;
+				foreach ($_keys as $key)
 				{
-					$key = $alias;
-					$index++;
-				}
-				if (array_key_exists($key, $array))
-				{
-					$value = $array[$key];
-					if ($value !== null)
+					$alias = $keys[$key];
+					if ($index === $key)
 					{
-						$result[$alias] = $value;
+						$key = $alias;
+						$index++;
+					}
+					if (array_key_exists($key, $array))
+					{
+						$value = $array[$key];
+						if ($value !== null)
+						{
+							$result[$alias] = $value;
+						}
 					}
 				}
+				return $result;
 			}
-			return $result;
 		}
 
 		/**

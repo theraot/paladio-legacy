@@ -215,26 +215,33 @@
 			}
 			else
 			{
-				$uri = PaladioTheme::GetUri($path, $arguments);
-				if ($uri === false)
+				if (strpos($path, ';') !== false)
 				{
-					return false;
+					PaladioTheme::RequestScript(explode(';', $path), $arguments, $attributes);
 				}
 				else
 				{
-					$entry = array('uri' => $uri, 'attributes' => $attributes);
-					if (is_array(PaladioTheme::$scripts))
+					$uri = PaladioTheme::GetUri($path, $arguments);
+					if ($uri === false)
 					{
-						if (!in_array($entry, PaladioTheme::$scripts))
-						{
-							PaladioTheme::$scripts[] = $entry;
-						}
+						return false;
 					}
 					else
 					{
-						PaladioTheme::$scripts = array($entry);
+						$entry = array('uri' => $uri, 'attributes' => $attributes);
+						if (is_array(PaladioTheme::$scripts))
+						{
+							if (!in_array($entry, PaladioTheme::$scripts))
+							{
+								PaladioTheme::$scripts[] = $entry;
+							}
+						}
+						else
+						{
+							PaladioTheme::$scripts = array($entry);
+						}
+						return true;
 					}
-					return true;
 				}
 			}
 		}
@@ -251,26 +258,33 @@
 			}
 			else
 			{
-				$uri = PaladioTheme::GetUri($path, $arguments);
-				if ($uri === false)
+				if (strpos($path, ';') !== false)
 				{
-					return false;
+					PaladioTheme::RequestStyleSheet(explode(';', $path), $arguments, $attributes);
 				}
 				else
 				{
-					$entry = array('uri' => $uri, 'attributes' => $attributes);
-					if (is_array(PaladioTheme::$styleSheets))
+					$uri = PaladioTheme::GetUri($path, $arguments);
+					if ($uri === false)
 					{
-						if (!in_array($entry, PaladioTheme::$styleSheets))
-						{
-							PaladioTheme::$styleSheets[] = $entry;
-						}
+						return false;
 					}
 					else
 					{
-						PaladioTheme::$styleSheets = array($entry);
+						$entry = array('uri' => $uri, 'attributes' => $attributes);
+						if (is_array(PaladioTheme::$styleSheets))
+						{
+							if (!in_array($entry, PaladioTheme::$styleSheets))
+							{
+								PaladioTheme::$styleSheets[] = $entry;
+							}
+						}
+						else
+						{
+							PaladioTheme::$styleSheets = array($entry);
+						}
+						return true;
 					}
-					return true;
 				}
 			}
 		}

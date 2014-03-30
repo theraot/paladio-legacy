@@ -149,28 +149,37 @@
 
 		public static function GetUri(/*string*/ $path, /*mixed*/ $arguments = null)
 		{
-			$resolvedPath = FileSystem::ResolveRelativePath(PaladioTheme::$themesFolder.PaladioTheme::$currentTheme, $path);
-			$result = PaladioTheme::BuildUri($resolvedPath, $arguments);
-			if (PaladioTheme::$currentTheme != 'default')
+			$path = trim($path);
+			$check = strpos($path, '//');
+			if ($check === strpos($path, '/') && $check !== false)
 			{
-				if ($result === false)
-				{
-					$resolvedPath = FileSystem::ResolveRelativePath(PaladioTheme::$themesFolder.'default', $path);
-					$result = PaladioTheme::BuildUri($resolvedPath, $arguments);
-				}
-			}
-			if ($result === false)
-			{
-				$result = PaladioTheme::BuildUri($path, $arguments);
-			}
-			if ($result === false)
-			{
-				return false;
+				return PaladioTheme::BuildUri($path, $arguments);
 			}
 			else
 			{
-				$result = '/'.FileSystem::CreateRelativePath(FileSystem::DocumentRoot(), $result, '/');
-				return $result;
+				$resolvedPath = FileSystem::ResolveRelativePath(PaladioTheme::$themesFolder.PaladioTheme::$currentTheme, $path);
+				$result = PaladioTheme::BuildUri($resolvedPath, $arguments);
+				if (PaladioTheme::$currentTheme != 'default')
+				{
+					if ($result === false)
+					{
+						$resolvedPath = FileSystem::ResolveRelativePath(PaladioTheme::$themesFolder.'default', $path);
+						$result = PaladioTheme::BuildUri($resolvedPath, $arguments);
+					}
+				}
+				if ($result === false)
+				{
+					$result = PaladioTheme::BuildUri($path, $arguments);
+				}
+				if ($result === false)
+				{
+					return false;
+				}
+				else
+				{
+					$result = '/'.FileSystem::CreateRelativePath(FileSystem::DocumentRoot(), $result, '/');
+					return $result;
+				}
 			}
 		}
 

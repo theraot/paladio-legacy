@@ -141,7 +141,7 @@
 		}
 	}
 	
-	echo '<nav>';
+	echo '<nav style="clear:both">';
 	$index = 0;
 	__EmitPaladioNavMenu
 		(

@@ -12,15 +12,15 @@
 	{
 		$level = 1;
 	}
-?><section<?php if(isset($_ELEMENT['attributes']['id'])) echo ' id = "'.$_ELEMENT['attributes']['id'].'"'; ?>>
-	<article<?php if(isset($_ELEMENT['attributes']['class'])) echo ' class = "'.$_ELEMENT['attributes']['class'].'"'; ?>>
+?><section<?php echo PET_Utility::BuildAttributesString($_ELEMENT['attributes'], 'id'); ?>>
+	<article<?php echo PET_Utility::BuildAttributesString($_ELEMENT['attributes'], 'class'); ?>>
 		<header>
-			<h<?php echo $level ?>><?php if(isset($_ELEMENT['attributes']['title'])) echo $_ELEMENT['attributes']['title']; ?></h<?php echo $level ?>>
+			<h<?php echo $level ?>><?php if(array_key_exists('title', $_ELEMENT['attributes'])) echo $_ELEMENT['attributes']['title']; ?></h<?php echo $level ?>>
 			<?php
 				$isoformat = 'Y-m-d\TH:i:s';
-				$date = isset($_ELEMENT['attributes']['date']) ? $_ELEMENT['attributes']['date'] : false;
-				$dateformat = isset($_ELEMENT['attributes']['date-format']) ? $_ELEMENT['attributes']['date-format'] : $isoformat;
-				$author = isset($_ELEMENT['attributes']['author']) ? $_ELEMENT['attributes']['author'] : false;
+				$date = array_key_exists('date', $_ELEMENT['attributes']) ? $_ELEMENT['attributes']['date'] : false;
+				$dateformat = array_key_exists('date-format', $_ELEMENT['attributes']) ? $_ELEMENT['attributes']['date-format'] : $isoformat;
+				$author = array_key_exists('author', $_ELEMENT['attributes']) ? $_ELEMENT['attributes']['author'] : false;
 				if ($date === false)
 				{
 					if ($author !== false)

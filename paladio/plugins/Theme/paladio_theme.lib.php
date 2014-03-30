@@ -183,6 +183,26 @@
 			}
 		}
 
+		public static function GetRootUris()
+		{
+			$result = array
+			(
+				'/'.FileSystem::CreateRelativePath
+				(
+					FileSystem::DocumentRoot(),
+					FileSystem::ResolveRelativePath(PaladioTheme::$themesFolder.PaladioTheme::$currentTheme, '.', '/'),
+					'/'
+				),
+				''
+			);
+			if (PaladioTheme::$currentTheme != 'default')
+			{
+				$result[] = PaladioTheme::$themesFolder.'default';
+			}
+			$result[] = '/';
+			return $result;
+		}
+
 		public static function RequestScript(/*string*/ $path, /*mixed*/ $arguments = null, /*mixed*/ $attributes = null)
 		{
 			if (is_array($path))

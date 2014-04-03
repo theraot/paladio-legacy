@@ -238,7 +238,7 @@
 					$element['__parent'] = $parent;
 					$documentResult = Paladio::ProcessDocumentFragment($parser, $path, $source, $query, $element);
 					$element['contents'] = $documentResult['contents'];
-					$new = Paladio::ProcessElement($element);
+					$new = Paladio::ProcessElement($element, false);
 					$contents .= $new;
 					if ($documentResult['close'] !== null)
 					{
@@ -270,16 +270,23 @@
 			return array('close' => null, 'contents' => $contents);
 		}
 
-		private static function ProcessFile(/*array*/ $_ELEMENT, /*string*/ $file)
+		private static function ProcessFile(/*array*/ $_ELEMENT, /*string*/ $file, /*bool*/ $once)
 		{
 			ob_start();
-			include($file);
+			if ($once)
+			{
+				include_once($file);
+			}
+			else
+			{
+				include($file);
+			}
 			$result = ob_get_contents();
 			ob_end_clean();
 			return Paladio::ProcessDocument($result, $_ELEMENT['source'], $_ELEMENT['query']);
 		}
 
-		private static function ProcessSingleElement(/*array*/ $_ELEMENT)
+		private static function ProcessSingleElement(/*array*/ $_ELEMENT, /*bool*/ $once)
 		{
 			$file = Paladio::GetPetFile($_ELEMENT['name'], false);
 			if ($file === false)
@@ -295,18 +302,18 @@
 			}
 			else
 			{
-				return Paladio::ProcessFile($_ELEMENT, $file);
+				return Paladio::ProcessFile($_ELEMENT, $file, $once);
 			}
 		}
 
-		private static function ProcessMultipleElement(/*array*/ $_ELEMENT)
+		private static function ProcessMultipleElement(/*array*/ $_ELEMENT, /*bool*/ $once)
 		{
 			$files = Paladio::GetPetFile($_ELEMENT['name'], true);
 			sort($files);
 			$result = '';
 			foreach ($files as $file)
 			{
-				$result .= Paladio::ProcessFile($_ELEMENT, $file);
+				$result .= Paladio::ProcessFile($_ELEMENT, $file, $once);
 			}
 			return $result;
 		}
@@ -361,7 +368,7 @@
 							if ($tmp == '>')
 							{
 								$parser->Consume();
-								return array('status' => null, 'contents' => Paladio::ProcessElement($element));
+								return array('status' => null, 'contents' => Paladio::ProcessElement($element, false));
 							}
 						}
 						if ($character == '>')
@@ -562,17 +569,17 @@
 			}
 		}
 
-		public static function ProcessElement(/*array*/ $_ELEMENT)
+		public static function ProcessElement(/*array*/ $_ELEMENT, /*bool*/ $once)
 		{
 			if (array_key_exists('multiple', $_ELEMENT))
 			{
 				if ($_ELEMENT['multiple'])
 				{
-					return Paladio::ProcessMultipleElement($_ELEMENT);
+					return Paladio::ProcessMultipleElement($_ELEMENT, $once);
 				}
 				else
 				{
-					return Paladio::ProcessSingleElement($_ELEMENT);
+					return Paladio::ProcessSingleElement($_ELEMENT, $once);
 				}
 			}
 			else

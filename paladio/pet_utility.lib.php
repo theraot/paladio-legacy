@@ -125,7 +125,37 @@
 			$query = $_SERVER['QUERY_STRING'];
 			$path = FileSystem::CreateRelativePath(dirname($source), FileSystem::FolderInstallation(), '/');
 			$element = array('name' => $pet, 'attributes' => $attributes, 'contents' => $contents, 'path' => $path, 'source' => $source, 'query' => $query, 'multiple' => $multiple);
-			return Paladio::ProcessElement($element);
+			return Paladio::ProcessElement($element, false);
+		}
+		
+		/**
+		 * Invokes a PET and returns the resulting output.
+		 *
+		 * Note: returns empty string if the PET has been already invoked during the current request.
+		 *
+		 * @param $pet: the name of the PET to invoke.
+		 * @param $attributes: the attributes to pass to the PET.
+		 * @param $contents: the contents to pass to the PET.
+		 * @param $multiple: indicates if the requested PET is a multi-PET.
+		 *
+		 * @access public
+		 * @returns string
+		 */
+		public static function PETInvokeOnce($pet, $attributes = null, $contents = null, $multiple = false)
+		{
+			if ($attributes === null)
+			{
+				$attributes = array();
+			}
+			if (!is_array($attributes))
+			{
+				$attributes = array($attributes);
+			}
+			$source = FileSystem::ScriptPath();
+			$query = $_SERVER['QUERY_STRING'];
+			$path = FileSystem::CreateRelativePath(dirname($source), FileSystem::FolderInstallation(), '/');
+			$element = array('name' => $pet, 'attributes' => $attributes, 'contents' => $contents, 'path' => $path, 'source' => $source, 'query' => $query, 'multiple' => $multiple);
+			return Paladio::ProcessElement($element, true);
 		}
 	}
 ?>

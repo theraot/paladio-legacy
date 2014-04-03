@@ -111,7 +111,7 @@
 		 * @access public
 		 * @returns string
 		 */
-		public static function InvokePET($pet, $attributes = null, $contents = null, $multiple = false)
+		public static function PETInvoke($pet, $attributes = null, $contents = null, $multiple = false)
 		{
 			if ($attributes === null)
 			{

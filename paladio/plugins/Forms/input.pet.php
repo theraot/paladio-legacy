@@ -124,7 +124,7 @@
 				echo '<input type = "hidden"'.PET_Utility::BuildAttributesString($_ELEMENT['attributes']).'>';
 				$_ELEMENT['attributes']['disabled'] = 'disabled';
 			}
-			echo PET_Utility::InvokePET('select', Utility::ArraySkip($_ELEMENT['attributes'], 'readonly'));
+			echo PET_Utility::PETInvoke('select', Utility::ArraySkip($_ELEMENT['attributes'], 'readonly'));
 		}
 		else if ($type == 'entity-select')
 		{

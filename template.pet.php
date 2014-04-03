@@ -10,7 +10,7 @@
 	<head>
 		<meta charset="UTF-8" />
 		<?php
-			echo PET_Utility::InvokePET('title', Utility::ArrayTake($_ELEMENT['attributes'], 'title'));
+			echo PET_Utility::PETInvoke('title', Utility::ArrayTake($_ELEMENT['attributes'], 'title'));
 			@PaladioTheme::RequestStyleSheet($_ELEMENT['attributes']['stylesheets']);
 			@PaladioTheme::RequestScript($_ELEMENT['attributes']['scripts']);
 			PaladioTheme::EmitStyleSheets();
@@ -20,7 +20,7 @@
 	<body>
 		<div id="__wrap">
 			<@header/>
-			<?php echo PET_Utility::InvokePET('menu', array('id' => '__menu', 'class' => 'menu', 'selected-class' => 'selected', 'active-class' => 'selected')); ?>
+			<?php echo PET_Utility::PETInvoke('menu', array('id' => '__menu', 'class' => 'menu', 'selected-class' => 'selected', 'active-class' => 'selected')); ?>
 			<div id="__main"><?php if (Session::TryDequeue($message))
 					{
 						echo '<div id="__message" class="'.$message['type'].'">';

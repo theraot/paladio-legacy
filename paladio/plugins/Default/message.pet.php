@@ -17,7 +17,7 @@
 		}
 		echo '>';
 		echo $message['text'];
-		echo '<button style="float:right;" onclick="var node = document.getElementById(\'__message\'); node.parentNode.removeChild(node);"><span class="ui-icon ui-icon-close">X</span></button>';
+		echo '<button style="float:right;" onclick="var node = document.getElementById(\'__message\'); node.parentNode.removeChild(node);"><span class="fa">&#xf00d;</span></button>';
 		echo '</div>';
 		Session::DequeueAll();
 	}

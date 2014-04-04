@@ -21,15 +21,8 @@
 		<div id="__wrap">
 			<@header/>
 			<?php echo PET_Utility::PETInvoke('menu', array('id' => '__menu', 'class' => 'menu', 'selected-class' => 'selected', 'active-class' => 'selected')); ?>
-			<div id="__main"><?php if (Session::TryDequeue($message))
-					{
-						echo '<div id="__message" class="'.$message['type'].'">';
-						echo $message['text'];
-						echo '<input type="button" style="float:right;" value="X" onclick="var node = document.getElementById(\'__message\'); node.parentNode.removeChild(node);">';
-						echo '</div>';
-						Session::DequeueAll();
-					}
-				?><div id="__content">
+			<div id="__main"><?php echo PET_Utility::PETInvoke('message'); ?>
+				<div id="__content">
 					<?php echo $_ELEMENT['contents']; ?>
 				</div>
 				<@aside/>

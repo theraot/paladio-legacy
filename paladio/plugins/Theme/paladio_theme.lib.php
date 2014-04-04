@@ -17,8 +17,10 @@
 
 		private static $currentTheme;
 		private static $themesFolder;
-		private static $scripts;
-		private static $styleSheets;
+		private static $requestedScripts;
+		private static $requestedStyleSheets;
+		private static $emittedScripts;
+		private static $emittedStyleSheets;
 
 		private static function BuildUri(/*string*/ $path, /*mixed*/ $arguments = null)
 		{
@@ -97,9 +99,9 @@
 
 		public static function EmitScripts()
 		{
-			if (is_array(PaladioTheme::$scripts))
+			if (is_array(PaladioTheme::$requestedScripts))
 			{
-				foreach (PaladioTheme::$scripts as $entry)
+				foreach (PaladioTheme::$requestedScripts as $entry)
 				{
 					echo '<script src="'.$entry['uri'].'"';
 					if (is_array($entry['attributes']))
@@ -118,14 +120,15 @@
 					}
 					echo '></script>';
 				}
+				PaladioTheme::$requestedScripts = array();
 			}
 		}
 
 		public static function EmitStyleSheets()
 		{
-			if (is_array(PaladioTheme::$styleSheets))
+			if (is_array(PaladioTheme::$requestedStyleSheets))
 			{
-				foreach (PaladioTheme::$styleSheets as $entry)
+				foreach (PaladioTheme::$requestedStyleSheets as $entry)
 				{
 					echo '<link rel="stylesheet" href="'.$entry['uri'].'"';
 					if (is_array($entry['attributes']))
@@ -144,6 +147,7 @@
 					}
 					echo '/>';
 				}
+				PaladioTheme::$requestedStyleSheets = array();
 			}
 		}
 
@@ -229,16 +233,20 @@
 					else
 					{
 						$entry = array('uri' => $uri, 'attributes' => $attributes);
-						if (is_array(PaladioTheme::$scripts))
+						if (!is_array(PaladioTheme::$emittedScripts))
 						{
-							if (!in_array($entry, PaladioTheme::$scripts))
+							PaladioTheme::$emittedScripts = array();
+						}
+						if (is_array(PaladioTheme::$requestedScripts))
+						{
+							if (!in_array($entry, PaladioTheme::$requestedScripts) && !in_array($entry, PaladioTheme::$emittedScripts))
 							{
-								PaladioTheme::$scripts[] = $entry;
+								PaladioTheme::$requestedScripts[] = $entry;
 							}
 						}
 						else
 						{
-							PaladioTheme::$scripts = array($entry);
+							PaladioTheme::$requestedScripts = array($entry);
 						}
 						return true;
 					}
@@ -272,16 +280,20 @@
 					else
 					{
 						$entry = array('uri' => $uri, 'attributes' => $attributes);
-						if (is_array(PaladioTheme::$styleSheets))
+						if (!is_array(PaladioTheme::$emittedStyleSheets))
 						{
-							if (!in_array($entry, PaladioTheme::$styleSheets))
+							PaladioTheme::$emittedStyleSheets = array();
+						}
+						if (is_array(PaladioTheme::$requestedStyleSheets))
+						{
+							if (!in_array($entry, PaladioTheme::$requestedStyleSheets) && !in_array($entry, PaladioTheme::$emittedStyleSheets))
 							{
-								PaladioTheme::$styleSheets[] = $entry;
+								PaladioTheme::$requestedStyleSheets[] = $entry;
 							}
 						}
 						else
 						{
-							PaladioTheme::$styleSheets = array($entry);
+							PaladioTheme::$requestedStyleSheets = array($entry);
 						}
 						return true;
 					}

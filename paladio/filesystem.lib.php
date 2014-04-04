@@ -20,6 +20,7 @@
 		private static function _ProcessPath(/*array*/ $folders)
 		{
 			$result = array();
+			$count = 0;
 			while (($folder = array_shift($folders)) !== null)
 			{
 				if ($folder === '.')
@@ -28,10 +29,20 @@
 				}
 				if ($folder === '..')
 				{
-					array_pop($result);
-					continue;
+					if ($count > 0)
+					{
+						array_pop($result);
+						$count--;
+						continue;
+					}
+					else
+					{
+						array_push($result, '..');
+						continue;
+					}
 				}
 				array_push($result, $folder);
+				$count++;
 			}
 			return $result;
 		}

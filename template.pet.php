@@ -18,6 +18,11 @@
 			PaladioTheme::EmitStyleSheets();
 			PaladioTheme::EmitScripts();
 		?>
+		<script> thoth.configure(<?php echo json_encode(PaladioTheme::GetRootUris()); ?>); </script>
+		<!--[if lt IE 9]><?php
+			@PaladioTheme::RequestScript('css3-mediaqueries.js');
+			PaladioTheme::EmitScripts();
+		?><![endif]-->
 	</head>
 	<body>
 		<div id="__wrap">

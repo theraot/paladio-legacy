@@ -62,6 +62,14 @@
 				}
 			);
 		}
+		
+		if (!("trim" in String.prototype))
+		{
+			String.prototype.trim = function ()
+			{
+				return this.replace(/^\s+|\s+$/g, '');
+			};
+		}
 	}
 )(window.thoth = (window.thoth || {}), window);
 

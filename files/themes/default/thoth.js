@@ -9,10 +9,6 @@
 		{
 			String.format = function(format)
 			{
-				if (this === void 0 || this === null)
-				{
-					throw new TypeError();
-				}
 				var args = Array.prototype.slice.call(arguments, 1);
 				return String.prototype.replace.call (
 					format,
@@ -62,10 +58,6 @@
 		{
 			Array.prototype.contains = function (item)
 			{
-				if (this === void 0 || this === null)
-				{
-					throw new TypeError();
-				}
 				var array = Object(this);
 				var count = array.length >>> 0;
 				for (var index = 0; index < count; index++)
@@ -83,7 +75,7 @@
 		{
 			Array.prototype.containsWhere = function (predicate /*, thisArg*/)
 			{
-				if (this === void 0 || this === null || typeof predicate !== "function")
+				if (typeof predicate !== "function")
 				{
 					throw new TypeError();
 				}
@@ -98,14 +90,14 @@
 					}
 				}
 				return false;
-			}
+			};
 		}
 		
 		if (!("every" in Array.prototype))
 		{
 			Array.prototype.every = function(callback /*, thisArg*/)
 			{
-				if (this === void 0 || this === null || typeof callback !== "function")
+				if (typeof callback !== "function")
 				{
 					throw new TypeError();
 				}
@@ -127,7 +119,7 @@
 		{
 			Array.prototype.filter = function(callback /*, thisArg */)
 			{
-				if (this === void 0 || this === null || typeof callback !== "function")
+				if (typeof callback !== "function")
 				{
 					throw new TypeError();
 				}
@@ -139,7 +131,7 @@
 				{
 					if (index in array)
 					{
-						var current = array[index]
+						var current = array[index];
 						if (callback.call(thisArg, current, index, array))
 						{
 							result[result.length] = current;
@@ -154,7 +146,7 @@
 		{
 			Array.prototype.forEach = function(callback /*, thisArg*/)
 			{
-				if (this === void 0 || this === null || typeof callback !== "function")
+				if (typeof callback !== "function")
 				{
 					throw new TypeError();
 				}
@@ -175,10 +167,6 @@
 		{
 			Array.prototype.indexOf = function (item, fromIndex)
 			{
-				if (this === void 0 || this === null)
-				{
-					throw new TypeError();
-				}
 				var array = Object(this);
 				var count = array.length >>> 0;
 				fromIndex = +fromIndex || 0;
@@ -209,17 +197,13 @@
 			Array.isArray = function(arg)
 			{
 				return typeof arg === 'object' && arg instanceof Array;
-			}
+			};
 		}
 		
 		if (!("remove" in Array.prototype))
 		{
 			Array.prototype.remove = function(item)
 			{
-				if (this === void 0 || this === null)
-				{
-					throw new TypeError();
-				}
 				var array = Object(this);
 				var count = array.length >>> 0;
 				for (var index = 0; index < count; index++)
@@ -238,10 +222,6 @@
 		{
 			Array.prototype.removeAt = function(key)
 			{
-				if (this === void 0 || this === null)
-				{
-					throw new TypeError();
-				}
 				var array = Object(this);
 				if (key in array)
 				{
@@ -259,7 +239,7 @@
 		{
 			Array.prototype.removeWhere = function(predicate /*, thisArg*/)
 			{
-				if (this === void 0 || this === null || typeof predicate !== "function")
+				if (typeof predicate !== "function")
 				{
 					throw new TypeError();
 				}
@@ -276,7 +256,7 @@
 					}
 					else
 					{
-						index++
+						index++;
 					}
 				}
 				return result;
@@ -320,7 +300,7 @@
 				delayed_operation = delayed_operations[index];
 				if (delayed_operation.id === id)
 				{
-					clearTimeout(delayed_operation.timeout_id);
+					window.clearTimeout(delayed_operation.timeout_id);
 					var operation = delayed_operation.operation;
 					if (typeof delayed_operation.repeat === 'number')
 					{
@@ -332,7 +312,7 @@
 					}
 					if (delayed_operation.repeat !== false)
 					{
-						var timeout_id = setTimeout(function(){_run_delayed(id);}, delayed_operation.delay);
+						var timeout_id = window.setTimeout(function(){_run_delayed(id);}, delayed_operation.delay);
 						delayed_operation.timeout_id = timeout_id;
 					}
 					else
@@ -378,16 +358,16 @@
 			{
 				_done = null;
 			}
-			var delayed_operation =
-			{
-				operation : operation,
-				id : id,
-				delay : delay,
-				done: _done,
-				repeat : _repeat
-			}
+		    var delayed_operation =
+		    {
+		        operation: operation,
+		        id: id,
+		        delay: delay,
+		        done: _done,
+		        repeat: _repeat
+		    };
 			delayed_operations.push(delayed_operation);
-			var timeout_id = setTimeout(function(){_run_delayed(id);}, delay);
+			var timeout_id = window.setTimeout(function(){_run_delayed(id);}, delay);
 			delayed_operation.timeout_id = timeout_id;
 			return id;
 		};
@@ -404,7 +384,7 @@
 					var timeout_id = delayed_operation.timeout_id;
 					delayed_operations.splice(index, 1);
 					_free_delayed_id(id);
-					clearTimeout(timeout_id);
+					window.clearTimeout(timeout_id);
 					return true;
 				}
 			}
@@ -448,7 +428,7 @@
 					}
 				}
 				return false;
-			}
+			};
 			
 			this.containsKey = function (key)
 			{
@@ -460,7 +440,7 @@
 				{
 					return false;
 				}
-			}
+			};
 			
 			this.containsWhere = function (predicate) //Not used
 			{
@@ -472,7 +452,7 @@
 					}
 				}
 				return false;
-			}
+			};
 			
 			this.every = function(callback)
 			{
@@ -484,7 +464,7 @@
 					}
 				}
 				return true;
-			}
+			};
 			
 			this.forEach = function(callback)
 			{
@@ -492,7 +472,7 @@
 				{
 					callback(dic[key]);
 				}
-			}
+			};
 			
 			this.get = function (key)
 			{
@@ -504,12 +484,12 @@
 				{
 					return undefined;
 				}
-			}
+			};
 			
 			this.length = function()
 			{
 				return length;
-			}
+			};
 			
 			this.remove = function (key)
 			{
@@ -524,7 +504,7 @@
 				{
 					return undefined;
 				}
-			}
+			};
 			
 			this.removeWhere = function (predicate) //Not Used
 			{
@@ -539,7 +519,7 @@
 					}
 				}
 				return result;
-			}
+			};
 			
 			this.set = function(key, item)
 			{
@@ -548,7 +528,7 @@
 					length++;
 				}
 				dic[key] = item;
-			}
+			};
 			
 			this.toString = function()
 			{
@@ -567,8 +547,8 @@
 					result += key;
 				}
 				return result;
-			}
-		}
+			};
+		};
 	}
 )(window.thoth = (window.thoth || {}), window);
 
@@ -593,19 +573,19 @@
 					{
 						step(event);
 					};
-					var step = function(event)
+					var step = function(_event)
 					{
-						var continuations = event.continuations;
+						var continuations = _event.continuations;
 						if (continuations.length > 0)
 						{
-							var continuation = event.continuations.shift();
+							var continuation = _event.continuations.shift();
 							continuation();
 							thoth.delay(callin, 0, false);
 						}
 						else
 						{
-							event.executing = false;
-							events.remove(event.id);
+							_event.executing = false;
+							events.remove(_event.id);
 						}
 					};
 					thoth.delay(callin, 0, false);
@@ -615,7 +595,7 @@
 			function _append_event(id, continuation)
 			{
 				var event = events.get(id);
-				if (typeof event === 'undefined')
+				if (typeof event === 'undefined' || event === null)
 				{
 					return false;
 				}
@@ -647,7 +627,7 @@
 			this.containsKey = function(id)
 			{
 				return events.containsKey(id);
-			}
+			};
 			
 			this.go = function (id)
 			{
@@ -671,7 +651,7 @@
 			this.stop = function (id)
 			{
 				var event = events.get(id);
-				if (typeof event === 'undefined')
+				if (typeof event === 'undefined' || event === null)
 				{
 					return false;
 				}
@@ -738,7 +718,7 @@
 					addEventListener(element, events, handler);
 				}
 			}
-		}
+		};
 		
 		thoth.off = function(element, events, handler)
 		{
@@ -757,29 +737,29 @@
 					removeEventListener(element, events, handler);
 				}
 			}
-		}
+		};
 		
 		thoth.ready = function(callback)
 		{
 			if (typeof callback === 'function')
 			{
-				if (document.readyState === 'loaded' || document.readyState === 'interactive' || document.readyState === 'complete')
+				if (window.document.readyState === 'loaded' || window.document.readyState === 'interactive' || window.document.readyState === 'complete')
 				{
 					callback();
 				}
 				else
 				{
-					if ("addEventListener" in document)
+					if ("addEventListener" in window.document)
 					{
-						document.addEventListener('DOMContentLoaded', callback);
+						window.document.addEventListener('DOMContentLoaded', callback);
 					}
 					else
 					{
-						document.attachEvent (
+						window.document.attachEvent (
 							'onreadystatechange',
 							function()
 							{
-								if (document.readyState === 'loaded' || document.readyState === 'interactive' || document.readyState === 'complete')
+								if (window.document.readyState === 'loaded' || window.document.readyState === 'interactive' || window.document.readyState === 'complete')
 								{
 									if (callback !== null)
 									{
@@ -792,7 +772,7 @@
 					}
 				}
 			}
-		}
+		};
 	}
 )(window.thoth = (window.thoth || {}), window);
 
@@ -810,7 +790,7 @@
 		function _process_url(folders)
 		{
 			var result =  [];
-			var folder = null;
+			var folder;
 			while (typeof (folder = folders.shift()) !== "undefined")
 			{
 				if (folder === ".")
@@ -819,7 +799,7 @@
 				}
 				if (folder === "..")
 				{
-					result.pop()
+					result.pop();
 					continue;
 				}
 				result.push(folder);
@@ -829,7 +809,7 @@
 		
 		function _process_absolute_url(absolute)
 		{
-			if (typeof absolute === "undefined")
+			if (typeof absolute !== "string")
 			{
 				return [];
 			}
@@ -846,7 +826,7 @@
 		
 		function _process_relative_url(relative)
 		{
-			if (typeof relative === "undefined")
+			if (typeof relative !== "string")
 			{
 				return ["."];
 			}
@@ -898,7 +878,6 @@
 									if (exists)
 									{
 										callback(_url);
-										return true;
 									}
 									else
 									{
@@ -935,7 +914,7 @@
 							head.removeChild(script);
 						}
 					}
-				}
+				};
 				_resolve_url (
 					url,
 					function (resolved_url)
@@ -999,7 +978,7 @@
 					{
 						callback();
 					}
-				}
+				};
 				thoth.delay(go, 0, false);
 			}
 		};
@@ -1033,7 +1012,7 @@
 					{
 						callback();
 					}
-				}
+				};
 				thoth.delay(go, 0, false);
 			}
 		};
@@ -1041,12 +1020,11 @@
 		thoth.configure = function(root_urls)
 		{
 			_root_urls = root_urls;
-		}
+		};
 		
 		thoth.url_exists = function (url, callback)
 		{
-			var http = new XMLHttpRequest();
-			var done = false;
+			var http = new window.XMLHttpRequest();
 			http.onreadystatechange = function() 
 			{
 				if (http.readyState === 4)
@@ -1061,7 +1039,7 @@
 			};
 			http.open('HEAD', url, true);
 			http.send();
-		}
+		};
 		
 		thoth.resolve_relative_url = function (absolute, relative)
 		{
@@ -1069,14 +1047,14 @@
 			relative = _process_relative_url(relative);
 			var result = _process_url(absolute.concat(relative));
 			return result.join(SEPARATOR);
-		}
+		};
 		
 		//--------------------------------------------------------------
 		
 		window.include = thoth.include;
 		window.include_once = thoth.include_once;
 		
-		var metaElements = window.document.getElementsByTagName('meta');
+				var metaElements = window.document.getElementsByTagName('meta');
 		for (var index = 0; index < metaElements.length; index++)
 		{
 			var meta = metaElements[index];

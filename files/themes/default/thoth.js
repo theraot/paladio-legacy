@@ -1053,15 +1053,5 @@
 		
 		window.include = thoth.include;
 		window.include_once = thoth.include_once;
-		
-				var metaElements = window.document.getElementsByTagName('meta');
-		for (var index = 0; index < metaElements.length; index++)
-		{
-			var meta = metaElements[index];
-			if (meta.getAttribute('name') == 'thoth-load-script')
-			{
-				thoth.include_once(meta.getAttribute('content'));
-			}
-		}
 	}
 )(window.thoth = (window.thoth || {}), window);

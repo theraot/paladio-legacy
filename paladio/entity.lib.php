@@ -180,13 +180,35 @@
 			if (is_string($primaryKey))
 			{
 				$primaryKeyValue = $values[$primaryKey];
+				unset($values[$primaryKey]);
 			}
 			else
 			{
-				$primaryKeyValue = Utility::ArrayTake($values, $primaryKey);
+				$primaryKeyValue = array();
+				$_keys = Utility::ArraySort(array_keys($primaryKey));
+				$index = 0;
+				foreach ($_keys as $key)
+				{
+					$alias = $keys[$key];
+					if ($index === $key)
+					{
+						$key = $alias;
+						$index++;
+					}
+					if (array_key_exists($key, $values))
+					{
+						$value = $values[$key];
+						unset($values[$primaryKey]);
+						if ($value !== null)
+						{
+							$primaryKeyValue[$alias] = $value;
+						}
+					}
+				}
 			}
 			$entity = new Entity($table, $primaryKey, $primaryKeyValue);
 			$result = new $class($entity);
+			$result->_record = $values;
 			return $result;
 		}
 
@@ -1008,7 +1030,7 @@
 
 		public function __unset(/*string*/ $fieldName)
 		{
-			unset($this->_registro[$fieldName]);
+			unset($this->_record[$fieldName]);
 		}
 		
 		//------------------------------------------------------------
@@ -1035,9 +1057,9 @@
 
 		public function try_un_set(/*string*/ $fieldName)
 		{
-			if (array_key_exists($fieldName, $this->_registro))
+			if (array_key_exists($fieldName, $this->_record))
 			{
-				unset($this->_registro[$fieldName]);
+				unset($this->_record[$fieldName]);
 				return true;
 			}
 			else
@@ -1069,7 +1091,7 @@
 			$fieldName = (string)$fieldName;
 			if (array_key_exists($fieldName, $this->_record))
 			{
-				$this->_registro[$fieldName] = $value;
+				$this->_record[$fieldName] = $value;
 				return true;
 			}
 			else
@@ -1097,7 +1119,7 @@
 		 */
 		public function Clear()
 		{
-			$this->_registro = array();
+			$this->_record = array();
 		}
 
 		/**

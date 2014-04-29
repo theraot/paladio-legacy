@@ -28,10 +28,9 @@
 		private static $port;
 		private static $database;
 		private static $charset;
-		private static $queryUser;
-		private static $queryPassword;
-		private static $executeUser;
-		private static $executePassword;
+		private static $persistent;
+		private static $modes;
+		private static $fallbackMode;
 
 
 		/**
@@ -41,9 +40,9 @@
 		 * @see Database::ConnectExecute
 		 * @access private
 		 */
-		private static function Connect(/*string*/ $user, /*string*/ $password)
+		private static function Connect(/*string*/ $user, /*string*/ $password, /*bool*/ $persist)
 		{
-			$connection = Database::$adapter->Connect(Database::$server, Database::$port, $user, $password, Database::$database, Database::$charset);
+			$connection = Database::$adapter->Connect(Database::$server, Database::$port, $user, $password, Database::$database, Database::$charset, $persist === 'persistent');
 			if ($connection === false)
 			{
 				return false;
@@ -52,29 +51,6 @@
 			{
 				return $connection;
 			}
-		}
-
-		/**
-		 * Internally used to create an assignment expression.
-		 * @see Database::CreateStatementUpdate
-		 * @access private
-		 */
-		private static function CreateAssignment(/*array*/ $record, /*array*/ &$_parameters)
-		{
-			$assignment = '';
-			if (is_array($record) && count($record) > 0)
-			{
-				$assignment = 'SET ';
-				$fields = array_keys($record);
-				$array = array();
-				foreach ($fields as $field)
-				{
-					$array[] = Database::$adapter->QuoteIdentifier($field).' = ?';
-					$_parameters[] = $record[$field];
-				}
-				$assignment .= implode(', ', $array);
-			}
-			return $assignment;
 		}
 
 		/**
@@ -96,68 +72,12 @@
 			}
 		}
 
-		/**
-		 * Internally used to process a field list.
-		 * @see Database::CreateQueryRead
-		 * @access private
-		 */
-		private static function ProcessFields(/*mixed*/ $fields = null, /*array*/ &$_parameters)
-		{
-			if (is_array($fields) && count($fields) > 0)
-			{
-				$processed = Database_Utility::ProcessFragment(Database::$adapter, $fields, array('Database_Utility', 'CreateAlias'), $_parameters);
-				return implode(', ', $processed);
-			}
-			else if ($fields === null || (is_array($fields) && count($fields) == 0))
-			{
-				return '*';
-			}
-			else
-			{
-				return Database::ProcessFields(array($fields), $_parameters);
-			}
-		}
-
-		/**
-		 * Internally used to process a where list.
-		 * @see Database::CreateQueryRead
-		 * @see Database::CreateStatementUpdate
-		 * @see Database::CreateStatementDelete
-		 * @access private
-		 */
-		private static function ProcessWhere(/*mixed*/ $where, /*array*/ &$_parameters)
-		{
-			if (is_array($where) && count($where) > 0)
-			{
-				$processed = Database_Utility::ProcessFragment(Database::$adapter, $where, array('Database_Utility', 'ProcessExpression'), $_parameters);
-				if (count($processed) == 1)
-				{
-					return ' WHERE '.$processed[0];
-				}
-				else
-				{
-					return ' WHERE ('.implode(') '.(Database::$adapter->OP('AND')->__toString()).' (', $processed).')';
-				}
-			}
-			else if ($where === null || (is_array($where) && count($where) == 0))
-			{
-				return '';
-			}
-			else
-			{
-				$result = Database::ProcessWhere(array($where), $_parameters);
-				return $result;
-			}
-		}
-
 		//------------------------------------------------------------
 		// Public (Class)
 		//------------------------------------------------------------
 
 		/**
 		 * Verifies if the connection to the database is available.
-		 *
-		 * To connect uses $queryUser and $queryPassword set in Database::Configure.
 		 *
 		 * If the connection is available returns true, false otherwise.
 		 *
@@ -168,15 +88,22 @@
 		 */
 		public static function CanConnect()
 		{
-			$connection = Database::ConnectQuery()->get_Connection();
-			if ($connection === false)
+			try
+			{
+				$connection = Database::ConnectQuery()->get_Connection();
+				if ($connection === false)
+				{
+					return false;
+				}
+				else
+				{
+					Database::Disconnect($connection);
+					return true;
+				}
+			}
+			catch (PDOException $e)
 			{
 				return false;
-			}
-			else
-			{
-				Database::Disconnect($connection);
-				return true;
 			}
 		}
 
@@ -188,45 +115,93 @@
 		 * @param $port: the port of the database server.
 		 * @param $database: the name of the database.
 		 * @param $charset: the charset of the database.
-		 * @param $executeUser: the name of the user used to execute statements.
-		 * @param $executePassword: the password of the user used to execute statements.
-		 * @param $queryUser: the name of the user used to execute queries, if null $executeUser is used.
-		 * @param $queryPassword: the password of the user used to execute queries, if null $executePassword is used.
+		 * @param $fallbackMode: the mode used when the requested mode is not available.
+		 * @param $persistent: null to disable persistance, 'instance' to enable connection reutilization, 'persistent' to request a persistent connection if available.
 		 *
 		 * @access public
 		 * @return void
 		 */
-		public static function Configure(/*string*/ $engine, /*string*/ $server, /*string*/ $port, /*string*/ $database, /*string*/ $charset, /*string*/ $executeUser, /*string*/ $executePassword, /*string*/ $queryUser = null, /*string*/ $queryPassword = null)
+		public static function Configure(/*string*/ $engine, /*string*/ $server, /*string*/ $port, /*string*/ $database, /*string*/ $charset, $fallbackMode = null, $persistent = null)
 		{
 			Database::$adapter = DBBase::Create($engine);
 			Database::$server = $server;
 			Database::$port = $port;
 			Database::$database = $database;
 			Database::$charset = $charset;
-			if ($queryUser === null)
+			Database::$persistent = $persistent;
+			Database::$fallbackMode = $fallbackMode;
+			Database::$modes = array();
+		}
+
+		/**
+		 * Sets a configuration mode of Database.
+		 *
+		 * @param $mode: the name of the mode.
+		 * @param $user: the name of the user used.
+		 * @param $password: the password of the user used.
+		 *
+		 * @access public
+		 * @return void
+		 */
+		public static function ConfigureMode(/*mode*/ $mode, /*string*/ $user, /*string*/ $password)
+		{
+			if ($user !== null)
 			{
-				Database::$queryUser = $executeUser;
+				if (!array_key_exists($mode, Database::$modes))
+				{
+					Database::$modes[$mode] = array();
+				}
+				Database::$modes[$mode]['user'] = $user;
+				Database::$modes[$mode]['password'] = $password;
+			}
+		}
+
+		/**
+		 * Connects to the dabase in a given mode.
+		 *
+		 * Returns a database object.
+		 *
+		 * @param $mode: the name of the mode.
+		 *
+		 * @see Database::ConfigureMode
+		 *
+		 * @access public
+		 * @return Database
+		 */
+		Public static function ConnectMode ($mode)
+		{
+			if (array_key_exists($mode, Database::$modes))
+			{
+				$selectedMode = $mode;
+				$_mode = Database::$modes[$mode];
+			}
+			else if (array_key_exists(Database::$fallbackMode, Database::$modes))
+			{
+				$selectedMode = Database::$fallbackMode;
+				$_mode = Database::$modes[Database::$fallbackMode];
 			}
 			else
 			{
-				Database::$queryUser = $queryUser;
+				throw new Exception ('The database configurarion is invalid.');
 			}
-			if ($queryPassword === null)
+			$recycleConnection = Database::$persistent !== null;
+			if ($recycleConnection && array_key_exists('instance', $_mode))
 			{
-				Database::$queryPassword = $executePassword;
+				$connection = $_mode['instance'];
 			}
 			else
 			{
-				Database::$queryPassword = $queryPassword;
+				$connection = new Database($_mode['user'], $_mode['password'], Database::$persistent);
+				if ($recycleConnection)
+				{
+					Database::$modes[$selectedMode]['instance'] = $connection;
+				}
 			}
-			Database::$executeUser = $executeUser;
-			Database::$executePassword = $executePassword;
+			return $connection;
 		}
 
 		/**
 		 * Connects to the dabase to execute queries.
-		 *
-		 * Connects to the database using $queryUser and $queryPassword set in Database::Configure.
 		 *
 		 * Returns a database object that can be used to execute queries.
 		 *
@@ -238,7 +213,7 @@
 		 */
 		public static function ConnectQuery()
 		{
-			return new Database(Database::$queryUser, Database::$queryPassword);
+			return Database::ConnectMode('query');
 		}
 
 		/**
@@ -256,7 +231,7 @@
 		 */
 		public static function ConnectExecute()
 		{
-			return new Database(Database::$executeUser, Database::$queryPassword);
+			return Database::ConnectMode('execute');
 		}
 
 		/**
@@ -305,7 +280,7 @@
 		 */
 		public static function CreateQueryCountRecords(/*string*/ $table, /*mixed*/ $where = null)
 		{
-			return Database::CreateQueryRead($table, array('_amount' => Database::$adapter->OP('COUNT')), $where);
+			return Database::$adapter->CreateQueryCountRecord($table, $where);
 		}
 
 		/**
@@ -322,11 +297,9 @@
 		 * @access public
 		 * @return string
 		 */
-		public static function CreateQueryRead(/*string*/ $table, /*mixed*/ $fields = null, /*mixed*/ $where = null)
+		public static function CreateQueryRead(/*string*/ $table, /*mixed*/ $fields = null, /*mixed*/ $where = null, /*array*/ $options = null)
 		{
-			$_parameters = array();
-			$statement = 'SELECT '.Database::ProcessFields($fields, $_parameters).' FROM '.Database::$adapter->QuoteIdentifier($table).Database::ProcessWhere($where, $_parameters);
-			return array('statement' => $statement, 'parameters' => $_parameters);
+			return Database::$adapter->CreateQueryRead($table, $fields, $where, $options);
 		}
 
 		/**
@@ -344,9 +317,7 @@
 		 */
 		public static function CreateStatementDelete(/*string*/ $table, /*mixed*/ $where = null)
 		{
-			$_parameters = array();
-			$statement = 'DELETE FROM '.Database::$adapter->QuoteIdentifier($table).Database::ProcessWhere($where, $_parameters);
-			return array('statement' => $statement, 'parameters' => $_parameters);
+			return Database::$adapter->CreateStatementDelete($table, $where);
 		}
 
 		/**
@@ -364,22 +335,7 @@
 		 */
 		public static function CreateStatementInsert(/*array*/ $record, /*string*/ $table)
 		{
-			if (!is_array($record))
-			{
-				$record = array($record);
-			}
-			$record = Utility::ArrayCompact($record);
-			$fields = array_keys($record);
-			$_parameters = array();
-			$statement = 'INSERT INTO '.$table.' ('.implode(', ', $fields).') VALUES (';
-			$array = array();
-			foreach ($fields as $field)
-			{
-				$value = $record[$field];
-				$array[] = Database_Utility::ProcessValue(Database::$adapter, $value, $_parameters);
-			}
-			$statement .= implode(', ', $array).')';
-			return array('statement' => $statement, 'parameters' => $_parameters);
+			return Database::$adapter->CreateStatementInsert($record, $table);
 		}
 
 		/**
@@ -398,9 +354,7 @@
 		 */
 		public static function CreateStatementUpdate(/*array*/ $record, /*string*/ $table, /*mixed*/ $where = null)
 		{
-			$_parameters = array();
-			$statement = 'UPDATE '.Database::$adapter->QuoteIdentifier($table).' '.Database::CreateAssignment($record, $_parameters).Database::ProcessWhere($where, $_parameters);
-			return array('statement' => $statement, 'parameters' => $_parameters);
+			return Database::$adapter->CreateStatementUpdate($record, $table, $where);
 		}
 
 		/**
@@ -423,7 +377,6 @@
 			return Database::Execute(Database::CreateStatementDelete($table, $where), $database);
 		}
 
-
 		/**
 		 * Executes a statement.
 		 *
@@ -442,12 +395,14 @@
 		{
 			if ($database === null)
 			{
-				$connection = Database::ConnectExecute()->get_Connection();
+				$database = Database::ConnectExecute();
+				$close = Database::$persistent === null;
 			}
 			else
 			{
-				$connection = $database->get_Connection();
+				$close = false;
 			}
+			$connection = $database->get_Connection();
 			if ($connection === false)
 			{
 				return false;
@@ -455,7 +410,7 @@
 			else
 			{
 				$ok = false;
-				$result = Database::$adapter->Query($connection, $statement);
+				$result = Database::$adapter->Execute($connection, $statement);
 				if ($result === true)
 				{
 					$ok = true;
@@ -469,9 +424,9 @@
 					$ok = $result->errorCode() === '00000';
 					$result->close();
 				}
-				if ($database === null)
+				if ($close)
 				{
-					Database::Disconnect($connection);
+					$database->Close();
 				}
 				return $ok;
 			}
@@ -494,8 +449,8 @@
 		 */
 		public static function HasFields(/*string*/ $table, /*mixed*/ $fields, /*Database*/ $database = null)
 		{
-			$consulta = Database::CreateQueryRead($table, $fields, array(false));
-			if (Database::Query($consulta, $result, $database))
+			$query = Database::CreateQueryRead($table, $fields, array(false));
+			if (Database::Query($query, $result, $database))
 			{
 				$result->close();
 				return true;
@@ -544,12 +499,9 @@
 		{
 			if ($database === null)
 			{
-				$connection = Database::ConnectQuery()->get_Connection();
+				$database = Database::ConnectQuery();
 			}
-			else
-			{
-				$connection = $database->get_Connection();
-			}
+			$connection = $database->get_Connection();
 			if ($connection === false)
 			{
 				return false;
@@ -557,22 +509,7 @@
 			else
 			{
 				$result = Database::$adapter->Query($connection, $query);
-				if ($result === true)
-				{
-					$ok = true;
-				}
-				else if ($result === false)
-				{
-					$ok = false;
-				}
-				else
-				{
-					$ok = true;
-				}
-				if ($database === null)
-				{
-					Database::Disconnect($connection);
-				}
+				$ok = $result !== false;
 				return $ok;
 			}
 		}
@@ -594,9 +531,9 @@
 		 * @access public
 		 * @return mixed
 		 */
-		public static function Read(/*string*/ $table, /*mixed*/ $fields = null, /*mixed*/ $where = null, /*Database*/ $database = null)
+		public static function Read(/*string*/ $table, /*mixed*/ $fields = null, /*mixed*/ $where = null, /*array*/ $options = null, /*Database*/ $database = null)
 		{
-			$query = Database::CreateQueryRead($table, $fields, $where);
+			$query = Database::CreateQueryRead($table, $fields, $where, $options);
 			if (Database::Query($query, $result, $database))
 			{
 				return $result;
@@ -796,6 +733,7 @@
 		//------------------------------------------------------------
 
 		private $connection;
+		private $persist;
 
 		/**
 		 * Internally used to get the connection to the database
@@ -833,7 +771,10 @@
 		 */
 		public function Close()
 		{
-			Database::Disconnect($this->connection);
+			if ($this->persist === null)
+			{
+				Database::Disconnect($this->connection);
+			}
 		}
 
 		//------------------------------------------------------------
@@ -845,9 +786,22 @@
 		 * @param $user: the user to connect to the server.
 		 * @param $password: the password to connect to the server.
 		 */
-		public function __construct(/*string*/ $user, /*string*/ $password)
+		public function __construct(/*string*/ $user, /*string*/ $password, /*bool*/ $persist)
 		{
-			$this->connection = Database::Connect($user, $password);
+			$this->connection = Database::Connect($user, $password, $persist);
+			$this->persist = $persist;
+		}
+
+		//------------------------------------------------------------
+		// Public (Destructors)
+		//------------------------------------------------------------
+
+		public function __destruct()
+		{
+			if ($this->persist === null || $this->persist === 'instance')
+			{
+				Database::Disconnect($this->connection);
+			}
 		}
 	}
 
@@ -867,8 +821,18 @@
 					Configuration::Get(\'paladio-database\', \'port\'),
 					Configuration::Get(\'paladio-database\', \'database\'),
 					Configuration::Get(\'paladio-database\', \'charset\'),
+					Configuration::Get(\'paladio-database\', \'fallback_mode\', \'execute\'),
+					Configuration::Get(\'paladio-database\', \'persist\')
+				);
+				Database::ConfigureMode
+				(
+					\'execute\',
 					Configuration::Get(\'paladio-database\', \'user\'),
-					Configuration::Get(\'paladio-database\', \'password\'),
+					Configuration::Get(\'paladio-database\', \'password\')
+				);
+				Database::ConfigureMode
+				(
+					\'query\',
 					Configuration::Get(\'paladio-database\', \'query_user\'),
 					Configuration::Get(\'paladio-database\', \'query_password\')
 				);

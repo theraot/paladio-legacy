@@ -10,6 +10,7 @@
 # password =
 # query_user =
 # query_password =
+persist=persistent
 
 [paladio] #Configuración global
 timezone = America/Bogota

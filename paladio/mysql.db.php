@@ -126,7 +126,14 @@
 					{
 						$result = $connection->query($query['statement']);
 					}
-					return new DBIterator($result);
+					if ($result === false)
+					{
+						return false;
+					}
+					else
+					{
+						return new DBIterator($result);
+					}
 				}
 				else
 				{

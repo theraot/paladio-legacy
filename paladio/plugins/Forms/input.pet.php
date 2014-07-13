@@ -128,7 +128,12 @@
 		}
 		else if ($type == 'entity-select')
 		{
-			if (array_key_exists('entity', $_ELEMENT['attributes']))
+			if (!Database::CanConnect())
+			{
+				echo '<select'.PET_Utility::BuildAttributesString(Utility::ArraySkip($_ELEMENT['attributes'], array('entity', 'value', 'entity-field', 'readonly'))).'>';
+				echo '</select>';
+			}
+			else if (array_key_exists('entity', $_ELEMENT['attributes']))
 			{
 				$entity = $_ELEMENT['attributes']['entity'];
 				if (array_key_exists('value', $_ELEMENT['attributes']))

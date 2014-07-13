@@ -240,7 +240,7 @@ img.fit
 	width: 100%;
 }
 
-#__message
+.__message
 {
 	padding: 22px;
 	font-weight: normal;
@@ -260,6 +260,11 @@ img.fit
 	border-bottom-right-radius: 22px;
 	-moz-border-bottom-right-radius: 22px;
 	-webkit-border-bottom-right-radius: 22px;
+}
+
+.__message button
+{
+	float:right;
 }
 
 #__main

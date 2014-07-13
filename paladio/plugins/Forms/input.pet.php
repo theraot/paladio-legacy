@@ -176,7 +176,6 @@
 							echo $entry[$entity_field];
 							echo '</option>';
 						}
-						echo '</select>';
 					}
 					else
 					{

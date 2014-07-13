@@ -42,14 +42,21 @@
 		 */
 		private static function Connect(/*string*/ $user, /*string*/ $password, /*bool*/ $persist)
 		{
-			$connection = Database::$adapter->Connect(Database::$server, Database::$port, $user, $password, Database::$database, Database::$charset, $persist === 'persistent');
-			if ($connection === false)
+			if (Database::$adapter === null)
 			{
-				return false;
+				throw 'Database not available - review configuration.';
 			}
 			else
 			{
-				return $connection;
+				$connection = Database::$adapter->Connect(Database::$server, Database::$port, $user, $password, Database::$database, Database::$charset, $persist === 'persistent');
+				if ($connection === false)
+				{
+					return false;
+				}
+				else
+				{
+					return $connection;
+				}
 			}
 		}
 

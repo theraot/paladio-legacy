@@ -159,7 +159,7 @@
 		{
 			if (class_exists('Session'))
 			{
-				Session::Start();
+				Session::Start(true);
 				$current = AccessControl::$current;
 				if ($current === null)
 				{
@@ -428,20 +428,26 @@
 							AccessControl::$current = array('id' => $id, 'password' => $password, 'role' => $record[AccessControl::$roleField]);
 						}
 						AccessControl::Preserve();
-						if (AccessControl::$roleField === null)
-						{
-							return true;
-						}
-						else
-						{
-							return $record[AccessControl::$roleField];
-						}
+						return true;
 					}
 				}
 			}
 			AccessControl::$current = null;
 			AccessControl::Preserve();
 			return false;
+		}
+
+		public static function UserInfo()
+		{
+			$current = AccessControl::$current;
+			if ($current === null)
+			{
+				return null;
+			}
+			else
+			{
+				return array('id' => $current['id'], 'role' => $current['role']);
+			}
 		}
 
 		public static function ValidUris()

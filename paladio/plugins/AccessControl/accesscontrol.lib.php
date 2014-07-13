@@ -400,7 +400,7 @@
 				{
 					$fields[] = AccessControl::$saltField;
 				}
-				if (Database::TryReadOneRecord
+				if (Database::CanConnect() && Database::TryReadOneRecord
 				(
 					$record,
 					AccessControl::$table,

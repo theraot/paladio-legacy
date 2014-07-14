@@ -145,7 +145,7 @@
 								$isDir = is_dir($item);
 								if ($folders === null || $folders === $isDir)
 								{
-									if (preg_match($regexPattern, $item))
+									if ($isDir || preg_match($regexPattern, $item))
 									{
 										$result[] = $item;
 									}
@@ -180,7 +180,7 @@
 					if (count($queue) > 0)
 					{
 						$found = array_shift($queue);
-						$branches = FileSystem::_GetFolderItems($pattern, $found, true);
+						$branches = FileSystem::_GetFolderItems('*', $found, true);
 						$branches_index = -1;
 						$branches_length = count($branches);
 					}
@@ -448,33 +448,19 @@
 		/**
 		 * Retrieves the folders that match the pattern in $pattern and are in the folder $path.
 		 *
-		 * If $pattern is string: it will be interpreted as a relative path followed by a Windows file search pattern.
-		 * The Windows file search pattern uses:
-		 * "?" : any character
-		 * "*" : any character, zero or more times
-		 * Otherwise, it will be interpretated as the Windows file search pattern "*".
-		 *
-		 * Note: files which name starts with "." are ignored.
-		 *
 		 * Returns an array that contains the absolute path of the folders.
 		 *
 		 * @access public
 		 * @return array of string
 		 */
-		public static function GetFolderFolders(/*mixed*/ $pattern, /*string*/ $path)
+		public static function GetFolderFolders(/*string*/ $path)
 		{
-			return FileSystem::_GetFolderItems($pattern, $path, true);
+			return FileSystem::_GetFolderItems('*', $path, true);
 		}
 
 		/**
 		 * Recursively retrieves the folders that match the pattern in $pattern and are in the folder $path.
 		 *
-		 * If $pattern is string: it will be interpreted as a relative path followed by a Windows file search pattern.
-		 * The Windows file search pattern uses:
-		 * "?" : any character
-		 * "*" : any character, zero or more times
-		 * Otherwise, it will be interpretated as the Windows file search pattern "*".
-		 *
 		 * Note: files which name starts with "." are ignored.
 		 *
 		 * Returns an array that contains the absolute path of the folders.
@@ -482,9 +468,9 @@
 		 * @access public
 		 * @return array of string
 		 */
-		public static function GetFolderFoldersRecursive(/*mixed*/ $pattern, /*string*/ $path)
+		public static function GetFolderFoldersRecursive(/*string*/ $path)
 		{
-			return FileSystem::_GetFolderItemsRecursive($pattern, $path, true);
+			return FileSystem::_GetFolderItemsRecursive('*', $path, true);
 		}
 
 		/**

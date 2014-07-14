@@ -381,10 +381,6 @@
 					AccessControl::$loadedFiles[] = $file;
 				}
 			}
-			if (Configuration::TryGet('paladio-paths', 'accesscontrol', $extraPath))
-			{
-				Load($extraPath);
-			}
 		}
 
 		public static function Open(/*string*/ $id, /*string*/ $password)
@@ -528,6 +524,10 @@
 				);
 				AccessControl::Load(FileSystem::FolderCore());
 				AccessControl::Load(dirname(__FILE__));
+				if (Configuration::TryGet(\'paladio-paths\', \'accesscontrol\', $extraPath))
+				{
+					AccessControl::Load($extraPath);
+				}
 				Paladio::Request
 				(
 					\'Session\',

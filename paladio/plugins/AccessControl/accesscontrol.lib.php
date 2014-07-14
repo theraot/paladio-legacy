@@ -355,32 +355,13 @@
 			}
 		}
 
-		public static function Load(/*string*/ $basePath)
+		public static function Load(/*string*/ $basePath, $recursive = false)
 		{
-			if (!is_array(AccessControl::$loadedFiles))
-			{
-				AccessControl::$loadedFiles = array();
-			}
 			if (AccessControl::$INI === null)
 			{
 				AccessControl::$INI = new INI();
 			}
-			if (is_dir($basePath))
-			{
-				$files = FileSystem::GetFolderFiles('*.nav.php', $basePath);
-			}
-			else
-			{
-				$files = array($basePath);
-			}
-			foreach ($files as $file)
-			{
-				if (!in_array($file, AccessControl::$loadedFiles))
-				{
-					AccessControl::$INI->Load($file);
-					AccessControl::$loadedFiles[] = $file;
-				}
-			}
+			Paladio::Load($basePath, '*.nav.php', array(AccessControl::$INI, 'Load'), AccessControl::$loadedFiles, $recursive);
 		}
 
 		public static function Open(/*string*/ $id, /*string*/ $password)

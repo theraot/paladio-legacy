@@ -212,45 +212,15 @@
 		 * @access public
 		 * @return void
 		 */
-		public static function Load(/*mixed*/ $path)
+		public static function Load(/*mixed*/ $path, $recursive = false)
 		{
-			if (!is_array(Configuration::$loadedFiles))
-			{
-				Configuration::$loadedFiles = array();
-			}
 			if (Configuration::$INI === null)
 			{
 				Configuration::$INI = new INI();
 			}
-			if (is_array($path))
+			$count = Paladio::Load($path, '*.cfg.php', array(Configuration::$INI, 'Load'), Configuration::$loadedFiles, $recursive);
+			if ($count > 0)
 			{
-				foreach ($path as $currentPath)
-				{
-					Configuration::Load($currentPath);
-				}
-			}
-			else
-			{
-				if (is_dir($path))
-				{
-					$files = FileSystem::GetFolderFiles('*.cfg.php', $path);
-				}
-				else
-				{
-					$files = array($path);
-				}
-				foreach ($files as $file)
-				{
-					if (!in_array($file, Configuration::$loadedFiles))
-					{
-						Configuration::$INI->Load($file);
-						Configuration::$loadedFiles[] = $file;
-					}
-				}
-				if (Configuration::TryGet('paladio-paths', 'configuration', $extraPath))
-				{
-					Configuration::Load($extraPath);
-				}
 				Configuration::Dispatch();
 			}
 		}

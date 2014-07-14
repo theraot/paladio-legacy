@@ -68,6 +68,39 @@
 		private static $categoryName;
 		private static $entries;
 		private static $extraPets;
+		
+		private static function _Load($path, $pattern, $callback, &$done, $recursive)
+		{
+			$return = 0;
+			$currentPath = getcwd();
+			chdir(FileSystem::FolderCore());
+			if (is_dir($path))
+			{
+				if ($recursive)
+				{
+					$files = FileSystem::GetFolderFilesRecursive($pattern, $path);
+				}
+				else
+				{
+					$files = FileSystem::GetFolderFiles($pattern, $path);
+				}
+			}
+			else
+			{
+				$files = array($path);
+			}
+			foreach ($files as $file)
+			{
+				if (!in_array($file, $done))
+				{
+					call_user_func($callback, $file);
+					$done[] = $file;
+					$return++;
+				}
+			}
+			chdir($currentPath);
+			return $return;
+		}
 
 		private static function ClassExists(/*string*/ $className)
 		{
@@ -126,14 +159,12 @@
 				$keys = array_keys(Paladio::$extraPets);
 				foreach ($keys as $key)
 				{
-					foreach (Paladio::$extraPets[$key] as $extraPet)
+					$extraPet = Paladio::$extraPets[$key];
+					if (preg_match('@.*\.'.preg_quote($petName).'\.pet\.php@u', $extraPet))
 					{
-						if (preg_match('@.*\.'.preg_quote($petName).'\.pet\.php@u', $extraPet))
+						if (is_file($extraPet))
 						{
-							if (is_file($extraPet))
-							{
-								$files[] = $extraPet;
-							}
+							$files[] = $extraPet;
 						}
 					}
 				}
@@ -151,14 +182,12 @@
 					$keys = array_keys(Paladio::$extraPets);
 					foreach ($keys as $key)
 					{
-						foreach (Paladio::$extraPets[$key] as $extraPet)
+						$extraPet = Paladio::$extraPets[$key];
+						if (preg_match('@'.preg_quote(DIRECTORY_SEPARATOR).preg_quote($petName).'\.pet\.php@u', $extraPet))
 						{
-							if (preg_match('@'.preg_quote(DIRECTORY_SEPARATOR).preg_quote($petName).'\.pet\.php@u', $extraPet))
+							if (is_file($extraPet))
 							{
-								if (is_file($extraPet))
-								{
-									return $extraPet;
-								}
+								return $extraPet;
 							}
 						}
 					}
@@ -172,56 +201,19 @@
 			if (Configuration::TryGet('paladio-paths', 'plugins', $pluginsFolder))
 			{
 				$path = String_Utility::EnsureEnd(FileSystem::ResolveRelativePath(FileSystem::FolderCore(), $pluginsFolder, DIRECTORY_SEPARATOR) , DIRECTORY_SEPARATOR);
-				$items = FileSystem::GetFolderItems('*', $path);
 				$currentPath = getcwd();
 				chdir(FileSystem::FolderCore());
-				$configurationFiles = array();
-				$pluginFiles = array();
-				$petFiles = array($path => array());
-				foreach ($items as $item)
-				{
-					if (is_dir($item))
-					{
-						Configuration::Load(FileSystem::GetFolderFiles('*.cfg.php', $item));
-						FileSystem::RequireAll('*.db.php', $item);
-						FileSystem::RequireAll('*.lib.php', $item);
-						$petFiles[$item] = FileSystem::GetFolderFiles('*.pet.php', $item);
-					}
-					else
-					{
-						if (preg_match('@^.*\.lib\.php$@u', $item) || preg_match('@^.*\.db\.php$@u', $item))
-						{
-							$pluginFiles[] = $item;
-						}
-						else if (preg_match('@^.*\.cfg\.php$@u', $item))
-						{
-							$configurationFiles[] = $item;
-						}
-						else if (preg_match('@^.*\.pet\.php$@u', $item))
-						{
-							$petFiles[$path][] = $item;
-						}
-					}
-				}
-				foreach ($configurationFiles as $item)
-				{
-					Configuration::Load($item);
-				}
-				foreach ($pluginFiles as $item)
-				{
-					require_once($item);
-				}
 				if (!is_array(Paladio::$extraPets))
 				{
 					Paladio::$extraPets = array();
 				}
-				foreach ($petFiles as $petFile)
-				{
-					Paladio::$extraPets[] = $petFile;
-				}
+				FileSystem::RequireAll(array('*.db.php', '*.lib.php'), $path, true);
 				chdir($currentPath);
+				Paladio::Dispatch();
+				$petFiles = array();
+				Paladio::Load($path, '*.pet.php', array('Paladio', 'RegisterPET'), $petFiles, true);
+				Configuration::Load($path, true);
 			}
-			Paladio::Dispatch();
 		}
 
 		private static function ProcessDocumentFragment($parser, $path, $source, $query, $parent)
@@ -434,6 +426,11 @@
 				}
 			}
 		}
+
+		private static function RegisterPET($petFile)
+		{
+			Paladio::$extraPets[] = $petFile;
+		}
 		
 		private static function SetLocale($locale)
 		{
@@ -519,6 +516,31 @@
 				}
 			}
 			Paladio::LoadPlugins();
+		}
+
+		public static function Load($path, $pattern, $callback, &$done, $recursive = false)
+		{
+			$return = 0;
+			if (is_string($pattern) && is_callable($callback))
+			{
+				if (!is_array($done))
+				{
+					$done = array();
+				}
+				if (is_array($path))
+				{
+					foreach ($path as $currentPath)
+					{
+						$return += Paladio::_Load($currentPath, $pattern, $callback, $done, $recursive);
+					}
+				}
+				else
+				{
+					$return += Paladio::_Load($path, $pattern, $callback, $done, $recursive);
+				}
+			}
+			Paladio::Dispatch();
+			return $return;
 		}
 
 		/**

@@ -339,7 +339,7 @@
 						}
 						if ($current['role'] !== null)
 						{
-							$test = AccessControl::ReadCategory('rol:'.$current['role']);
+							$test = AccessControl::ReadCategory('role:'.$current['role']);
 							if (AccessControl::TryGetListedData($file, $query, $test, $path, $result))
 							{
 								return true;
@@ -494,7 +494,7 @@
 						AccessControl::GetListedFiles(AccessControl::ReadCategory('__all'), $path),
 						AccessControl::GetListedFiles(AccessControl::ReadCategory('__configured'), $path),
 						AccessControl::GetListedFiles(AccessControl::ReadCategory('__authenticated'), $path),
-						AccessControl::GetListedFiles(AccessControl::ReadCategory('rol:'.$current['role']), $path)
+						AccessControl::GetListedFiles(AccessControl::ReadCategory('role:'.$current['role']), $path)
 					);
 				}
 			}

@@ -264,7 +264,8 @@
 				$file = FileSystem::ResolveRelativePath($path, $key);
 				$tmp = explode('?', $file);
 				$file = $tmp[0];
-				if (count($tmp) > 1)
+				$hasQuery = count($tmp) > 1;
+				if ($hasQuery)
 				{
 					$query = $tmp[1];
 				}
@@ -274,7 +275,12 @@
 				}
 				if (AccessControl::CanAccess($file, $query))
 				{
-					return $key;
+					$result = '/'.FileSystem::CreateRelativePath(FileSystem::DocumentRoot(), $file, '/');
+					if ($hasQuery)
+					{
+						$result .= '?'.$query;
+					}
+					return $result;
 				}
 			}
 			return false;

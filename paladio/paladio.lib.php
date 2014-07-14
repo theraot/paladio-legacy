@@ -189,7 +189,7 @@
 					}
 					else
 					{
-						if (preg_match('@^.*\.lib\.php$@u', $item))
+						if (preg_match('@^.*\.lib\.php$@u', $item) || preg_match('@^.*\.db\.php$@u', $item))
 						{
 							$pluginFiles[] = $item;
 						}

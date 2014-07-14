@@ -622,9 +622,16 @@
 		 * @access public
 		 * @return void
 		 */
-		public static function RequireAll(/*mixed*/ $pattern, /*string*/ $path)
+		public static function RequireAll(/*mixed*/ $pattern, /*string*/ $path, $recursive = false)
 		{
-			$__REQUIRE = FileSystem::_GetFolderItems($pattern, $path, false);
+			if ($recursive)
+			{
+				$__REQUIRE = FileSystem::_GetFolderItemsRecursive($pattern, $path, false);
+			}
+			else
+			{
+				$__REQUIRE = FileSystem::_GetFolderItems($pattern, $path, false);
+			}
 			foreach ($__REQUIRE as $_REQUIRE)
 			{
 				FileSystem::__RequireOnce($_REQUIRE);

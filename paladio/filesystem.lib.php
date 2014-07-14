@@ -5,7 +5,7 @@
 		header('HTTP/1.0 404 Not Found');
 		exit();
 	}
-	//TODO: Make get GetFolderItemsRelative return an Iterable instead of an array
+	//TODO: Make _GetFolderItems and _GetFolerItemsRelative return an Iterable instead of an array
 
 	/**
 	 * FileSystem
@@ -85,14 +85,14 @@
 			return implode($directory_separator, $result);
 		}
 
-		private static function GetFolderItemsRelative(/*mixed*/ $pattern, /*string*/ $path, /*bool*/ $folders)
+		private static function _GetFolderItems(/*mixed*/ $pattern, /*string*/ $path, /*bool*/ $folders)
 		{
 			if (is_array($pattern))
 			{
 				$result = array();
 				foreach($pattern as $pattern)
 				{
-					$result = array_merge($result, FileSystem::GetFolderItemsRelative($pattern, $path, $folders));
+					$result = array_merge($result, FileSystem::_GetFolderItems($pattern, $path, $folders));
 				}
 				return $result;
 			}
@@ -157,6 +157,69 @@
 					return $result;
 				}
 			}
+		}
+
+		public static function _GetFolderItemsRecursive(/*mixed*/ $pattern, /*string*/ $path, $folders)
+		{
+			if ($folders === true)
+			{
+				$result = array();
+			}
+			else
+			{
+				$result = FileSystem::_GetFolderItems($pattern, $path, false);
+			}
+			$queue = array($path);
+			$branches = null;
+			$branches_index = -1;
+			$branches_length = -1;
+			while (true)
+			{
+				if ($branches === null)
+				{
+					if (count($queue) > 0)
+					{
+						$found = array_shift($queue);
+						$branches = FileSystem::_GetFolderItems($pattern, $found, true);
+						$branches_index = -1;
+						$branches_length = count($branches);
+					}
+					else
+					{
+						break;
+					}
+				}
+				else
+				{
+					$advanced = false;
+					$branches_index++;
+					if ($branches_index < $branches_length)
+					{
+						$advanced = true;
+					}
+					if ($advanced)
+					{
+						$found = $branches[$branches_index];
+						if ($folders !== false)
+						{
+							$result[] = $found;
+						}
+						if ($folders !== true)
+						{
+							$new = FileSystem::_GetFolderItems($pattern, $found, false);
+							$result = array_merge($result, $new);
+						}
+						$queue[] = $found;
+					}
+					else
+					{
+						$branches = null;
+						$branches_index = -1;
+						$branches_length = -1;
+					}
+				}
+			}
+			return $result;
 		}
 
 		private static function EndsWith (/*string*/ $string, /*string*/ $with)
@@ -316,7 +379,28 @@
 		 */
 		public static function GetFolderFiles(/*mixed*/ $pattern, /*string*/ $path)
 		{
-			return FileSystem::GetFolderItemsRelative($pattern, $path, false);
+			return FileSystem::_GetFolderItems($pattern, $path, false);
+		}
+
+		/**
+		 * Recursively retrieves the files that match the pattern in $pattern and are in the folder $path.
+		 *
+		 * If $pattern is string: it will be interpreted as a relative path followed by a Windows file search pattern.
+		 * The Windows file search pattern uses:
+		 * "?" : any character
+		 * "*" : any character, zero or more times
+		 * Otherwise, it will be interpretated as the Windows file search pattern "*".
+		 *
+		 * Note: files which name starts with "." are ignored.
+		 *
+		 * Returns an array that contains the absolute path of the files.
+		 *
+		 * @access public
+		 * @return array of string
+		 */
+		public static function GetFolderFilesRecursive(/*mixed*/ $pattern, /*string*/ $path)
+		{
+			return FileSystem::_GetFolderItemsRecursive($pattern, $path, false);
 		}
 
 		/**
@@ -337,7 +421,28 @@
 		 */
 		public static function GetFolderItems(/*mixed*/ $pattern, /*string*/ $path)
 		{
-			return FileSystem::GetFolderItemsRelative($pattern, $path, null);
+			return FileSystem::_GetFolderItems($pattern, $path, null);
+		}
+
+		/**
+		 * Recursively retrieves the files and folders that match the pattern in $pattern and are in the folder $path.
+		 *
+		 * If $pattern is string: it will be interpreted as a relative path followed by a Windows file search pattern.
+		 * The Windows file search pattern uses:
+		 * "?" : any character
+		 * "*" : any character, zero or more times
+		 * Otherwise, it will be interpretated as the Windows file search pattern "*".
+		 *
+		 * Note: files which name starts with "." are ignored.
+		 *
+		 * Returns an array that contains the absolute path of the files and folders.
+		 *
+		 * @access public
+		 * @return array of string
+		 */
+		public static function GetFolderItemsRecursive(/*mixed*/ $pattern, /*string*/ $path)
+		{
+			return FileSystem::_GetFolderItemsRecursive($pattern, $path, null);
 		}
 
 		/**
@@ -358,7 +463,28 @@
 		 */
 		public static function GetFolderFolders(/*mixed*/ $pattern, /*string*/ $path)
 		{
-			return FileSystem::GetFolderItemsRelative($pattern, $path, true);
+			return FileSystem::_GetFolderItems($pattern, $path, true);
+		}
+
+		/**
+		 * Recursively retrieves the folders that match the pattern in $pattern and are in the folder $path.
+		 *
+		 * If $pattern is string: it will be interpreted as a relative path followed by a Windows file search pattern.
+		 * The Windows file search pattern uses:
+		 * "?" : any character
+		 * "*" : any character, zero or more times
+		 * Otherwise, it will be interpretated as the Windows file search pattern "*".
+		 *
+		 * Note: files which name starts with "." are ignored.
+		 *
+		 * Returns an array that contains the absolute path of the folders.
+		 *
+		 * @access public
+		 * @return array of string
+		 */
+		public static function GetFolderFoldersRecursive(/*mixed*/ $pattern, /*string*/ $path)
+		{
+			return FileSystem::_GetFolderItemsRecursive($pattern, $path, true);
 		}
 
 		/**
@@ -512,7 +638,7 @@
 		 */
 		public static function RequireAll(/*mixed*/ $pattern, /*string*/ $path)
 		{
-			$__REQUIRE = FileSystem::GetFolderItemsRelative($pattern, $path, false);
+			$__REQUIRE = FileSystem::_GetFolderItems($pattern, $path, false);
 			foreach ($__REQUIRE as $_REQUIRE)
 			{
 				FileSystem::__RequireOnce($_REQUIRE);

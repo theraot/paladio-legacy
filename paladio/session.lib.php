@@ -44,16 +44,23 @@
 		 * @acess public
 		 * @return bool
 		 */
-		public static function Start()
+		public static function Start($regenerate = false)
 		{
-			if (!Session::Exists() && !headers_sent())
+			if (headers_sent())
 			{
-				session_start();
-				return Session::Exists();
+				return false;
 			}
 			else
 			{
-				return false;
+				if (!Session::Exists())
+				{
+					session_start();
+					return Session::Exists();
+				}
+				else
+				{
+					return session_regenerate_id(true);
+				}
 			}
 		}
 

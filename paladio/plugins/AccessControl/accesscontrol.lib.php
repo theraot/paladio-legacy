@@ -159,7 +159,7 @@
 		{
 			if (class_exists('Session'))
 			{
-				Session::Start();
+				Session::Start(true);
 				$current = AccessControl::$current;
 				if ($current === null)
 				{
@@ -264,7 +264,8 @@
 				$file = FileSystem::ResolveRelativePath($path, $key);
 				$tmp = explode('?', $file);
 				$file = $tmp[0];
-				if (count($tmp) > 1)
+				$hasQuery = count($tmp) > 1;
+				if ($hasQuery)
 				{
 					$query = $tmp[1];
 				}
@@ -274,7 +275,12 @@
 				}
 				if (AccessControl::CanAccess($file, $query))
 				{
-					return $key;
+					$result = '/'.FileSystem::CreateRelativePath(FileSystem::DocumentRoot(), $file, '/');
+					if ($hasQuery)
+					{
+						$result .= '?'.$query;
+					}
+					return $result;
 				}
 			}
 			return false;
@@ -339,7 +345,7 @@
 						}
 						if ($current['role'] !== null)
 						{
-							$test = AccessControl::ReadCategory('rol:'.$current['role']);
+							$test = AccessControl::ReadCategory('role:'.$current['role']);
 							if (AccessControl::TryGetListedData($file, $query, $test, $path, $result))
 							{
 								return true;
@@ -355,36 +361,13 @@
 			}
 		}
 
-		public static function Load(/*string*/ $basePath)
+		public static function Load(/*string*/ $basePath, $recursive = false)
 		{
-			if (!is_array(AccessControl::$loadedFiles))
-			{
-				AccessControl::$loadedFiles = array();
-			}
 			if (AccessControl::$INI === null)
 			{
 				AccessControl::$INI = new INI();
 			}
-			if (is_dir($basePath))
-			{
-				$files = FileSystem::GetFolderFiles('*.nav.php', $basePath);
-			}
-			else
-			{
-				$files = array($basePath);
-			}
-			foreach ($files as $file)
-			{
-				if (!in_array($file, AccessControl::$loadedFiles))
-				{
-					AccessControl::$INI->Load($file);
-					AccessControl::$loadedFiles[] = $file;
-				}
-			}
-			if (Configuration::TryGet('paladio-paths', 'accesscontrol', $extraPath))
-			{
-				Load($extraPath);
-			}
+			Paladio::Load($basePath, '*.nav.php', array(AccessControl::$INI, 'Load'), AccessControl::$loadedFiles, $recursive);
 		}
 
 		public static function Open(/*string*/ $id, /*string*/ $password)
@@ -400,7 +383,7 @@
 				{
 					$fields[] = AccessControl::$saltField;
 				}
-				if (Database::TryReadOneRecord
+				if (Database::CanConnect() && Database::TryReadOneRecord
 				(
 					$record,
 					AccessControl::$table,
@@ -428,20 +411,26 @@
 							AccessControl::$current = array('id' => $id, 'password' => $password, 'role' => $record[AccessControl::$roleField]);
 						}
 						AccessControl::Preserve();
-						if (AccessControl::$roleField === null)
-						{
-							return true;
-						}
-						else
-						{
-							return $record[AccessControl::$roleField];
-						}
+						return true;
 					}
 				}
 			}
 			AccessControl::$current = null;
 			AccessControl::Preserve();
 			return false;
+		}
+
+		public static function UserInfo()
+		{
+			$current = AccessControl::$current;
+			if ($current === null)
+			{
+				return null;
+			}
+			else
+			{
+				return array('id' => $current['id'], 'role' => $current['role']);
+			}
 		}
 
 		public static function ValidUris()
@@ -488,7 +477,7 @@
 						AccessControl::GetListedFiles(AccessControl::ReadCategory('__all'), $path),
 						AccessControl::GetListedFiles(AccessControl::ReadCategory('__configured'), $path),
 						AccessControl::GetListedFiles(AccessControl::ReadCategory('__authenticated'), $path),
-						AccessControl::GetListedFiles(AccessControl::ReadCategory('rol:'.$current['role']), $path)
+						AccessControl::GetListedFiles(AccessControl::ReadCategory('role:'.$current['role']), $path)
 					);
 				}
 			}
@@ -522,6 +511,10 @@
 				);
 				AccessControl::Load(FileSystem::FolderCore());
 				AccessControl::Load(dirname(__FILE__));
+				if (Configuration::TryGet(\'paladio-paths\', \'accesscontrol\', $extraPath))
+				{
+					AccessControl::Load($extraPath);
+				}
 				Paladio::Request
 				(
 					\'Session\',

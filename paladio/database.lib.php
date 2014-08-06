@@ -42,6 +42,10 @@
 		 */
 		private static function Connect(/*string*/ $user, /*string*/ $password, /*bool*/ $persist)
 		{
+			if (Database::$adapter === null)
+			{
+				throw new Exception('Database not available - review configuration.');
+			}
 			$connection = Database::$adapter->Connect(Database::$server, Database::$port, $user, $password, Database::$database, Database::$charset, $persist === 'persistent');
 			if ($connection === false)
 			{
@@ -66,7 +70,7 @@
 					Database::Disconnect($item);
 				}
 			}
-			else
+			else if ($connection !== null)
 			{
 				Database::$adapter->Disconnect($connection);
 			}
@@ -102,6 +106,10 @@
 				}
 			}
 			catch (PDOException $e)
+			{
+				return false;
+			}
+			catch (Exception $e)
 			{
 				return false;
 			}
@@ -280,6 +288,10 @@
 		 */
 		public static function CreateQueryCountRecords(/*string*/ $table, /*mixed*/ $where = null)
 		{
+			if (Database::$adapter === null)
+			{
+				throw new Exception('Database not available - review configuration.');
+			}
 			return Database::$adapter->CreateQueryCountRecord($table, $where);
 		}
 
@@ -299,6 +311,10 @@
 		 */
 		public static function CreateQueryRead(/*string*/ $table, /*mixed*/ $fields = null, /*mixed*/ $where = null, /*array*/ $options = null)
 		{
+			if (Database::$adapter === null)
+			{
+				throw new Exception('Database not available - review configuration.');
+			}
 			return Database::$adapter->CreateQueryRead($table, $fields, $where, $options);
 		}
 
@@ -317,6 +333,10 @@
 		 */
 		public static function CreateStatementDelete(/*string*/ $table, /*mixed*/ $where = null)
 		{
+			if (Database::$adapter === null)
+			{
+				throw new Exception('Database not available - review configuration.');
+			}
 			return Database::$adapter->CreateStatementDelete($table, $where);
 		}
 
@@ -335,6 +355,10 @@
 		 */
 		public static function CreateStatementInsert(/*array*/ $record, /*string*/ $table)
 		{
+			if (Database::$adapter === null)
+			{
+				throw new Exception('Database not available - review configuration.');
+			}
 			return Database::$adapter->CreateStatementInsert($record, $table);
 		}
 
@@ -354,6 +378,10 @@
 		 */
 		public static function CreateStatementUpdate(/*array*/ $record, /*string*/ $table, /*mixed*/ $where = null)
 		{
+			if (Database::$adapter === null)
+			{
+				throw new Exception('Database not available - review configuration.');
+			}
 			return Database::$adapter->CreateStatementUpdate($record, $table, $where);
 		}
 
@@ -393,6 +421,10 @@
 		 */
 		public static function Execute(/*string*/ $statement, /*Database*/ $database = null)
 		{
+			if (Database::$adapter === null)
+			{
+				throw new Exception('Database not available - review configuration.');
+			}
 			if ($database === null)
 			{
 				$database = Database::ConnectExecute();
@@ -497,6 +529,10 @@
 		 */
 		public static function Query(/*string*/ $query, /*object*/ &$result, /*Database*/ $database = null)
 		{
+			if (Database::$adapter === null)
+			{
+				throw new Exception('Database not available - review configuration.');
+			}
 			if ($database === null)
 			{
 				$database = Database::ConnectQuery();

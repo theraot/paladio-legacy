@@ -6,18 +6,23 @@
 	}
 	if (Session::TryDequeue($message))
 	{
-		echo '<div id="__message" ';
-		if ($message['type'] == 'good')
+		echo '<div';
+		if (array_key_exists('id', $message))
 		{
-			echo 'class="good"';
+			echo ' id="'.$message['id'].'"';
+		}
+		echo ' id="__message" ';
+		if (array_key_exists('class', $message))
+		{
+			echo ' class="'.$message['class'].' __message"';
 		}
 		else
 		{
-			echo 'class="bad"';
+			echo ' class="__message"';
 		}
 		echo '>';
 		echo $message['text'];
-		echo '<button style="float:right;" onclick="var node = document.getElementById(\'__message\'); node.parentNode.removeChild(node);"><span class="fa">&#xf00d;</span></button>';
+		echo '<button onclick="var node = this.parentNode; node.parentNode.removeChild(node);"><span class="fa">&#xf00d;</span></button>';
 		echo '</div>';
 		Session::DequeueAll();
 	}

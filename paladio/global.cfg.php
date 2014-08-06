@@ -21,6 +21,7 @@ sitename = Paladio
 entities = ../files/entities
 themes = ../files/themes
 plugins = /plugins
+#configurarion = 
 
 [paladio-strings] #Configuración de cadenas de texto
 weekdays = [Domingo, Lunes, Martes, Miércoles, Jueves, Viernes, Sábado]

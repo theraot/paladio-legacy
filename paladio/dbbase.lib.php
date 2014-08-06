@@ -132,7 +132,14 @@
 			{
 				require_once($file);
 			}
-			return new $class();
+			if (class_exists($class))
+			{
+				return new $class();
+			}
+			else
+			{
+				return null;
+			}
 		}
 
 		//------------------------------------------------------------

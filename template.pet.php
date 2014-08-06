@@ -12,6 +12,7 @@
 		<?php
 			echo PET_Utility::PETInvoke('title', Utility::ArrayTake($_ELEMENT['attributes'], 'title'));
 			PaladioTheme::RequestStyleSheet('base.css');
+			PaladioTheme::RequestStyleSheet('../../fonts/font-awesome.min.css');
 			@PaladioTheme::RequestStyleSheet($_ELEMENT['attributes']['stylesheets']);
 			PaladioTheme::RequestScript('thoth.js');
 			@PaladioTheme::RequestScript($_ELEMENT['attributes']['scripts']);

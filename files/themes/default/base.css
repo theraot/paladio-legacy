@@ -214,8 +214,8 @@ ul.no_bullets
 {
 	margin-left: 0px;
 	margin-right: 0px;
-	margin-top: 15px;
-	margin-bottom: 15px;
+	margin-top: 3px;
+	margin-bottom: 3px;
 	clear:both;
 }
 
@@ -334,21 +334,16 @@ table.data tr:last-child
 
 .form li
 {
-	display:table-row;
+	display:block;
 }
 
 .form li > input,
 .form li > label,
 .form li > div
 {
-	display:table-cell;
+	display:inline-block;
 	margin-top:3px;
 	margin-bottom:3px;
-}
-
-.form li > label
-{
-	vertical-align: top;
 }
 
 .form label,

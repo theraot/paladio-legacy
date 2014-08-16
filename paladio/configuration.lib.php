@@ -7,7 +7,6 @@
 	else
 	{
 		require_once('filesystem.lib.php');
-		require_once('ini.lib.php');
 	}
 
 	/**
@@ -20,26 +19,23 @@
 		// Private (Class)
 		//------------------------------------------------------------
 
-		private static $INI;
-		private static $entries;
+		private static $data;
+		private static $callbacks;
 
 		/**
 		 * Internally used to call the callbacks.
 		 * @see Configuration::Callback
 		 * @access private
 		 */
-		private static function Dispatch()
+		private static function Dispatch(/*string*/ $categoryName)
 		{
 			//TODO: create a central callback system for Configuration and Paladio
-			if (is_array(Configuration::$entries))
+			if (is_array(Configuration::$callbacks))
 			{
-				$keys = array_keys(Configuration::$entries);
-				foreach ($keys as $key)
+				if (array_key_exists($categoryName, Configuration::$callbacks))
 				{
-					$entry = Configuration::$entries[$key];
-					if(Configuration::CategoryExists($entry['check']))
+					foreach($Configuration::$callbacks[$categoryName] as $callback)
 					{
-						$callback = $entry['callback'];
 						if (is_callable($callback))
 						{
 							call_user_func($callback);
@@ -48,8 +44,8 @@
 						{
 							include($callback);
 						}
-						unset(Configuration::$entries[$key]);
 					}
+					unset(Configuration::$callbacks[$categoryName]);
 				}
 			}
 		}
@@ -60,13 +56,35 @@
 
 		public static function Add(/*array*/ $configuration)
 		{
-			if (Configuration::$INI === null)
+			if (Configuration::$data === null)
 			{
-				Configuration::$INI = new INI();
+				Configuration::$data = array();
 			}
-			Configuration::$INI->merge_Content($configuration, true);
-			//TODO: Dispatch only when new configuration is added
-			Configuration::Dispatch();
+			if (is_array($configuration))
+			{
+				$keys = array_keys($configuration);
+				foreach ($keys as $key)
+				{
+					$val = $configuration[$key];
+					if (is_array($val))
+					{
+						$found = array_key_exists($key, Configuration::$data);
+						Configuration::$data[$key] = $val;
+						if ($found)
+						{
+							Configuration::Dispatch($key);
+						}
+					}
+					else
+					{
+						if (!array_key_exists('', Configuration::$data) || !is_array(Configuration::$data['']))
+						{
+							Configuration::$data[''] = array();
+						}
+						Configuration::$data[''][$key] = $val;
+					}
+				}
+			}
 		}
 
 		/**
@@ -107,14 +125,30 @@
 				{
 					throw new Exception ('Invalid callback');
 				}
-				$entry = array('check' => $categoryName, 'callback' => $callback);
-				if (is_array(Configuration::$entries))
+				//--
+				if (!is_array(Configuration::$callbacks))
 				{
-					Configuration::$entries[] = $entry;
+					Configuration::$callbacks = array();
+				}
+				//--
+				if (is_array($categoryName))
+				{
+					$categoryNames = $categoryName;
 				}
 				else
 				{
-					Configuration::$entries = array($entry);
+					$categoryNames = array($categoryName);
+				}
+				foreach($categoryNames as $categoryName)
+				{
+					if (array_key_exists($categoryName, Configuration::$callbacks))
+					{
+						Configuration::$callbacks[$categoryName][] = $callback;
+					}
+					else
+					{
+						Configuration::$callbacks[$categoryName] = array($callback);
+					}
 				}
 				return true;
 			}
@@ -132,8 +166,7 @@
 		 */
 		public static function CategoryExists(/*mixed*/ $categoryName)
 		{
-			//TODO: move multiple category checks to INI [low priority]
-			if (Configuration::$INI  === null)
+			if (Configuration::$data  === null)
 			{
 				return false;
 			}
@@ -141,14 +174,14 @@
 			{
 				if (is_string($categoryName))
 				{
-					return Configuration::$INI->isset_Category($categoryName);
+					return array_key_exists($categoryName, Configuration::$data);
 				}
 				else if (is_array($categoryName))
 				{
 					$categoryNames = $categoryName;
 					foreach ($categoryName as $categoryName)
 					{
-						if (!Configuration::$INI->isset_Category($categoryName))
+						if (!array_key_exists($categoryName, Configuration::$data))
 						{
 							return false;
 						}
@@ -175,8 +208,7 @@
 		 */
 		public static function FieldExists(/*mixed*/ $categoryName, /*string*/ $fieldName)
 		{
-			//TODO: move multiple field check to INI [low priority]
-			if (Configuration::$INI === null)
+			if (Configuration::$data === null)
 			{
 				return false;
 			}
@@ -184,14 +216,14 @@
 			{
 				if (is_string($categoryName))
 				{
-					return Configuration::$INI->isset_Field($categoryName, $fieldName);
+					return array_key_exists($categoryName, Configuration::$data) && array_key_exists($fieldName, Configuration::$data[$categoryName]);
 				}
 				else if (is_array($categoryName))
 				{
 					$categoryNames = $categoryName;
 					foreach ($categoryName as $categoryName)
 					{
-						if (!Configuration::$INI->isset_Field($categoryName, $fieldName))
+						if (!array_key_exists($categoryName, Configuration::$data) && array_key_exists($fieldName, Configuration::$data[$categoryName]))
 						{
 							return false;
 						}
@@ -219,9 +251,9 @@
 		 */
 		public static function Get(/*string*/ $categoryName, /*string*/ $fieldName, /*mixed*/ $default = null)
 		{
-			if (Configuration::$INI !== null && Configuration::$INI->isset_Field($categoryName, $fieldName))
+			if (Configuration::$data !== null && array_key_exists($categoryName, Configuration::$data) && array_key_exists($fieldName, Configuration::$data[$categoryName]))
 			{
-				return Configuration::$INI->get_Field($categoryName, $fieldName);
+				return Configuration::$data[$categoryName][$fieldName];
 			}
 			else
 			{
@@ -245,9 +277,9 @@
 		 */
 		public static function TryGet(/*string*/ $categoryName, /*string*/ $fieldName, /*mixed*/ &$result)
 		{
-			if (Configuration::$INI !== null && Configuration::$INI->isset_Field($categoryName, $fieldName))
+			if (Configuration::$data !== null && array_key_exists($categoryName, Configuration::$data) && array_key_exists($fieldName, Configuration::$data[$categoryName]))
 			{
-				$result = Configuration::$INI->get_Field($categoryName, $fieldName);
+				$result = Configuration::$data[$categoryName][$fieldName];
 				return true;
 			}
 			else

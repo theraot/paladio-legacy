@@ -62,6 +62,8 @@
 		public static function Add(/*array*/ $configuration)
 		{
 			Configuration::$INI->merge_Content($configuration, true);
+			//TODO: Dispatch only when new configuration is added
+			Configuration::Dispatch();
 		}
 
 		/**

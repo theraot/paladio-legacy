@@ -59,6 +59,11 @@
 		// Public (Class)
 		//------------------------------------------------------------
 
+		public static function Add(/*array*/ $configuration)
+		{
+			Configuration::$INI->merge_Content($configuration, true);
+		}
+
 		/**
 		 * Creates a notification callback to be executed when the specified category with the name $categoryName becomes available.
 		 *

@@ -21,7 +21,6 @@
 		//------------------------------------------------------------
 
 		private static $INI;
-		private static $loadedFiles;
 		private static $entries;
 
 		/**
@@ -61,6 +60,10 @@
 
 		public static function Add(/*array*/ $configuration)
 		{
+			if (Configuration::$INI === null)
+			{
+				Configuration::$INI = new INI();
+			}
 			Configuration::$INI->merge_Content($configuration, true);
 			//TODO: Dispatch only when new configuration is added
 			Configuration::Dispatch();
@@ -203,36 +206,6 @@
 		}
 
 		/**
-		 * Loads configuration from the path given in $path. Each file is only loaded once.
-		 *
-		 * If $path is array: Configuration::Load is called recursively on each element of the array.
-		 * If $path is a folder: Loads configuration from each file in the folder with a name in the form "*.cfg.php"
-		 * If $path is a file: Loads configuration from the file.
-		 * Otherwise: does nothing.
-		 *
-		 * Note 1: if the loaded configuration includes a configuration field "configuration" in the category "paladio-paths" Configuration::Load is called recursively on the value of the configuration field.
-		 * Note 2: if attempts to load a file that was previously loaded the file is skipped.
-		 * Note 3: all the loaded files are readed skipping the first line.
-		 *
-		 * @param $path: The path to load configuration from.
-		 *
-		 * @access public
-		 * @return void
-		 */
-		public static function Load(/*mixed*/ $path, $recursive = false)
-		{
-			if (Configuration::$INI === null)
-			{
-				Configuration::$INI = new INI();
-			}
-			$count = Paladio::Load($path, '*.cfg.php', array(Configuration::$INI, 'Load'), Configuration::$loadedFiles, $recursive);
-			if ($count > 0)
-			{
-				Configuration::Dispatch();
-			}
-		}
-
-		/**
 		 * Reads the value of the configuration field identified by $fieldName in the category with the name $categoryName.
 		 *
 		 * Returns the value of the configuration field if it is available, $default otherwise.
@@ -295,6 +268,4 @@
 			throw new Exception('Creating instances of '.__CLASS__.' is forbidden');
 		}
 	}
-
-	Configuration::Load(FileSystem::FolderCore());
 ?>

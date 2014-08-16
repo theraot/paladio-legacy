@@ -101,61 +101,37 @@
 				if (is_string($pattern))
 				{
 					$pattern = str_replace(array('/', '\\'), DIRECTORY_SEPARATOR, $pattern);
-					$separatorLen = strlen(DIRECTORY_SEPARATOR);
-					$position = strpos($pattern, DIRECTORY_SEPARATOR);
-					if ($position > 0)
-					{
-						$folder = substr($pattern, 0, $position + $separatorLen);
-						$pattern = substr($pattern, $position + $separatorLen);
-					}
-					else
-					{
-						$folder = '.'.DIRECTORY_SEPARATOR;
-					}
 				}
 				else
 				{
 					$pattern = '*';
-					$folder = '.'.DIRECTORY_SEPARATOR;
 				}
 				//---
 				if (is_string($path))
 				{
-					$folder = FileSystem::ResolveRelativePath($path, $folder, DIRECTORY_SEPARATOR);
-					$_file = FileSystem::ResolveRelativePath($folder, $pattern, DIRECTORY_SEPARATOR);
+					$pattern = FileSystem::ResolveRelativePath($path, $pattern, DIRECTORY_SEPARATOR);
 				}
-				if (strpos($pattern, '*') === FALSE && strpos($pattern, '?') === FALSE)
+				//---
+				$result = array();
+				if ($folders === true)
 				{
-					if (file_exists($_file))
+					foreach (glob($pattern, GLOB_MARK | GLOB_NOSORT | GLOB_ONLYDIR) as $item)
 					{
-						return array($_file);
+						$result[] = $item;
 					}
 				}
 				else
 				{
-					$result = array();
-					if (($handle = @opendir($folder)) !== false)
+					foreach (glob($pattern, GLOB_MARK | GLOB_NOSORT) as $item)
 					{
-						$regexPattern = '@^'.str_replace(array('\*', '\?'), array('.*', '.'), preg_quote($pattern)).'$@u';
-						while (($item = readdir($handle)) !== false)
+						$isDir = substr($item,-1) === DIRECTORY_SEPARATOR;
+						if ($folders === null || !$isDir)
 						{
-							if (!FileSystem::StartsWith($item, '.'))
-							{
-								$item = $folder.$item;
-								$isDir = is_dir($item);
-								if ($folders === null || $folders === $isDir)
-								{
-									if ($isDir || preg_match($regexPattern, $item))
-									{
-										$result[] = $item;
-									}
-								}
-							}
+							$result[] = $item;
 						}
-						closedir($handle);
 					}
-					return $result;
 				}
+				return $result;
 			}
 		}
 

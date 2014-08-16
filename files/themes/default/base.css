@@ -112,6 +112,11 @@ img.fit
 	max-width:100%;
 }
 
+ul.no_bullets
+{
+	list-style-type: none;
+}
+
 
 /*---------------- GENERIC --------------------*/
 
@@ -197,6 +202,7 @@ img.fit
 
 .autocenter-x
 {
+	display:block;
 	margin: 0 auto;
 	margin-left: auto;
 	margin-right: auto;
@@ -206,28 +212,11 @@ img.fit
 
 .__row
 {
-	left:0px;
-	right:0px;
-	width:100%;
-	display:table;
-}
-
-.__cell
-{
-	padding:0px;
-}
-
-@media all and (min-width:768px)
-{
-	.__cell
-	{
-		display:table-cell;
-	}
-	
-	.__cell.autocenter-y
-	{
-		vertical-align:middle;
-	}
+	margin-left: 0px;
+	margin-right: 0px;
+	margin-top: 3px;
+	margin-bottom: 3px;
+	clear:both;
 }
 
 /*--------------- TEMPLATE -------------------*/
@@ -235,7 +224,7 @@ img.fit
 #__wrap
 {
 	margin: 0 auto;
-	width: 100%;
+	display: block;
 }
 
 .__message
@@ -267,8 +256,8 @@ img.fit
 
 #__main
 {
-	width: 100%;
-	display: table;
+	margin: 0 auto;
+	display: block;
 }
 
 #__content
@@ -334,53 +323,74 @@ table.data tr:last-child
 
 .form
 {
-	display:table;
 	margin: 0 auto;
 }
 
 .form ul
 {
 	display:table;
+	padding: 0;
 }
 
 .form li
 {
-	display:table-row;
+	display:block;
 }
 
-.form li > input
+.form li > input,
+.form li > label,
+.form li > div
 {
-	display:table-cell;
+	display:inline-block;
+	margin-top:3px;
+	margin-bottom:3px;
 }
 
-.form li > label
+.form label,
+.form a,
+.form button,
+.form input,
+.form textarea,
+.form select
 {
-	display:table-cell;
-	vertical-align: top;
+	margin-left:15px;
+	margin-right:15px;
 }
 
-.form input[type="submit"]
+.form button,
+.form input[type="submit"],
+.form input[type="button"],
+.form input[type="reset"]
 {
 	float:right;
 }
 
-.form input[type="text"], .form input[type="email"], .form input[type="url"], .form input[type="password"]
+.form input[type="text"],
+.form input[type="password"],
+.form input[type="checkbox"],
+.form input[type="radio"],
+.form input[type="file"],
+.form input[type="date"],
+.form input[type="datetime"],
+.form input[type="datetime-local"],
+.form input[type="month"],
+.form input[type="time"],
+.form input[type="week"],
+.form input[type="color"],
+.form input[type="tel"],
+.form input[type="search"],
+.form input[type="range"],
+.form input[type="number"],
+.form input[type="url"],
+.form textarea,
+.form select
 {
-	width:250px;
-	margin-right:20px;
+	width:199px;
 }
 
 .form textarea
 {
-	width:300px;
 	min-height:85px;
-	margin-right:20px;
-}
-
-.form select
-{
-	min-width:250px;
-	margin-right:20px;
 }
 
 /*---------------- MENu ----------------------*/

@@ -176,48 +176,6 @@
 		}
 
 		/**
-		 * Verifies if the field with the name $fieldName in the category with the name $categoryName is available.
-		 *
-		 * If the category with the name $categoryName exists and contains a field with the name $fieldName then returns true, false otherwise.
-		 *
-		 * @param $categoryName: The name of the requested category.
-		 * @param $fieldName: The name of the requested category.
-		 *
-		 * @access public
-		 * @return bool
-		 */
-		public static function FieldExists(/*mixed*/ $categoryName, /*string*/ $fieldName)
-		{
-			if (Configuration::$data === null)
-			{
-				return false;
-			}
-			else
-			{
-				if (is_string($categoryName))
-				{
-					return array_key_exists($categoryName, Configuration::$data) && array_key_exists($fieldName, Configuration::$data[$categoryName]);
-				}
-				else if (is_array($categoryName))
-				{
-					$categoryNames = $categoryName;
-					foreach ($categoryName as $categoryName)
-					{
-						if (!array_key_exists($categoryName, Configuration::$data) && array_key_exists($fieldName, Configuration::$data[$categoryName]))
-						{
-							return false;
-						}
-					}
-					return true;
-				}
-				else
-				{
-					return false;
-				}
-			}
-		}
-
-		/**
 		 * Reads the value of the configuration field identified by $fieldName in the category with the name $categoryName.
 		 *
 		 * Returns the value of the configuration field if it is available, $default otherwise.

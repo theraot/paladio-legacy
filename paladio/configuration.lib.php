@@ -7,6 +7,7 @@
 	else
 	{
 		require_once('filesystem.lib.php');
+		require_once('utility.lib.php');
 	}
 
 	/**
@@ -62,28 +63,7 @@
 			}
 			if (is_array($configuration))
 			{
-				$keys = array_keys($configuration);
-				foreach ($keys as $key)
-				{
-					$val = $configuration[$key];
-					if (is_array($val))
-					{
-						$found = array_key_exists($key, Configuration::$data);
-						Configuration::$data[$key] = $val;
-						if ($found)
-						{
-							Configuration::Dispatch($key);
-						}
-					}
-					else
-					{
-						if (!array_key_exists('', Configuration::$data) || !is_array(Configuration::$data['']))
-						{
-							Configuration::$data[''] = array();
-						}
-						Configuration::$data[''][$key] = $val;
-					}
-				}
+				Configuration::$data = array_replace_recursive(Configuration::$data, $configuration);
 			}
 		}
 

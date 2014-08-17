@@ -59,6 +59,21 @@
 			}
 		}
 
+		private static function ExtractQuery($solved, &$file, &$query)
+		{
+			$tmp = explode('?', $solved);
+			$file = $tmp[0];
+			$hasQuery = count($tmp) > 1;
+			if ($hasQuery)
+			{
+				$query = $tmp[1];
+			}
+			else
+			{
+				$query = null;
+			}
+		}
+
 		private static function GetListedFiles(/*array*/ $list, /*string*/ $path)
 		{
 			$result = array();
@@ -70,8 +85,9 @@
 					if (AccessControl::CheckCanAccess($list[$key]))
 					{
 						$solved = FileSystem::ResolveRelativePath($path, $key);
-						//TODO
-						$count = String_Utility::CountCharacters($solved, '*?');
+						AccessControl::ExtractQuery($solved, $fileCheck, $queryCheck);
+						$paths = FileSystem::GetFolderFiles($fileCheck, null);
+						$count = String_Utility::CountCharacters($fileCheck, '*');
 						if ($count == 0)
 						{
 							if (FileSystem::UriExists($solved))
@@ -83,7 +99,7 @@
 						else
 						{
 							$result[$key] = $list[$key];
-							$result[$key]['path'] = FileSystem::GetFolderItems($solved, null);
+							$result[$key]['path'] = FileSystem::GetFolderFiles($solved, null);
 						}
 					}
 				}
@@ -93,48 +109,58 @@
 
 		private static function Match(/*string*/ $pattern, /*string*/ $item)
 		{
-			$regexPattern = '@^'.str_replace(array('\*'), array('.*'), preg_quote($pattern)).'$@u';
-			return preg_match($regexPattern, $item);
+			if ($item !== null)
+			{
+				$regexPattern = '@^'.str_replace(array('\*'), array('.*'), preg_quote($pattern)).'$@u';
+				return preg_match($regexPattern, $item);
+			}
+			else
+			{
+				return 1;
+			}
 		}
 
 		private static function TryGetListedData(/*string*/ $file, /*string*/ $query, /*array*/ $list, /*string*/ $path, /*mixed*/ &$result)
 		{
-			$full = $file;
-			if ($query !== '')
-			{
-				$full .= '?'.$query;
-			}
 			$bestCount = -1;
 			$bestKey = null;
 			if (is_array($list))
 			{
 				$keys = array_keys($list);
-				foreach($keys as $key)
+				foreach($keys as $fullCheck)
 				{
-					$solved = FileSystem::ResolveRelativePath($path, $key);
-					if ($solved == $full)
+					$solved = FileSystem::ResolveRelativePath($path, $fullCheck);
+					AccessControl::ExtractQuery($solved, $fileCheck, $queryCheck);
+					$paths = FileSystem::GetFolderFiles($fileCheck, null);
+					$count = String_Utility::CountCharacters($fileCheck, '*');
+					if ($query !== null)
 					{
-						$bestKey = $key;
-						break;
+						$count += String_Utility::CountCharacters($queryCheck, '*');
 					}
-					else if ($solved == $file)
+					foreach ($paths as $option)
 					{
-						if ($bestKey === null || $bestCount == -1)
+						if ($option === $file)
 						{
-							$bestKey = $key;
-							$bestCount = -1;
-						}
-					}
-					else
-					{
-						if (AccessControl::Match($solved, $key))
-						{
-							$count = String_Utility::CountCharacters($solved, '*');
-							if ($bestKey === null || $bestCount == -1 || $count < $bestCount)
+							if (AccessControl::Match($queryCheck, $query) === 1)
 							{
-								$bestKey = $key;
-								$bestCount = $count;
+								if ($bestKey === null || $bestCount === -1 || $count < $bestCount)
+								{
+									$bestKey = $fullCheck;
+									$bestCount = $count;
+								}
 							}
+							else
+							{
+								if ($bestKey === null || $bestCount === -1)
+								{
+									$bestKey = $fullCheck;
+									$bestCount = -1;
+								}
+							}
+						}
+						if ($bestCount === 0)
+						{
+							break;
 						}
 					}
 				}
@@ -145,12 +171,17 @@
 			}
 			else
 			{
+				var_dump($bestKey);
 				$result = $list[$bestKey];
 				if (is_bool($result))
 				{
 					$result = array('accesscontrol' => $result);
 				}
-				$result['path'] = $full;
+				$result['path'] = $file;
+				if ($query !== null)
+				{
+					$result['path'] .= '?'.$query;
+				}
 				return true;
 			}
 		}
@@ -259,24 +290,14 @@
 			$path = FileSystem::FolderInstallation();
 			$test = AccessControl::ReadCategory('__fallback');
 			$keys = array_keys($test);
-			foreach($keys as $key)
+			foreach($keys as $full)
 			{
-				$file = FileSystem::ResolveRelativePath($path, $key);
-				$tmp = explode('?', $file);
-				$file = $tmp[0];
-				$hasQuery = count($tmp) > 1;
-				if ($hasQuery)
-				{
-					$query = $tmp[1];
-				}
-				else
-				{
-					$query = '';
-				}
+				$solved = FileSystem::ResolveRelativePath($path, $full);
+				AccessControl::ExtractQuery($solved, $file, $query);
 				if (AccessControl::CanAccess($file, $query))
 				{
 					$result = '/'.FileSystem::CreateRelativePath(FileSystem::DocumentRoot(), $file, '/');
-					if ($hasQuery)
+					if ($query !== null)
 					{
 						$result .= '?'.$query;
 					}

@@ -171,7 +171,6 @@
 			}
 			else
 			{
-				var_dump($bestKey);
 				$result = $list[$bestKey];
 				if (is_bool($result))
 				{

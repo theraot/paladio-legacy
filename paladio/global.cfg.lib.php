@@ -15,8 +15,8 @@
 			// Configuración para acceder a la base de datos
 			'paladio-database' => array
 			(
-				// 'engine => 'MySQL',
-				// 'server => 'localhost',
+				// 'engine' => 'MySQL',
+				// 'server' => 'localhost',
 				// 'port' =>
 				// 'database' =>
 				// 'charset' => 'UTF8',

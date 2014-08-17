@@ -20,7 +20,30 @@
 				// 'password_field' =>
 				// 'salt_field' =>
 				// 'role_field' =>
-				// 'hash_algorithm' => 'sha1'
+				// 'hash_algorithm' => 'sha1',
+				/*'rules' => array
+				(
+					'__all' => array
+					(
+						'index.php' => true,
+					),
+					'__anonymous' => array
+					(
+					),
+					'__unconfigured' => array
+					(
+					),
+					'__unauthenticated' => array
+					(
+					),
+					'__authenticated' => array
+					(
+					),
+					'__fallback' => array
+					(
+						'index.php'
+					)
+				)*/
 			)
 		)
 	);

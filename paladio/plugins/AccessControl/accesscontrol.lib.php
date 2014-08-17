@@ -8,7 +8,6 @@
 	{
 		require_once('filesystem.lib.php');
 		require_once('configuration.lib.php');
-		require_once('pen.lib.php');
 	}
 
 	final class AccessControl
@@ -17,8 +16,7 @@
 		// Private (Class)
 		//------------------------------------------------------------
 
-		private static $INI;
-		private static $loadedFiles;
+		private static $rules;
 		private static $table;
 		private static $idField;
 		private static $passwordField;
@@ -27,35 +25,36 @@
 		private static $hashAlgorithm;
 		private static $current;
 
-		private static function CheckCanAccess(/*mixed*/ $result)
+		private static function CheckCanAccess(/*mixed*/ &$result)
 		{
+			$value = true;
 			if ($result === null)
 			{
-				return true;
+				$result = array();
 			}
-			if (is_array($result))
+			else if (is_array($result))
 			{
-				if (array_key_exists('accesscontrol', $result))
+				if (array_key_exists('allow', $result))
 				{
-					$value = $result['accesscontrol'];
-					if ($value)
-					{
-						return true;
-					}
-					else
-					{
-						return false;
-					}
+					$value = $result['allow'];
 				}
-				return true;
+				else
+				{
+					$result['allow'] = true;
+				}
 			}
 			else if (is_bool($result))
 			{
-				return $result;
+				$value = $result;
+				$result = array('allow' => $result);
+			}
+			if ($value)
+			{
+				return true;
 			}
 			else
 			{
-				return true;
+				return false;
 			}
 		}
 
@@ -174,7 +173,7 @@
 				$result = $list[$bestKey];
 				if (is_bool($result))
 				{
-					$result = array('accesscontrol' => $result);
+					$result = array('allow' => $result);
 				}
 				$result['path'] = $file;
 				if ($query !== null)
@@ -208,20 +207,23 @@
 
 		private static function ReadCategory(/*string*/ $categoryName)
 		{
-			if (AccessControl::$INI === null)
+			if (AccessControl::$rules === null)
 			{
 				return array();
 			}
 			else
 			{
-				$category = AccessControl::$INI->get_Category($categoryName);
-				if (is_array($category))
+				if (array_key_exists($categoryName, AccessControl::$rules))
 				{
-					return $category;
-				}
-				else
-				{
-					return array();
+					$category = AccessControl::$rules[$categoryName];
+					if (is_array($category))
+					{
+						return $category;
+					}
+					else
+					{
+						return array();
+					}
 				}
 			}
 		}
@@ -248,7 +250,7 @@
 			AccessControl::Preserve();
 		}
 
-		public static function Configure(/*string*/ $table, /*string*/ $idField, /*string*/ $passwordField, /*string*/ $saltField, /*string*/ $roleField, /*string*/ $hashAlgorithm)
+		public static function Configure(/*string*/ $table, /*string*/ $idField, /*string*/ $passwordField, /*string*/ $saltField, /*string*/ $roleField, /*string*/ $hashAlgorithm, /*array*/ $rules)
 		{
 			AccessControl::$table = $table;
 			AccessControl::$idField = $idField;
@@ -256,6 +258,11 @@
 			AccessControl::$saltField = $saltField;
 			AccessControl::$roleField = $roleField;
 			AccessControl::$hashAlgorithm = $hashAlgorithm;
+			AccessControl::$rules = $rules;
+			if (AccessControl::$rules === null)
+			{
+				AccessControl::$rules = array();
+			}
 		}
 
 		public static function CurrentSession()
@@ -288,8 +295,7 @@
 			$current = AccessControl::$current;
 			$path = FileSystem::FolderInstallation();
 			$test = AccessControl::ReadCategory('__fallback');
-			$keys = array_keys($test);
-			foreach($keys as $full)
+			foreach($test as $full)
 			{
 				$solved = FileSystem::ResolveRelativePath($path, $full);
 				AccessControl::ExtractQuery($solved, $file, $query);
@@ -379,15 +385,6 @@
 			{
 				return false;
 			}
-		}
-
-		public static function Load(/*string*/ $basePath, $recursive = false)
-		{
-			if (AccessControl::$INI === null)
-			{
-				AccessControl::$INI = new INI();
-			}
-			Paladio::Load($basePath, '*.nav.php', array(AccessControl::$INI, 'Load'), AccessControl::$loadedFiles, $recursive);
 		}
 
 		public static function Open(/*string*/ $id, /*string*/ $password)
@@ -527,14 +524,9 @@
 					Configuration::Get(\'paladio-accesscontrol\', \'password_field\'),
 					Configuration::Get(\'paladio-accesscontrol\', \'salt_field\'),
 					Configuration::Get(\'paladio-accesscontrol\', \'role_field\'),
-					Configuration::Get(\'paladio-accesscontrol\', \'hash_algorithm\')
+					Configuration::Get(\'paladio-accesscontrol\', \'hash_algorithm\'),
+					Configuration::Get(\'paladio-accesscontrol\', \'rules\')
 				);
-				AccessControl::Load(FileSystem::FolderCore());
-				AccessControl::Load(dirname(__FILE__));
-				if (Configuration::TryGet(\'paladio-paths\', \'accesscontrol\', $extraPath))
-				{
-					AccessControl::Load($extraPath);
-				}
 				Paladio::Request
 				(
 					\'Session\',

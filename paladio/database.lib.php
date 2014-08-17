@@ -123,13 +123,14 @@
 		 * @param $port: the port of the database server.
 		 * @param $database: the name of the database.
 		 * @param $charset: the charset of the database.
-		 * @param $fallbackMode: the mode used when the requested mode is not available.
 		 * @param $persistent: null to disable persistance, 'instance' to enable connection reutilization, 'persistent' to request a persistent connection if available.
+		 * @param $modes: array of supported modes, each mode has a user and a password.
+		 * @param $fallbackMode: the mode used when the requested mode is not available.
 		 *
 		 * @access public
 		 * @return void
 		 */
-		public static function Configure(/*string*/ $engine, /*string*/ $server, /*string*/ $port, /*string*/ $database, /*string*/ $charset, $fallbackMode = null, $persistent = null)
+		public static function Configure(/*string*/ $engine, /*string*/ $server, /*string*/ $port, /*string*/ $database, /*string*/ $charset, $persistent = null, $modes = null, $fallbackMode = null)
 		{
 			Database::$adapter = DBBase::Create($engine);
 			Database::$server = $server;
@@ -138,29 +139,10 @@
 			Database::$charset = $charset;
 			Database::$persistent = $persistent;
 			Database::$fallbackMode = $fallbackMode;
-			Database::$modes = array();
-		}
-
-		/**
-		 * Sets a configuration mode of Database.
-		 *
-		 * @param $mode: the name of the mode.
-		 * @param $user: the name of the user used.
-		 * @param $password: the password of the user used.
-		 *
-		 * @access public
-		 * @return void
-		 */
-		public static function ConfigureMode(/*mode*/ $mode, /*string*/ $user, /*string*/ $password)
-		{
-			if ($user !== null)
+			Database::$modes = $modes;
+			if (Database::$modes === null)
 			{
-				if (!array_key_exists($mode, Database::$modes))
-				{
-					Database::$modes[$mode] = array();
-				}
-				Database::$modes[$mode]['user'] = $user;
-				Database::$modes[$mode]['password'] = $password;
+				Database::$modes = array();
 			}
 		}
 
@@ -857,20 +839,9 @@
 					Configuration::Get(\'paladio-database\', \'port\'),
 					Configuration::Get(\'paladio-database\', \'database\'),
 					Configuration::Get(\'paladio-database\', \'charset\'),
-					Configuration::Get(\'paladio-database\', \'fallback_mode\', \'execute\'),
-					Configuration::Get(\'paladio-database\', \'persist\')
-				);
-				Database::ConfigureMode
-				(
-					\'execute\',
-					Configuration::Get(\'paladio-database\', \'user\'),
-					Configuration::Get(\'paladio-database\', \'password\')
-				);
-				Database::ConfigureMode
-				(
-					\'query\',
-					Configuration::Get(\'paladio-database\', \'query_user\'),
-					Configuration::Get(\'paladio-database\', \'query_password\')
+					Configuration::Get(\'paladio-database\', \'persist\'),
+					Configuration::Get(\'paladio-database\', \'modes\'),
+					Configuration::Get(\'paladio-database\', \'fallback_mode\', \'execute\')
 				);
 			'
 		)

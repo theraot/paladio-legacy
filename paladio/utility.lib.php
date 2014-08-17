@@ -9,6 +9,68 @@
 		require_once('string_utility.lib.php');
 	}
 
+	if (!function_exists('array_replace_recursive'))
+	{
+		function array_replace_recursive($array /*, $arrays*/)
+		{
+			$args = func_get_args();
+			if (is_array($array))
+			{
+				for ($index = 1; $index < count($args); $index++)
+				{
+					$target = $args[$index];
+					if (is_array($target))
+					{
+						foreach ($target as $key => $value)
+						{
+							if
+							(
+								array_key_exists($key, $array)
+								&& is_array($array[$key])
+								&& is_array($target[$key])
+							)
+							{
+								$array[$key] = array_replace_recursive($array[$key], $target[$key]);
+							}
+							else
+							{
+								$array[$key] = $target[$key];
+							}
+						}
+					}
+				}
+			}
+			return $array;
+		}
+	}
+
+	if (!function_exists('array_replace'))
+	{
+		function array_replace($array /*, $arrays*/)
+		{
+			$args = func_get_args();
+			if (is_array($array))
+			{
+				for ($index = 1; $index < count($args); $index++)
+				{
+					$target = $args[$index];
+					if (is_array($target))
+					{
+						foreach ($target as $key => $value)
+						{
+							$array[$key] = $target[$key];
+						}
+					}
+					else
+					{
+						return null;
+					}
+				}
+			}
+			return $array;
+		}
+	}
+
 	/**
 	 * Utility
 	 * @package Paladio

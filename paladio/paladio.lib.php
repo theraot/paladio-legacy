@@ -174,7 +174,6 @@
 				Paladio::Dispatch();
 				$petFiles = array();
 				Paladio::Load($path, '*.pet.php', array('Paladio', 'RegisterPET'), $petFiles, true);
-				Configuration::Load($path, true);
 			}
 		}
 

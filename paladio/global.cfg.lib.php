@@ -20,11 +20,21 @@
 				// 'port' =>
 				// 'database' =>
 				// 'charset' => 'UTF8',
-				// 'user' =>
-				// 'password' =>
-				// 'query_user' =>
-				// 'query_password' =>
 				'persist' => 'persistent',
+				/*'modes' => array
+				(
+					'query' => array
+					(
+						'user' =>
+						'password' =>
+					),
+					'execute' => array
+					(
+						'user' =>
+						'password' =>
+					)
+				),*/
+				// 'fallback_mode' => 'execute'
 			),
 			
 			//Configuración global

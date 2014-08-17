@@ -35,7 +35,7 @@
 			{
 				if (array_key_exists($categoryName, Configuration::$callbacks))
 				{
-					foreach($Configuration::$callbacks[$categoryName] as $callback)
+					foreach(Configuration::$callbacks[$categoryName] as $callback)
 					{
 						if (is_callable($callback))
 						{
@@ -63,7 +63,23 @@
 			}
 			if (is_array($configuration))
 			{
-				Configuration::$data = array_replace_recursive(Configuration::$data, $configuration);
+				foreach ($configuration as $key => $value)
+				{
+					if
+					(
+						array_key_exists($key, Configuration::$data)
+						&& is_array(Configuration::$data[$key])
+						&& is_array($configuration[$key])
+					)
+					{
+						Configuration::$data[$key] = array_replace_recursive(Configuration::$data[$key], $configuration[$key]);
+					}
+					else
+					{
+						Configuration::$data[$key] = $configuration[$key];
+					}
+					Configuration::Dispatch($key);
+				}
 			}
 		}
 

@@ -15,12 +15,12 @@
 			//Configuración para control de acceso
 			'paladio-accesscontrol' => array
 			(
-				// 'table =>
+				// 'table' =>
 				// 'id_field' =>
 				// 'password_field' =>
 				// 'salt_field' =>
 				// 'role_field' =>
-				// 'hash_algorithm' => sha1
+				// 'hash_algorithm' => 'sha1'
 			)
 		)
 	);

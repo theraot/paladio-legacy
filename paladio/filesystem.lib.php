@@ -268,8 +268,9 @@
 		 */
 		public static function AppGUID()
 		{
-			$path = FileSystem::FolderInstallation();
-			$salt = "RjfWpx6R";
+			$path = dirname(__FILE__);
+			$path = str_replace(array('/', '\\'), DIRECTORY_SEPARATOR, $path);
+			$salt = filemtime($path);
 			$uname = php_uname('n');
 			$md5 = md5($uname.$path.$salt);
 			return '{'.substr($md5, 0, 8).'-'.substr($md5, 8, 4).'-'.substr($md5, 12, 4).'-'.substr($md5, 16, 4).'-'.substr($md5, 20).'}';

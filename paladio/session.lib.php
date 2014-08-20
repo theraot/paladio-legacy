@@ -5,6 +5,90 @@
 		exit();
 	}
 
+	final class AsyncSessionHandler
+	{
+		private $savePath;
+		
+		private static function AppGUID()
+		{
+			$path = dirname(__FILE__);
+			$path = str_replace(array('/', '\\'), DIRECTORY_SEPARATOR, $path);
+			$salt = filemtime($path);
+			$uname = php_uname('n');
+			$md5 = md5($uname.$path.$salt);
+			return '{'.substr($md5, 0, 8).'-'.substr($md5, 8, 4).'-'.substr($md5, 12, 4).'-'.substr($md5, 16, 4).'-'.substr($md5, 20).'}';
+		}
+
+		function open($savePath, $sessionName)
+		{
+			if (substr($savePath, strlen($savePath) - strlen(DIRECTORY_SEPARATOR)) !== DIRECTORY_SEPARATOR)
+			{
+				$savePath .= DIRECTORY_SEPARATOR;
+			}
+			$this->savePath = $savePath.AsyncSessionHandler::AppGUID().DIRECTORY_SEPARATOR;
+			if (!is_dir($this->savePath))
+			{
+				mkdir($this->savePath, 0777);
+			}
+			return true;
+		}
+
+		function close()
+		{
+			return true;
+		}
+
+		function read($id)
+		{
+			$file = $this->savePath.DIRECTORY_SEPARATOR.'sess_'.$id;
+			$result = @file_get_contents($file);
+			return (string)$result;
+		}
+
+		function write($id, $data)
+		{
+			$file = $this->savePath.DIRECTORY_SEPARATOR.'sess_'.$id;
+			$result = @file_put_contents($file, $data);
+			return $result === false ? false : true;
+		}
+
+		function destroy($id)
+		{
+			$file = $this->savePath.DIRECTORY_SEPARATOR.'sess_'.$id;
+			@unlink($file);
+		}
+
+		function gc($maxlifetime)
+		{
+			$_file = $this->savePath.DIRECTORY_SEPARATOR.'sess_*';
+			$deathTime = time() - $maxlifetime;
+			foreach (glob($_file) as $file)
+			{
+				if (filemtime($file) <= $deathTime)
+				{
+					@unlink($file);
+				}
+			}
+			return true;
+		}
+	}
+
+	$handler = new AsyncSessionHandler();
+
+	@session_set_save_handler
+	(
+		array($handler, 'open'),
+		array($handler, 'close'),
+		array($handler, 'read'),
+		array($handler, 'write'),
+		array($handler, 'destroy'),
+		array($handler, 'gc')
+	);
+
+	unset($handler);
+
+	register_shutdown_function('session_write_close');
+
 	/**
 	 * Session
 	 * @package Paladio

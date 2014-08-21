@@ -40,27 +40,27 @@
 
 		function read($id)
 		{
-			$file = $this->savePath.DIRECTORY_SEPARATOR.'sess_'.$id;
+			$file = $this->savePath.'sess_'.$id;
 			$result = @file_get_contents($file);
 			return (string)$result;
 		}
 
 		function write($id, $data)
 		{
-			$file = $this->savePath.DIRECTORY_SEPARATOR.'sess_'.$id;
+			$file = $this->savePath.'sess_'.$id;
 			$result = @file_put_contents($file, $data);
 			return $result === false ? false : true;
 		}
 
 		function destroy($id)
 		{
-			$file = $this->savePath.DIRECTORY_SEPARATOR.'sess_'.$id;
+			$file = $this->savePath.'sess_'.$id;
 			@unlink($file);
 		}
 
 		function gc($maxlifetime)
 		{
-			$_file = $this->savePath.DIRECTORY_SEPARATOR.'sess_*';
+			$_file = $this->savePath.'sess_*';
 			$deathTime = time() - $maxlifetime;
 			foreach (glob($_file) as $file)
 			{

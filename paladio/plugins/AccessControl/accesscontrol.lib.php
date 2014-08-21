@@ -504,7 +504,7 @@
 		// Public (Constructors)
 		//------------------------------------------------------------
 
-		public function __constrct()
+		public function __construct()
 		{
 			throw new Exception('Creating instances of '.__CLASS__.' is forbidden');
 		}

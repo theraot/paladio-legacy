@@ -1,6 +1,6 @@
 <?php
 	/* filesystem.lib.php by Alfonso J. Ramos is licensed under a Creative Commons Attribution 3.0 Unported License. To view a copy of this license, visit http://creativecommons.org/licenses/by/3.0/ */
-	if (count(get_included_files()) == 1)
+	if (count(get_included_files()) === 1)
 	{
 		header('HTTP/1.0 404 Not Found');
 		exit();
@@ -55,7 +55,7 @@
 			$commonLength = min($absoluteLength, $targetLength);
 			for ($index = 0; $index < $commonLength; $index++)
 			{
-				if ($absolute[$index] != $target[$index])
+				if ($absolute[$index] !== $target[$index])
 				{
 					break;
 				}
@@ -200,7 +200,7 @@
 
 		private static function EndsWith (/*string*/ $string, /*string*/ $with)
 		{
-			if (substr($string, strlen($string) - strlen($with)) == $with)
+			if (substr($string, strlen($string) - strlen($with)) === $with)
 			{
 				return true;
 			}
@@ -212,7 +212,7 @@
 
 		private static function StartsWith (/*string*/ $string, /*string*/ $with)
 		{
-			if (substr($string, 0, strlen($with)) == $with)
+			if (substr($string, 0, strlen($with)) === $with)
 			{
 				return true;
 			}
@@ -268,8 +268,9 @@
 		 */
 		public static function AppGUID()
 		{
-			$path = FileSystem::FolderInstallation();
-			$salt = "RjfWpx6R";
+			$path = dirname(__FILE__);
+			$path = str_replace(array('/', '\\'), DIRECTORY_SEPARATOR, $path);
+			$salt = filemtime($path);
 			$uname = php_uname('n');
 			$md5 = md5($uname.$path.$salt);
 			return '{'.substr($md5, 0, 8).'-'.substr($md5, 8, 4).'-'.substr($md5, 12, 4).'-'.substr($md5, 16, 4).'-'.substr($md5, 20).'}';
@@ -701,7 +702,7 @@
 		 */
 		public static function UriExists(/*string*/ $uri, /*string*/ $path = null)
 		{
-			if (func_num_args() == 1)
+			if (func_num_args() === 1)
 			{
 				$path = FileSystem::FolderInstallation();
 			}

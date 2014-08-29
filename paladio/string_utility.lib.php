@@ -110,7 +110,7 @@
 			else
 			{
 				$len = mb_strlen($string);
-				if ($len <= $split_length)
+				if ($len <= $length)
 				{
 					return array($string);
 				}
